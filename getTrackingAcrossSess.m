@@ -21,25 +21,35 @@ for ii = 1:size(allSess,1)
         fprintf(' ** Examining session %3.i of %3.i... \n',ii, size(allSess,1));
         cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
         [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true);
-        if exist('badChannels.mat','file')
-            load('badChannels.mat')            
-        else 
-            badChannels = [];
-        end
-        if sessionInfo.nChannels<70
-            badChannels = [badChannels 64:1:(sessionInfo.nChannels-1)];
-        else
-            badChannels = [badChannels 128:1:(sessionInfo.nChannels-1)];
-        end
-        SleepScoreMaster(pwd,'stickytrigger',true,'rejectChannels',badChannels,'noPrompts',true); % try to sleep score
-             
+%         if exist('badChannels.mat','file')
+%             load('badChannels.mat')            
+%         else 
+%             badChannels = [];
+%         end
+%         if sessionInfo.nChannels<70
+%             badChannels = [badChannels 64:1:(sessionInfo.nChannels-1)];
+%         else
+%             badChannels = [badChannels 128:1:(sessionInfo.nChannels-1)];
+%         end
+%         SleepScoreMaster(pwd,'stickytrigger',true,'rejectChannels',badChannels,'noPrompts',true); % try to sleep score
+%              
 %         save([allSess(ii).name '.hippocampalLayers.channelinfo.mat'],'hippocampalLayers');
         %AnalysisBatchTheta;
         %getSessionLinearize('forceReload',true);
 %        getPlaceFields;
 %       getPlaceFieldsDownsample('isCA3',isCA3);
-%         file = dir(('*.hippocampalLayers.channelInfo.mat'));
-%         load(file.name);
+        file = dir(('*.hippocampalLayers.channelInfo.mat'));
+        load(file.name);
+        
+        load([sessionInfo.FileName '.session.mat']);
+        if isfield(session.channelTags,'RippleNoise')
+            noiseCh = session.channelTags.RippleNoise.channels-1;
+        else
+            noiseCh = [];
+        end
+            
+        rippleMasterDetectorIZ('rippleChannel',hippocampalLayers.pyramidal,'SWChannel',hippocampalLayers.radiatum,'noiseCh',noiseCh);
+        close all
 %         getLFPduringtrack('refChannel',[],'pyrChPlus',hippocampalLayers.all,'numtrials',15);
 %        getPhasePrecession
 %         file = dir(('*.region.mat'));
