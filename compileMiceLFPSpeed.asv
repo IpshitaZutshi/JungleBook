@@ -1,0 +1,129 @@
+function compileMiceLFPSpeed
+
+mice = {'IZ27\Final','IZ32\Final','IZ33\Final','IZ34\Final'};%If in a 'Final' Folder, include the Final in the string
+parentDir = 'Z:\Homes\zutshi01\Recordings\CA1_silencing\';
+
+freqs = logspace(log10(1),log10(150),200);
+reg = {'CA3','mEC','Both'};
+zone = {'returnB','stemB','delayB','returnS','stemS','delayS'};
+target = {'STEM', 'RETURN'};
+speedRange = 0:1:25;
+thetaRange = [6 12];
+cmap = cbrewer('qual','Pastel2',length(mice));
+
+compiledLFPSpeed.mice = mice;
+
+for rr = 1:length(reg)
+    for cc = 1:length(target)
+        for zz = 1:length(zone)
+           compiledLFPSpeed.specmean{rr,cc}{zz} = [];
+           compiledLFPSpeed.peakThetaFreq{rr,cc}{zz} = [];
+           compiledLFPSpeed.avgThetaAmp{rr,cc}{zz} = [];
+           
+        end
+    end
+end
+
+for m = 1:length(mice)
+    cd(strcat(parentDir, mice{m},'\Summ'));
+    if exist('LFPSpeed.mat','file')
+        load(strcat('LFPSpeed.mat'));
+    else 
+        disp(['LFPSpeed not computed for mouse' mice{m}])
+        continue;
+    end
+    
+    for rr = 2:length(reg)
+        figure(rr)
+        set(gcf,'Position',[50 50 1500 700])
+        for cc = 1:length(target)
+            for zz = 1:length(zone)      
+                for ss = 1:(length(speedRange)-1)
+                    idxCurr = LFPSpeed.vel{rr,cc}{1,zz}>=speedRange(ss) & LFPSpeed.vel{rr,cc}{1,zz} < speedRange(ss+1);
+                    spectemp(:,ss) = nanmedian((LFPSpeed.specgram{rr,cc}{1,zz}(idxCurr,:)).^10)';
+                    
+                end
+                compiledLFPSpeed.specmean{rr,cc}{zz}(:,:,m) = spectemp;%zscore(spectemp,0,'all');
+                freqIdx = find(freqs>thetaRange(1) & freqs <thetaRange(2));
+                freqRange = freqs(freqIdx);
+                [~, idxmax] = max(spectemp(freqIdx,:));
+                compiledLFPSpeed.peakThetaFreq{rr,cc}{zz}(:,:,m) = freqRange(idxmax);
+                compiledLFPSpeed.avgThetaAmp{rr,cc}{zz}(:,:,m) = mean(spectemp);
+                
+                if zz < 4 
+                    loc = zz;
+                    colidx = m;%2*(m-1)+2;
+                    LStyle = '-';
+                else
+                    loc = zz-3;
+                    colidx = m;%2*(m-1)+1;
+                    LStyle = '--';
+                end
+                subplot(2,6,6*(cc-1)+loc) 
+                plot(speedRange(1:(end-1)),compiledLFPSpeed.peakThetaFreq{rr,cc}{zz}(:,:,m),'Color',cmap(colidx,:),'LineWidth',1.5,'LineStyle',LStyle);
+                ylim([4.5 12.5])
+                xlabel('Running Speed (cm/s)');
+                ylabel('Peak theta frequency (Hz)');
+                hold on
+                subplot(2,6,6*(cc-1)+loc+3)  
+                plot(speedRange(1:(end-1)),compiledLFPSpeed.avgThetaAmp{rr,cc}{zz}(:,:,m),'Color',cmap(colidx,:),'LineWidth',1.5,'LineStyle',LStyle);
+                xlabel('Running Speed (cm/s)');
+                ylabel('Average theta power');
+                hold on
+            end
+        end
+
+    end  
+end
+
+for rr = 2:length(reg)
+     
+     for cc = 1:length(target)
+         for zz = 1:length(zone)    
+            if zz < 4 
+                loc = zz;
+                col = [85/243 85/243 85/243];
+            else
+                loc = zz-3;
+                col = [8/243 133/243 161/243];
+            end
+            figure(rr)
+            subplot(2,6,6*(cc-1)+loc) 
+            err = nanstd(compiledLFPSpeed.peakThetaFreq{rr,cc}{zz},[],3)./sqrt(size(compiledLFPSpeed.peakThetaFreq{rr,cc}{zz},3));
+            errorbar(nanmean(compiledLFPSpeed.peakThetaFreq{rr,cc}{zz},3),err,'Color',col,'LineWidth',1.5); 
+            ylim([6 10])
+            
+            subplot(2,6,6*(cc-1)+loc+3) 
+            err = nanstd(compiledLFPSpeed.avgThetaAmp{rr,cc}{zz},[],3)./sqrt(size(compiledLFPSpeed.avgThetaAmp{rr,cc}{zz},3));
+            errorbar(nanmean(compiledLFPSpeed.avgThetaAmp{rr,cc}{zz},3),err,'Color',col,'LineWidth',1.5); 
+            ylim([2*10^6 10*10^6]) 
+          
+            figure(rr+3)
+            set(gcf,'Position',[50 50 1500 700])
+            subplot(2,length(zone),length(zone)*(cc-1)+zz)  
+            contourf(speedRange(1:(end-1)),freqs,nanmean(compiledLFPSpeed.specmean{rr,cc}{zz},3),40,'LineColor','none');hold on;
+            imagesc(speedRange(1:(end-1)),freqs,nanmean(compiledLFPSpeed.specmean{rr,cc}{zz},3))
+            set(gca,'YDir','normal')
+            set(gca,'YScale','log')
+            colormap jet
+            colorbar
+            caxis([0 6*10^6])
+            %caxis([-1 3])
+            ylim([5 150])
+            xlabel('Running speed (cm/s)');
+            ylabel('Frequency (Hz)');
+            title(strcat(target(cc),'.',zone(zz)));
+         end
+     end
+%      saveas(figure(rr),strcat(parentDir,'\Compiled\compiledLFPSpeed',reg{rr},'.png'));
+%      saveas(figure(rr),strcat(parentDir,'\Compiled\compiledLFPSpeed',reg{rr},'.fig'));
+%      saveas(figure(rr),strcat(parentDir,'\Compiled\compiledLFPSpeed',reg{rr},'.eps'),'epsc');
+%      
+%      saveas(figure(rr+3),strcat(parentDir,'\Compiled\compiledLFPSpeedHeatmap',reg{rr},'.png'));
+%      saveas(figure(rr+3),strcat(parentDir,'\Compiled\compiledLFPSpeedHeatmap',reg{rr},'.fig'));
+%      saveas(figure(rr+3),strcat(parentDir,'\Compiled\compiledLFPSpeedHeatmap',reg{rr},'.eps'),'epsc');
+end
+% 
+% save([parentDir '\Compiled\compiledLFPSpeed.mat'], 'compiledLFPSpeed');
+    
+end

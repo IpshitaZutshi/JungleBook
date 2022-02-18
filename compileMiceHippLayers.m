@@ -1,0 +1,622 @@
+% Compile data across all sessions
+
+function compileMiceHippLayers(varargin)
+
+%% Defaults and Parms
+p = inputParser;
+addParameter(p,'parentDir','Z:\Homes\zutshi01\Recordings\CA1_silencing\',@isfolder);
+addParameter(p,'savePlot',true,@islogical);
+addParameter(p,'combineSessions',false,@islogical);
+parse(p,varargin{:});
+
+parentDir = p.Results.parentDir;
+savePlot = p.Results.savePlot;
+combineSessions = p.Results.combineSessions;
+
+tag = 'CA1'; 
+
+if strcmp(tag,'CA1') == 1
+    mice = {'IZ15\Final','IZ18\Final','IZ20\Final','IZ21\Final','IZ30\Final','IZ31\Final'};
+    reg = {'CA1','mEC','Both'};%'IZ15\Final','IZ30\Final',
+elseif strcmp(tag,'mEC') == 1
+    mice = {'IZ12\Final','IZ13\Final','IZ15\Final','IZ17\Final','IZ18\Final','IZ20\Final',...
+        'IZ21\Final','IZ24\Final', 'IZ25\Final', 'IZ26\Final','IZ27\Final','IZ28\Final',...
+        'IZ29\Final','IZ30\Final','IZ31\Final','IZ32\Final','IZ33\Final','IZ34\Final'};  % To add: IZ23, IZ32, IZ33, IZ34
+    reg = {'CA1','mEC','Both'};
+elseif strcmp(tag,'CA3') == 1
+    mice = {'IZ27\Final','IZ28\Final','IZ29\Final','IZ32\Final','IZ33\Final','IZ34\Final'}; 
+    reg = {'CA3','mEC','Both'};
+elseif strcmp(tag,'CA3Saline') == 1
+    mice = {'IZ27\Saline','IZ28\Saline','IZ29\Saline','IZ32\Saline','IZ33\Saline','IZ34\Saline'}; % To add: IZ32, IZ33, IZ34
+    reg = {'CA3','mEC','Both'};
+elseif strcmp(tag,'mECBilateral') == 1 
+    mice = {'IZ24\Final','IZ25\Final','IZ26\Final'};    %
+    reg = {'contramEC','ipsimEC','Both'};
+end
+
+reg = {'CA3','mEC','Both'};
+zone = {'returnB','stemB','delayB','returnS','stemS','delayS'};
+target = {'STEM', 'RETURN'};
+
+
+for ii = 1:length(reg)
+    for jj = 1:length(target)
+        for kk = 1:length(zone)      
+            layerProfile.csd{ii,jj}{kk} = [];
+            layerProfile.cohTheta{ii,jj}{kk} = [];
+            layerProfile.cohThetaPhase{ii,jj}{kk} = [];
+            layerProfile.thetaPower{ii,jj}{kk} = [];
+            layerProfile.sgPower{ii,jj}{kk} = [];
+            layerProfile.mgPower{ii,jj}{kk} = [];
+            layerProfile.hfoPower{ii,jj}{kk} = [];
+        end
+    end
+end
+
+
+    
+%% Loop through the mice
+for m = 1:length(mice)
+    
+    cd(strcat(parentDir, mice{m},'\Summ'));
+    if exist(strcat('Summ\PowerProfile.mat'),'file')
+        load(strcat('Summ\PowerProfile.mat'));
+    else 
+        disp(['Power profile not computed for mouse' mice{m}])
+        continue;
+    end
+    
+    if exist(strcat('Summ\csdcohData.mat'),'file')
+        load(strcat('Summ\csdcohData.mat'));
+    else 
+        disp(['CSD Coherence not computed for mouse' mice{m}])
+        continue;
+    end
+    
+    % Define this for each mouse
+    for rr = 1:3
+        for cc = 1:2
+           layers{rr,cc} = [];
+        end
+    end
+    channelOrder = [];
+
+    % Have to cycle through each session to pick the channels for each day
+    cd(strcat(parentDir, mice{m}));
+    allSess = dir('*_sess*');
+    
+    % Start collecting data
+    for ss = 1:size(allSess,1)
+        cd(strcat(allSess(ss).folder,'\',allSess(ss).name));
+        [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true);    
+        
+        load([sessionInfo.FileName '.hippocampalLayers.channelinfo.mat']);
+        channelOrder = hippocampalLayers.channelOrder;
+        
+        file = dir(('*.SessionPulses.Events.mat'));
+        load(file.name);
+        
+        efields = fieldnames(sessionPulses);    
+
+        for jj = 1:length(efields)
+            region = sessionPulses.(efields{jj}).region; %1 is CA1/CA3, 2 is mec, 3 is both
+            target = sessionPulses.(efields{jj}).target; %1 is stem, 2 is return
+            
+            layers{region,target} = [layers{region,target}; hippocampalLayers.all'];
+        end
+    end
+        
+    for ii = 1:3
+        for jj = 1:2
+            for kk = 1:6 
+                csd = [];
+                cohTheta = [];
+                cohThetaPhase = [];
+                thetaPower = [];
+                sgPower = [];
+                mgPower = [];      
+                hfoPower = [];
+                % One value per animal
+                % Number of sessions for condition - 
+                for ll = 1:size(layers{ii,jj},1)
+                    if ~isempty(PowerProfile.theta{ii,jj}{kk})
+                        if (strcmp(mice{m},'IZ28\Final')==1 && jj == 1 && ll == 1) || (strcmp(mice{m},'IZ27\Final')==1 && jj == 1 && ll == 2) 
+                            continue
+                        else
+                            layerInfo = layers{ii,jj}(ll,:);
+                            thetaPower(ll,:) = PowerProfile.theta{ii,jj}{kk}(layerInfo+1,1,ll+1);
+                            sgPower(ll,:) = PowerProfile.sg{ii,jj}{kk}(layerInfo+1,1,ll+1);
+                            mgPower(ll,:) = PowerProfile.mg{ii,jj}{kk}(layerInfo+1,1,ll+1);
+                            hfoPower(ll,:) = PowerProfile.hfo{ii,jj}{kk}(layerInfo+1,1,ll+1);
+            
+                            [~,layerInfoIdx] = ismember(layerInfo,channelOrder);
+                            if layerInfoIdx(1) == 1
+                                layerInfoIdx(1) = 2;
+                            end
+                            %correct slm channel
+                            [~,minCSD] = min(csdcohData.csd{ii,jj}{kk}(1,:,ll));
+                            if abs(minCSD-layerInfoIdx(4))<=7
+                                layerInfoIdx(4) = minCSD;
+                            end
+                            if layerInfoIdx(4) == length(channelOrder)
+                                layerInfoIdx(4) = length(channelOrder)-1;
+                            end
+                            csd(ll,:) = csdcohData.csd{ii,jj}{kk}(1,layerInfoIdx,ll);
+                            cohTheta(ll,:) = csdcohData.cohTheta{ii,jj}{kk}(1,layerInfoIdx,ll);
+                            cohThetaPhase(ll,:) = csdcohData.cohPhaseTheta{ii,jj}{kk}(1,layerInfoIdx,ll);
+                        end
+                    end
+                end
+                
+                if combineSessions
+                    if ~isempty(csd)
+                        layerProfile.csd{ii,jj}{kk}(m,:) = nanmedian(csd,1);
+                        layerProfile.cohTheta{ii,jj}{kk}(m,:) = nanmedian(cohTheta,1);
+                        layerProfile.cohThetaPhase{ii,jj}{kk}(m,:) = nanmedian(cohThetaPhase,1);
+                        layerProfile.thetaPower{ii,jj}{kk}(m,:) = nanmedian(thetaPower,1);
+                        layerProfile.sgPower{ii,jj}{kk}(m,:) = nanmedian(sgPower,1);
+                        layerProfile.mgPower{ii,jj}{kk}(m,:) = nanmedian(mgPower,1);
+                        layerProfile.hfoPower{ii,jj}{kk}(m,:) = nanmedian(hfoPower,1);
+                    end
+                else
+                    layerProfile.csd{ii,jj}{kk} = [layerProfile.csd{ii,jj}{kk}; csd];
+                    layerProfile.cohTheta{ii,jj}{kk} = [layerProfile.cohTheta{ii,jj}{kk}; cohTheta];
+                    layerProfile.cohThetaPhase{ii,jj}{kk} = [layerProfile.cohThetaPhase{ii,jj}{kk}; cohThetaPhase];
+                    layerProfile.thetaPower{ii,jj}{kk} = [layerProfile.thetaPower{ii,jj}{kk}; thetaPower];
+                    layerProfile.sgPower{ii,jj}{kk} = [layerProfile.sgPower{ii,jj}{kk}; sgPower];
+                    layerProfile.mgPower{ii,jj}{kk} = [layerProfile.mgPower{ii,jj}{kk}; mgPower];
+                    if strcmp(mice{m},'IZ21\Final')==1
+                        layerProfile.hfoPower{ii,jj}{kk} = [layerProfile.hfoPower{ii,jj}{kk}; nan(size(hfoPower))];
+                    else
+                        layerProfile.hfoPower{ii,jj}{kk} = [layerProfile.hfoPower{ii,jj}{kk}; hfoPower];
+                    end
+                end
+                clear csd cohTheta cohThetaPhase thetaPower sgPower mgPower hfoPower    
+            end
+        end
+    end
+    
+    clear layers
+end
+ 
+for ii = 1:length(reg)
+    for jj = 1:length(target)
+        csd{ii,jj} = [];
+        cohTheta{ii,jj} = [];
+        cohThetaPhase{ii,jj} = [];
+        thetaPower{ii,jj} = [];
+        sgPower{ii,jj} = [];
+        mgPower{ii,jj} = [];
+        hfoPower{ii,jj} = [];
+    end
+end
+
+reg = {'CA3','mEC','Both'};
+target = {'STEM', 'RETURN'};
+
+if strcmp(tag,'CA3') == 1 || strcmp(tag,'CA3Saline') == 1 
+    for jj = 1:length(target)
+        for kk = 1:3  % 4 to 6 is the stim condition
+            % Ways to normalize           
+            % CA3
+            csd{1,jj}{kk} = (layerProfile.csd{3,jj}{kk}-layerProfile.csd{2,jj}{kk});%./(layerProfile.csd{2,jj}{kk});
+            cohTheta{1,jj}{kk} = (layerProfile.cohTheta{3,jj}{kk}-layerProfile.cohTheta{2,jj}{kk})./(layerProfile.cohTheta{2,jj}{kk});
+            cohThetaPhase{1,jj}{kk} = (layerProfile.cohThetaPhase{3,jj}{kk}-layerProfile.cohThetaPhase{2,jj}{kk})./(layerProfile.cohThetaPhase{2,jj}{kk});
+            thetaPower{1,jj}{kk} = (layerProfile.thetaPower{3,jj}{kk}-layerProfile.thetaPower{2,jj}{kk})./(layerProfile.thetaPower{2,jj}{kk});
+            sgPower{1,jj}{kk} = (layerProfile.sgPower{3,jj}{kk}-layerProfile.sgPower{2,jj}{kk})./(layerProfile.sgPower{2,jj}{kk});
+            mgPower{1,jj}{kk} = (layerProfile.mgPower{3,jj}{kk}-layerProfile.mgPower{2,jj}{kk})./(layerProfile.mgPower{2,jj}{kk});
+
+            % mEC
+            csd{2,jj}{kk} = (layerProfile.csd{2,jj}{kk+3}-layerProfile.csd{2,jj}{kk});%./(layerProfile.csd{2,jj}{kk});
+            cohTheta{2,jj}{kk} = (layerProfile.cohTheta{2,jj}{kk+3}-layerProfile.cohTheta{2,jj}{kk})./(layerProfile.cohTheta{2,jj}{kk});
+            cohThetaPhase{2,jj}{kk} = (layerProfile.cohThetaPhase{2,jj}{kk+3}-layerProfile.cohThetaPhase{2,jj}{kk})./(layerProfile.cohThetaPhase{2,jj}{kk});
+            thetaPower{2,jj}{kk} = (layerProfile.thetaPower{2,jj}{kk+3}-layerProfile.thetaPower{2,jj}{kk})./(layerProfile.thetaPower{2,jj}{kk});
+            sgPower{2,jj}{kk} = (layerProfile.sgPower{2,jj}{kk+3}-layerProfile.sgPower{2,jj}{kk})./(layerProfile.sgPower{2,jj}{kk});
+            mgPower{2,jj}{kk} = (layerProfile.mgPower{2,jj}{kk+3}-layerProfile.mgPower{2,jj}{kk})./(layerProfile.mgPower{2,jj}{kk});
+
+            %Both
+            csd{3,jj}{kk} = (layerProfile.csd{3,jj}{kk+3}-layerProfile.csd{2,jj}{kk});%./(layerProfile.csd{2,jj}{kk});
+            cohTheta{3,jj}{kk} = (layerProfile.cohTheta{3,jj}{kk+3}-layerProfile.cohTheta{2,jj}{kk})./(layerProfile.cohTheta{2,jj}{kk});
+            cohThetaPhase{3,jj}{kk} = (layerProfile.cohThetaPhase{3,jj}{kk+3}-layerProfile.cohThetaPhase{2,jj}{kk})./(layerProfile.cohThetaPhase{2,jj}{kk});
+            thetaPower{3,jj}{kk} = (layerProfile.thetaPower{3,jj}{kk+3}-layerProfile.thetaPower{2,jj}{kk})./(layerProfile.thetaPower{2,jj}{kk});
+            sgPower{3,jj}{kk} = (layerProfile.sgPower{3,jj}{kk+3}-layerProfile.sgPower{2,jj}{kk})./(layerProfile.sgPower{2,jj}{kk});
+            mgPower{3,jj}{kk} = (layerProfile.mgPower{3,jj}{kk+3}-layerProfile.mgPower{2,jj}{kk})./(layerProfile.mgPower{2,jj}{kk});                
+            
+        end             
+    end
+else
+    for ii = 1:length(reg)
+        for jj = 1:length(target)
+            for kk = 1:3  % 4 to 6 is the stim condition
+               % Ways to normalize
+%                 csd{ii,jj}{kk} = (layerProfile.csd{ii,jj}{kk+3}-layerProfile.csd{ii,jj}{kk})./(layerProfile.csd{ii,jj}{kk}+layerProfile.csd{ii,jj}{kk+3});
+%                 cohTheta{ii,jj}{kk} = (layerProfile.cohTheta{ii,jj}{kk+3}-layerProfile.cohTheta{ii,jj}{kk})./(layerProfile.cohTheta{ii,jj}{kk}+layerProfile.cohTheta{ii,jj}{kk+3});
+%                 cohThetaPhase{ii,jj}{kk} = (layerProfile.cohThetaPhase{ii,jj}{kk+3}-layerProfile.cohThetaPhase{ii,jj}{kk})./(layerProfile.cohThetaPhase{ii,jj}{kk}+layerProfile.cohThetaPhase{ii,jj}{kk+3});
+%                 thetaPower{ii,jj}{kk} = (layerProfile.thetaPower{ii,jj}{kk+3}-layerProfile.thetaPower{ii,jj}{kk})./(layerProfile.thetaPower{ii,jj}{kk}+layerProfile.thetaPower{ii,jj}{kk+3});
+%                 sgPower{ii,jj}{kk} = (layerProfile.sgPower{ii,jj}{kk+3}-layerProfile.sgPower{ii,jj}{kk})./(layerProfile.sgPower{ii,jj}{kk}+layerProfile.sgPower{ii,jj}{kk+3});
+%                 mgPower{ii,jj}{kk} = (layerProfile.mgPower{ii,jj}{kk+3}-layerProfile.mgPower{ii,jj}{kk})./(layerProfile.mgPower{ii,jj}{kk}+layerProfile.mgPower{ii,jj}{kk+3});
+%                 hfoPower{ii,jj}{kk} = (layerProfile.hfoPower{ii,jj}{kk+3}-layerProfile.hfoPower{ii,jj}{kk})./(layerProfile.hfoPower{ii,jj}{kk}+layerProfile.hfoPower{ii,jj}{kk+3});
+%                 
+                csd{ii,jj}{kk} = (layerProfile.csd{ii,jj}{kk+3}-layerProfile.csd{ii,jj}{kk})./(layerProfile.csd{ii,jj}{kk});
+                cohTheta{ii,jj}{kk} = (layerProfile.cohTheta{ii,jj}{kk+3}-layerProfile.cohTheta{ii,jj}{kk})./(layerProfile.cohTheta{ii,jj}{kk});
+                cohThetaPhase{ii,jj}{kk} = (layerProfile.cohThetaPhase{ii,jj}{kk+3}-layerProfile.cohThetaPhase{ii,jj}{kk})./(layerProfile.cohThetaPhase{ii,jj}{kk});
+                thetaPower{ii,jj}{kk} = (layerProfile.thetaPower{ii,jj}{kk+3}-layerProfile.thetaPower{ii,jj}{kk})./(layerProfile.thetaPower{ii,jj}{kk});
+                sgPower{ii,jj}{kk} = (layerProfile.sgPower{ii,jj}{kk+3}-layerProfile.sgPower{ii,jj}{kk})./(layerProfile.sgPower{ii,jj}{kk});
+                mgPower{ii,jj}{kk} = (layerProfile.mgPower{ii,jj}{kk+3}-layerProfile.mgPower{ii,jj}{kk})./(layerProfile.mgPower{ii,jj}{kk});
+                hfoPower{ii,jj}{kk} = (layerProfile.hfoPower{ii,jj}{kk+3}-layerProfile.hfoPower{ii,jj}{kk})./(layerProfile.hfoPower{ii,jj}{kk});
+%                   
+%                 csd{ii,jj}{kk} = (layerProfile.csd{ii,jj}{kk+3})./(layerProfile.csd{ii,jj}{kk});
+%                 cohTheta{ii,jj}{kk} = (layerProfile.cohTheta{ii,jj}{kk+3})./(layerProfile.cohTheta{ii,jj}{kk});
+%                 cohThetaPhase{ii,jj}{kk} = (layerProfile.cohThetaPhase{ii,jj}{kk+3})./(layerProfile.cohThetaPhase{ii,jj}{kk});
+%                 thetaPower{ii,jj}{kk} = (layerProfile.thetaPower{ii,jj}{kk+3})./(layerProfile.thetaPower{ii,jj}{kk});
+%                 sgPower{ii,jj}{kk} = (layerProfile.sgPower{ii,jj}{kk+3})./(layerProfile.sgPower{ii,jj}{kk});
+%                 mgPower{ii,jj}{kk} = (layerProfile.mgPower{ii,jj}{kk+3})./(layerProfile.mgPower{ii,jj}{kk});
+%                 hfoPower{ii,jj}{kk} = (layerProfile.hfoPower{ii,jj}{kk+3})./(layerProfile.hfoPower{ii,jj}{kk});
+% 
+%                 csd{ii,jj}{kk} = abs(layerProfile.csd{ii,jj}{kk+3})- abs(layerProfile.csd{ii,jj}{kk});
+%                 cohTheta{ii,jj}{kk} = (layerProfile.cohTheta{ii,jj}{kk+3}-layerProfile.cohTheta{ii,jj}{kk});
+%                 cohThetaPhase{ii,jj}{kk} = (layerProfile.cohThetaPhase{ii,jj}{kk+3}-layerProfile.cohThetaPhase{ii,jj}{kk});
+%                 thetaPower{ii,jj}{kk} = (layerProfile.thetaPower{ii,jj}{kk+3}-layerProfile.thetaPower{ii,jj}{kk});
+%                 sgPower{ii,jj}{kk} = (layerProfile.sgPower{ii,jj}{kk+3}-layerProfile.sgPower{ii,jj}{kk});
+%                 mgPower{ii,jj}{kk} = (layerProfile.mgPower{ii,jj}{kk+3}-layerProfile.mgPower{ii,jj}{kk});
+%                
+            end                    
+        end        
+    end 
+end
+
+if strcmp(tag,'mEC') == 1
+    for jj = 1%:length(target)
+        figure
+        set(gcf,'Position',[100 100 1500 1000])
+        set(gcf,'renderer','painters')
+        for kk = 1:2    
+            manip = [];
+            layer = [];
+
+            datacsd{kk} = [];
+            datathetaPower{kk} = [];
+            datasgPower{kk} = [];
+            datamgPower{kk} = [];
+            datahfoPower{kk} = [];
+
+            datacsd{kk} = catpad(2,datacsd{kk},csd{2,jj}{kk});
+            datathetaPower{kk} = catpad(2,datathetaPower{kk},thetaPower{2,jj}{kk});
+            datasgPower{kk} = catpad(2,datasgPower{kk},sgPower{2,jj}{kk});
+            datamgPower{kk} = catpad(2,datamgPower{kk},mgPower{2,jj}{kk});
+            datahfoPower{kk} = catpad(2,datahfoPower{kk},hfoPower{2,jj}{kk});
+
+            subplot(2,4,4*(kk-1)+1)
+            for yy = 1:size(datacsd{kk},2)
+                boxchart(yy*ones(size(datacsd{kk}(:,yy))), datacsd{kk}(:,yy), 'BoxFaceColor',[8/243 133/243 161/243],'MarkerStyle','none','Orientation','horizontal')
+                hold on
+                scatter(datacsd{kk}(:,yy),yy*ones(size(datacsd{kk}(:,yy)))-0.3,10,'MarkerFaceColor',[8/243 133/243 161/243],'MarkerEdgeColor','k')
+            end
+            xlim([-150 150])
+            ylim([0 5])
+            set(gca,'YDir','rev')
+            line([0 0],[0 5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            xlabel('(Stim-Baseline)')
+            title('CSD')
+
+            subplot(2,4,4*(kk-1)+2)
+            for yy = 1:size(datathetaPower{kk},2)
+                boxchart(yy*ones(size(datathetaPower{kk}(:,yy))), datathetaPower{kk}(:,yy), 'BoxFaceColor',[8/243 133/243 161/243],'MarkerStyle','none','Orientation','horizontal')
+                hold on
+                scatter(datathetaPower{kk}(:,yy),yy*ones(size(datathetaPower{kk}(:,yy)))-0.3,10,'MarkerFaceColor',[8/243 133/243 161/243],'MarkerEdgeColor','k')
+            end
+
+            xlim([-1 0.5])
+            ylim([0 5])
+            set(gca,'YDir','rev')
+            line([0 0],[0 5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            xlabel('(Stim-Baseline)/Baseline')
+            title('Theta Power')
+
+            subplot(2,4,4*(kk-1)+3)
+            for yy = 1:size(datasgPower{kk},2)
+                boxchart(yy*ones(size(datasgPower{kk}(:,yy))), datasgPower{kk}(:,yy), 'BoxFaceColor',[8/243 133/243 161/243],'MarkerStyle','none','Orientation','horizontal')
+                hold on
+                scatter(datasgPower{kk}(:,yy),yy*ones(size(datasgPower{kk}(:,yy)))-0.3,10,'MarkerFaceColor',[8/243 133/243 161/243],'MarkerEdgeColor','k')
+            end
+            xlim([-1 0.5])
+            ylim([0 5])
+            set(gca,'YDir','rev')
+            line([0 0],[0 5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            xlabel('(Stim-Baseline)/Baseline')
+            title('SG Power')
+
+            subplot(2,4,4*(kk-1)+4)
+            for yy = 1:size(datamgPower{kk},2)
+                boxchart(yy*ones(size(datamgPower{kk}(:,yy))), datamgPower{kk}(:,yy), 'BoxFaceColor', [8/243 133/243 161/243],'MarkerStyle','none','Orientation','horizontal')
+                hold on
+                scatter(datamgPower{kk}(:,yy),yy*ones(size(datamgPower{kk}(:,yy)))-0.3,10,'MarkerFaceColor',[8/243 133/243 161/243],'MarkerEdgeColor','k')
+            end
+            xlim([-1 0.5])
+            ylim([0 5])
+            set(gca,'YDir','rev')
+            line([0 0],[0 5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            xlabel('(Stim-Baseline)/Baseline')
+            title('MG Power')
+        end
+        saveas(gcf,strcat(parentDir,'\Compiled\Power Profile\CompiledProfileLayers\PowerProfile',tag,'.png'));
+        saveas(gcf,strcat(parentDir,'\Compiled\Power Profile\CompiledProfileLayers\PowerProfile',tag,'.fig'));
+        saveas(gcf,strcat(parentDir,'\Compiled\Power Profile\CompiledProfileLayers\PowerProfile',tag,'.eps'),'epsc');
+    end 
+
+    % Okay now figure out the stats
+    for kk = 1:2
+
+        dataTableCSD = [];
+        dataTablethetaPower = [];
+        dataTablesgPower = [];
+        dataTablemgPower = [];
+        dataTablehfoPower = [];
+        manip = [];
+        layer = [];
+
+        dataTableCSD = datacsd{kk};
+        dataTablethetaPower = datathetaPower{kk};
+        dataTablesgPower = datasgPower{kk};
+        dataTablemgPower = datamgPower{kk};   
+        dataTablehfoPower = datahfoPower{kk};
+
+        dataTableCSD = reshape(dataTableCSD,[numel(dataTableCSD),1]);
+        dataTablethetaPower = reshape(dataTablethetaPower,[numel(dataTablethetaPower),1]);
+        dataTablesgPower  = reshape(dataTablesgPower,[numel(dataTablesgPower),1]);
+        dataTablemgPower = reshape(dataTablemgPower,[numel(dataTablemgPower),1]);
+        dataTablehfoPower = reshape(dataTablehfoPower,[numel(dataTablehfoPower),1]);
+        
+        layer1 = 1;%{'or'};
+        layer1 = repmat(layer1,[size(datacsd{1},1),1]);
+        layer2 = 2;%{'pyr'};
+        layer2 = repmat(layer2,[size(datacsd{1},1),1]);
+        layer3 = 3;%{'rad'};
+        layer3 = repmat(layer3,[size(datacsd{1},1),1]);
+        layer4 = 4;%{'slm'};
+        layer4 = repmat(layer4,[size(datacsd{1},1),1]);
+        layer = [layer1; layer2; layer3; layer4];%;layer1; layer2; layer3; layer4];
+
+
+        [statsCSD{kk}] = groupStats(dataTableCSD,[layer],'doPlot',false);
+        [statsthetaPower{kk}] = groupStats(dataTablethetaPower,[layer],'doPlot',false);
+        [statssgPower{kk}] = groupStats(dataTablesgPower,[layer],'doPlot',false);
+        [statsmgPower{kk}] = groupStats(dataTablemgPower,[layer],'doPlot',false);
+        [statshfoPower{kk}] = groupStats(dataTablehfoPower,[layer],'doPlot',false);
+    end
+    
+else    
+    colMat = [56/243 61/243 150/243;...
+        224/243 163/243 46/243;... 
+        8/243 133/243 161/243];   
+
+    for jj = 1%:length(target)
+        figure
+        set(gcf,'Position',[100 100 1500 1000])
+        set(gcf,'renderer','painters')
+        for kk = 1:2    
+            manip = [];
+            layer = [];
+
+            datacsd{kk} = [];
+            datathetaPower{kk} = [];
+            datasgPower{kk} = [];
+            datamgPower{kk} = [];
+            datahfoPower{kk} = [];
+            for ii = 1:length(reg)
+
+                datacsd{kk} = catpad(2,datacsd{kk},csd{ii,jj}{kk});
+                datathetaPower{kk} = catpad(2,datathetaPower{kk},thetaPower{ii,jj}{kk});
+                datasgPower{kk} = catpad(2,datasgPower{kk},sgPower{ii,jj}{kk});
+                datamgPower{kk} = catpad(2,datamgPower{kk},mgPower{ii,jj}{kk});
+                datahfoPower{kk} = catpad(2,datahfoPower{kk},hfoPower{ii,jj}{kk});
+    %                 csdtemp = reshape(csd{ii,jj}{kk},[numel(csd{ii,jj}{kk}),1]);
+    %                 thetatemp = reshape(thetaPower{ii,jj}{kk},[numel(thetaPower{ii,jj}{kk}),1]);
+    %                 sgtemp = reshape(sgPower{ii,jj}{kk},[numel(sgPower{ii,jj}{kk}),1]);
+    %                 mgtemp = reshape(mgPower{ii,jj}{kk},[numel(mgPower{ii,jj}{kk}),1]);
+    %                 
+    %                 datacsd{kk} = [datacsd{kk}; csdtemp];
+    %                 datathetaPower{kk} = [datathetaPower{kk};thetatemp];
+    %                 datasgPower{kk} = [datasgPower{kk};sgtemp];
+    %                 datamgPower{kk} = [datamgPower{kk};mgtemp];          
+            end
+
+    %         manip = [];
+    %         manip(1:numel(csd{1,jj}{kk})) = 1;
+    %         manip((numel(csd{1,jj}{kk})+1):(numel(csd{1,jj}{kk})+numel(csd{2,jj}{kk}))) = 2;
+    %         manip((numel(csd{1,jj}{kk})+1+numel(csd{2,jj}{kk})):(numel(csd{1,jj}{kk})+numel(csd{2,jj}{kk})+numel(csd{3,jj}{kk}))) = 3;
+    % 
+    %         layer = [];
+    %         num1 = numel(csd{1,jj}{kk});
+    %         num2 = numel(csd{2,jj}{kk});
+    %         num3 = numel(csd{3,jj}{kk});
+    %         layer([1:num1/4, num1:num1+num2/4, num1+num2:num1+num2+num3/4]) = 1;
+    %         layer([(num1/4)+1:2*num1/4,num1+(num2/4)+1:num1+2*num2/4, num1+num2+num3/4+1:num1+num2+2*num3/4]) = 2;
+    %         layer([2*(num1/4)+1:3*num1/4,num1+2*(num2/4)+1:num1+3*num2/4, num1+num2+2*num3/4+1:num1+num2+3*num3/4]) = 3;
+    %         layer([3*(num1/4)+1:3*num1/4,num1+3*(num2/4)+1:num1+4*num2/4, num1+num2+3*num3/4+1:num1+num2+4*num3/4]) = 4;
+    % 
+    % 
+    %         datacsd{kk}(datacsd{kk}<=0) = nan;
+
+%             if strcmp(tag, 'mECBilateral')==1
+%                 if kk ==2
+%                     datathetaPower{kk}(datathetaPower{kk}>0.7) = nan;
+%                 end
+% 
+%                 datamgPower{kk}(datamgPower{kk}>1.1) = nan;
+%             end
+
+            if strcmp(tag, 'CA1')==1
+                datahfoPower{kk}(datahfoPower{kk}>1) = nan;
+            end
+
+            datacsd{kk} = datacsd{kk}(:,[1 5 9 2 6 10 3 7 11 4 8 12]);
+            datathetaPower{kk} = datathetaPower{kk}(:,[1 5 9 2 6 10 3 7 11 4 8 12]);
+            datasgPower{kk} = datasgPower{kk}(:,[1 5 9 2 6 10 3 7 11 4 8 12]);
+            datamgPower{kk} = datamgPower{kk}(:,[1 5 9 2 6 10 3 7 11 4 8 12]);
+            datahfoPower{kk} = datahfoPower{kk}(:,[1 5 9 2 6 10 3 7 11 4 8 12]);
+
+            subplot(2,5,5*(kk-1)+1)
+            for yy = 1:size(datacsd{kk},2)
+                boxchart(yy*ones(size(datacsd{kk}(:,yy))), datacsd{kk}(:,yy), 'BoxFaceColor', colMat(rem(yy,3)+1,:),'MarkerStyle','none','Orientation','horizontal')
+                hold on
+                scatter(datacsd{kk}(:,yy),yy*ones(size(datacsd{kk}(:,yy)))-0.3,10,'MarkerFaceColor',colMat(rem(yy,3)+1,:),'MarkerEdgeColor',colMat(rem(yy,3)+1,:))
+            end
+            xlim([-150 150])
+            ylim([0 13])
+            set(gca,'YDir','rev')
+            line([0 0],[0 13],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-150 150],[3.5 3.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-150 150],[6.5 6.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-150 150],[9.5 9.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            xlabel('(Stim-Baseline)/Baseline')
+            title('CSD')
+
+            subplot(2,5,5*(kk-1)+2)
+            for yy = 1:size(datathetaPower{kk},2)
+                boxchart(yy*ones(size(datathetaPower{kk}(:,yy))), datathetaPower{kk}(:,yy), 'BoxFaceColor', colMat(rem(yy,3)+1,:),'MarkerStyle','none','Orientation','horizontal')
+                hold on
+                scatter(datathetaPower{kk}(:,yy),yy*ones(size(datathetaPower{kk}(:,yy)))-0.3,10,'MarkerFaceColor',colMat(rem(yy,3)+1,:),'MarkerEdgeColor',colMat(rem(yy,3)+1,:))
+            end
+
+            xlim([-1 1.5])
+            ylim([0 13])
+            set(gca,'YDir','rev')
+            line([0 0],[0 13],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-1 1],[3.5 3.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-1 1],[6.5 6.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-1 1],[9.5 9.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            xlabel('(Stim-Baseline)/Baseline')
+            title('Theta Power')
+
+            subplot(2,5,5*(kk-1)+3)
+            for yy = 1:size(datasgPower{kk},2)
+                boxchart(yy*ones(size(datasgPower{kk}(:,yy))), datasgPower{kk}(:,yy), 'BoxFaceColor', colMat(rem(yy,3)+1,:),'MarkerStyle','none','Orientation','horizontal')
+                hold on
+                scatter(datasgPower{kk}(:,yy),yy*ones(size(datasgPower{kk}(:,yy)))-0.3,10,'MarkerFaceColor',colMat(rem(yy,3)+1,:),'MarkerEdgeColor',colMat(rem(yy,3)+1,:))
+            end
+            xlim([-1 1])
+            ylim([0 13])
+            set(gca,'YDir','rev')
+            line([0 0],[0 13],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-1 1],[3.5 3.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-1 1],[6.5 6.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-1 1],[9.5 9.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            xlabel('(Stim-Baseline)/Baseline')
+            title('SG Power')
+
+            subplot(2,5,5*(kk-1)+4)
+            for yy = 1:size(datamgPower{kk},2)
+                boxchart(yy*ones(size(datamgPower{kk}(:,yy))), datamgPower{kk}(:,yy), 'BoxFaceColor', colMat(rem(yy,3)+1,:),'MarkerStyle','none','Orientation','horizontal')
+                hold on
+                scatter(datamgPower{kk}(:,yy),yy*ones(size(datamgPower{kk}(:,yy)))-0.3,10,'MarkerFaceColor',colMat(rem(yy,3)+1,:),'MarkerEdgeColor',colMat(rem(yy,3)+1,:))
+            end
+            xlim([-1 1])
+            ylim([0 13])
+            set(gca,'YDir','rev')
+            line([0 0],[0 13],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-1 1],[3.5 3.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-1 1],[6.5 6.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-1 1],[9.5 9.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            xlabel('(Stim-Baseline)/Baseline')
+            title('MG Power')
+
+            subplot(2,5,5*(kk-1)+5)
+            for yy = 1:size(datahfoPower{kk},2)
+                boxchart(yy*ones(size(datahfoPower{kk}(:,yy))), datahfoPower{kk}(:,yy), 'BoxFaceColor', colMat(rem(yy,3)+1,:),'MarkerStyle','none','Orientation','horizontal')
+                hold on
+                scatter(datahfoPower{kk}(:,yy),yy*ones(size(datahfoPower{kk}(:,yy)))-0.3,10,'MarkerFaceColor',colMat(rem(yy,3)+1,:),'MarkerEdgeColor',colMat(rem(yy,3)+1,:))
+            end
+           % xlim([-1 1])
+            ylim([0 13])
+            set(gca,'YDir','rev')
+            line([0 0],[0 13],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-1 1],[3.5 3.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-1 1],[6.5 6.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            line([-1 1],[9.5 9.5],'Color',[0.5 0.5 0.5],'LineStyle','--')
+            xlabel('(Stim-Baseline)/Baseline')
+            title('HFO Power')
+
+        end
+    %     saveas(gcf,strcat(parentDir,'\Compiled\Power Profile\CompiledProfileLayers\PowerProfile',tag,'.png'));
+    %     saveas(gcf,strcat(parentDir,'\Compiled\Power Profile\CompiledProfileLayers\PowerProfile',tag,'.fig'));
+    %     saveas(gcf,strcat(parentDir,'\Compiled\Power Profile\CompiledProfileLayers\PowerProfile',tag,'.eps'),'epsc');
+    end 
+
+    % Okay now figure out the stats
+    for kk = 1:2
+
+        dataTableCSD = [];
+        dataTablethetaPower = [];
+        dataTablesgPower = [];
+        dataTablemgPower = [];
+        dataTablehfoPower = [];
+        manip = [];
+        layer = [];
+
+        dataTableCSD = datacsd{kk};
+        dataTablethetaPower = datathetaPower{kk};
+        dataTablesgPower = datasgPower{kk};
+        dataTablemgPower = datamgPower{kk};   
+        dataTablehfoPower = datahfoPower{kk};
+
+        dataTableCSD = reshape(dataTableCSD,[numel(dataTableCSD),1]);
+        dataTablethetaPower = reshape(dataTablethetaPower,[numel(dataTablethetaPower),1]);
+        dataTablesgPower  = reshape(dataTablesgPower,[numel(dataTablesgPower),1]);
+        dataTablemgPower = reshape(dataTablemgPower,[numel(dataTablemgPower),1]);
+        dataTablehfoPower = reshape(dataTablehfoPower,[numel(dataTablehfoPower),1]);
+
+        manip(1:size(datacsd{1},1)) = 1;
+        manip(size(datacsd{1},1)+1:2*size(datacsd{1},1)) = 2;
+        manip(2*size(datacsd{1},1)+1:3*size(datacsd{1},1)) = 3;
+        %manip = repmat(manip',[8,1]);
+        manip = repmat(manip',[4,1]);
+
+        layer1 = 1;%{'or'};
+        layer1 = repmat(layer1,[3*size(datacsd{1},1),1]);
+        layer2 = 2;%{'pyr'};
+        layer2 = repmat(layer2,[3*size(datacsd{1},1),1]);
+        layer3 = 3;%{'rad'};
+        layer3 = repmat(layer3,[3*size(datacsd{1},1),1]);
+        layer4 = 4;%{'slm'};
+        layer4 = repmat(layer4,[3*size(datacsd{1},1),1]);
+        layer = [layer1; layer2; layer3; layer4];%;layer1; layer2; layer3; layer4];
+
+
+        [statsCSD{kk}] = groupStats(dataTableCSD,[manip layer],'doPlot',false);
+        [statsthetaPower{kk}] = groupStats(dataTablethetaPower,[manip layer],'doPlot',false);
+        [statssgPower{kk}] = groupStats(dataTablesgPower,[manip layer],'doPlot',false);
+        [statsmgPower{kk}] = groupStats(dataTablemgPower,[manip layer],'doPlot',false);
+        [statshfoPower{kk}] = groupStats(dataTablehfoPower,[manip layer],'doPlot',false);
+
+    %% In addition, implement RM 2 way ANOVA
+        subject = [1:size(datacsd{1},1)]';
+        subject = repmat(subject,[size(datacsd{1},2) 1]);
+
+        [statsCSD{kk}.rm_anova2.p statsCSD{kk}.rm_anova2.tbl statsCSD{kk}.rm_anova2.stats] = anovan(dataTableCSD,{subject manip layer},'model','interaction','display','off');
+        results = multcompare(statsCSD{kk}.rm_anova2.stats,'Dimension',[2 3],'Display','off');
+        statsCSD{kk}.rm_anova2.posthoc.tbl = results;
+        statsCSD{kk}.rm_anova2.posthoc.test = 'tukey-kramer';
+
+        [statsthetaPower{kk}.rm_anova2.p statsthetaPower{kk}.rm_anova2.tbl statsthetaPower{kk}.rm_anova2.stats] = anovan(dataTablethetaPower,{subject manip layer},'model','interaction','display','off');
+        results = multcompare(statsthetaPower{kk}.rm_anova2.stats,'Dimension',[2 3],'Display','off');
+        statsthetaPower{kk}.rm_anova2.posthoc.tbl = results;
+        statsthetaPower{kk}.rm_anova2.posthoc.test = 'tukey-kramer';
+
+        [statssgPower{kk}.rm_anova2.p statssgPower{kk}.rm_anova2.tbl statssgPower{kk}.rm_anova2.stats] = anovan(dataTablesgPower,{subject manip layer},'model','interaction','display','off');
+        results = multcompare(statssgPower{kk}.rm_anova2.stats,'Dimension',[2 3],'Display','off');
+        statssgPower{kk}.rm_anova2.posthoc.tbl = results;
+        statssgPower{kk}.rm_anova2.posthoc.test = 'tukey-kramer';
+
+        [statsmgPower{kk}.rm_anova2.p, statsmgPower{kk}.rm_anova2.tbl statsmgPower{kk}.rm_anova2.stats] = anovan(dataTablemgPower,{subject manip layer},'model','interaction','display','off');
+        results = multcompare(statsmgPower{kk}.rm_anova2.stats,'Dimension',[2 3],'Display','off');
+        statsmgPower{kk}.rm_anova2.posthoc.tbl = results;
+        statsmgPower{kk}.rm_anova2.posthoc.test = 'tukey-kramer';
+
+        statshfoPower{kk}.pyr = groupStats({datahfoPower{kk}(:,4) datahfoPower{kk}(:,5) datahfoPower{kk}(:,6)},[],'doPlot',false);
+    % % 
+    end
+end
+%  save(strcat(parentDir,'\Compiled\Power Profile\CompiledProfileLayers\PowerProfile',tag,'.mat'),'statsCSD','statsthetaPower',...
+%      'statssgPower','statsmgPower','statshfoPower');
+end

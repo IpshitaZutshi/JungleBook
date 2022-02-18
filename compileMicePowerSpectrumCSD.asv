@@ -1,0 +1,336 @@
+% Compile data across all sessions
+
+function compileMicePowerSpectrumCSD(varargin)
+
+%% Defaults and Parms
+p = inputParser;
+addParameter(p,'parentDir','Z:\Homes\zutshi01\Recordings\CA1_silencing\',@isfolder);
+addParameter(p,'savePlot',true,@islogical);
+addParameter(p,'combineSessions',true,@islogical);
+parse(p,varargin{:});
+
+parentDir = p.Results.parentDir;
+savePlot = p.Results.savePlot;
+combineSessions = p.Results.combineSessions;
+
+tag = 'mEC'; 
+
+if strcmp(tag,'CA1') == 1
+    mice = {'IZ18\Final','IZ20\Final','IZ21\Final','IZ31\Final'};
+    reg = {'CA1','mEC','Both'};%'IZ15\Final','IZ30\Final',
+elseif strcmp(tag,'mEC') == 1
+    mice = {'IZ12\Final','IZ13\Final','IZ15\Final','IZ17\Final','IZ18\Final','IZ20\Final',...
+        'IZ21\Final','IZ24\Final', 'IZ25\Final', 'IZ26\Final','IZ27\Final','IZ28\Final',...
+        'IZ29\Final','IZ30\Final','IZ31\Final','IZ32\Final','IZ33\Final','IZ34\Final'};  % To add: IZ23, IZ32, IZ33, IZ34
+    reg = {'CA1','mEC','Both'};
+elseif strcmp(tag,'CA3') == 1
+    mice = {'IZ27\Final','IZ28\Final','IZ33\Final'}; %'IZ29\Final','IZ32\Final',,'IZ34\Final'
+    reg = {'CA3','mEC','Both'};
+elseif strcmp(tag,'CA3Saline') == 1
+    mice = {'IZ27\Saline','IZ28\Saline','IZ33\Saline'}; % 'IZ29\Saline','IZ32\Saline',,'IZ34\Saline'
+    reg = {'CA3','mEC','Both'};
+elseif strcmp(tag,'mECBilateral') == 1 
+    mice = {'IZ24\Final','IZ25\Final','IZ26\Final'};    %
+    reg = {'contramEC','ipsimEC','Both'};
+end
+
+reg = {'CA3','mEC','Both'};
+zone = {'returnB','stemB','delayB','returnS','stemS','delayS'};
+target = {'STEM', 'RETURN'};
+
+
+chName = {'pyramidal','radiatum','slm'};%,'ml'};
+
+
+for ch = 1:length(chName)
+    for rr = 1:3
+        for cc = 1:2
+            for zz = 1:6
+                if combineSessions 
+                    specGramComb.(chName{ch}){rr,cc}{zz} = [];    
+                end
+                specGram.(chName{ch}){rr,cc}{zz} = [];
+            end
+            mouse.(chName{ch}){rr,cc} = [];
+            if combineSessions
+                thetapowerComb.(chName{ch}){rr,cc} = [];
+                gammapowerComb.(chName{ch}){rr,cc} = [];
+            end
+            thetapower.(chName{ch}){rr,cc} = [];
+            gammapower.(chName{ch}){rr,cc} = [];
+        end
+    end
+end
+
+freqs = logspace(log10(1),log10(300),200);
+    
+%% Loop through the mice
+for m = 1:length(mice)
+    
+    cd(strcat(parentDir, mice{m},'\Summ'));
+    if exist(strcat('Summ\PowerSpectrumCSD.mat'),'file')
+        load(strcat('Summ\PowerSpectrumCSD.mat'));
+    else 
+        disp(['Power spectrum not computed for mouse' mice{m}])
+        continue;
+    end
+    
+    for ch = 1:length(chName)
+        for ii = 1:3
+            for jj = 1:2
+                thetaPwr = [];
+                gammaPwr =[];   
+                mouseID = [];
+                for kk = 1:6             
+                    for pp = 2:size(PSS.(chName{ch}).specGram{ii,jj}{kk},3) % First array is nans                        
+                        spec = (10.^PSS.(chName{ch}).specGram{ii,jj}{kk}(:,:,pp));
+                        specGram.(chName{ch}){ii,jj}{kk} = [specGram.(chName{ch}){ii,jj}{kk};nanmedian(spec,1)];
+                        freqIdx = freqs>5 & freqs<12;
+                        thetaPwr(pp-1,kk) = nanmean(nanmean(spec(:,freqIdx),1));
+                        freqIdx = freqs>25 & freqs<60;
+                        gammaPwr(pp-1,kk) = nanmean(nanmean(spec(:,freqIdx),1));
+                        mouseID(pp-1,1) = m;
+                    end  
+                end
+                thetapower.(chName{ch}){ii,jj} = [thetapower.(chName{ch}){ii,jj};thetaPwr];
+                gammapower.(chName{ch}){ii,jj} = [gammapower.(chName{ch}){ii,jj};gammaPwr]; 
+                mouse.(chName{ch}){ii,jj} = [mouse.(chName{ch}){ii,jj};mouseID];
+            end
+        end
+    end 
+end
+ 
+if combineSessions     
+    for ch = 1:length(chName)
+        for ii = 1:3
+            for jj = 1:2
+                for m = unique(mouse.(chName{ch}){ii,jj})'
+                    mID = mouse.(chName{ch}){ii,jj}  == m;
+                    for zz = 1:6                    
+                        meanspec = nanmean(specGram.(chName{ch}){ii,jj}{zz}(mID,:),1);
+                        specGramComb.(chName{ch}){ii,jj}{zz} = [specGramComb.(chName{ch}){ii,jj}{zz};meanspec];    
+                    end
+                    thetapowerComb.(chName{ch}){ii,jj} = [thetapowerComb.(chName{ch}){ii,jj};nanmean(thetapower.(chName{ch}){ii,jj}(mID,:),1)];
+                    gammapowerComb.(chName{ch}){ii,jj} = [gammapowerComb.(chName{ch}){ii,jj};nanmean(gammapower.(chName{ch}){ii,jj}(mID,:),1)];
+                end
+            end
+        end
+    end
+end
+
+figure
+set(gcf,'Renderer','painters');  
+set(gcf,'Position',[100 50 1400 900])
+
+colMat = [85/243 85/243 85/243;...
+224/243 163/243 46/243;... 
+8/243 133/243 161/243;...
+56/243 61/243 150/243];  
+
+if strcmp(tag,'CA3') == 1 || strcmp(tag,'CA3Saline') == 1 
+    for ch = 1:length(chName)
+        for jj = 1%:length(target)
+            for kk = [1 2]   
+                if combineSessions
+                    specbase = specGramComb.(chName{ch}){2,jj}{kk};
+                    specmEC = specGramComb.(chName{ch}){2,jj}{kk+3};
+                    specCA3 = specGramComb.(chName{ch}){3,jj}{kk};
+                    specBoth = specGramComb.(chName{ch}){3,jj}{kk+3};
+                    
+                    thetabase = thetapowerComb.(chName{ch}){2,jj}(:,kk);
+                    thetamEC = thetapowerComb.(chName{ch}){2,jj}(:,kk+3);
+                    thetaCA3 = thetapowerComb.(chName{ch}){3,jj}(:,kk);
+                    thetaBoth = thetapowerComb.(chName{ch}){3,jj}(:,kk+3);
+                    
+                    gammabase = gammapowerComb.(chName{ch}){2,jj}(:,kk);
+                    gammamEC = gammapowerComb.(chName{ch}){2,jj}(:,kk+3);
+                    gammaCA3 = gammapowerComb.(chName{ch}){3,jj}(:,kk);
+                    gammaBoth = gammapowerComb.(chName{ch}){3,jj}(:,kk+3);                
+                else
+                    specbase = specGram.(chName{ch}){2,jj}{kk};
+                    specmEC = specGram.(chName{ch}){2,jj}{kk+3};
+                    specCA3 = specGram.(chName{ch}){3,jj}{kk};
+                    specBoth = specGram.(chName{ch}){3,jj}{kk+3};
+                    
+                    thetabase = thetapower.(chName{ch}){2,jj}(:,kk);
+                    thetamEC = thetapower.(chName{ch}){2,jj}(:,kk+3);
+                    thetaCA3 = thetapower.(chName{ch}){3,jj}(:,kk);
+                    thetaBoth = thetapower.(chName{ch}){3,jj}(:,kk+3);
+                    
+                    gammabase = gammapower.(chName{ch}){2,jj}(:,kk);
+                    gammamEC = gammapower.(chName{ch}){2,jj}(:,kk+3);
+                    gammaCA3 = gammapower.(chName{ch}){3,jj}(:,kk);
+                    gammaBoth = gammapower.(chName{ch}){3,jj}(:,kk+3);                             
+                end
+                
+                subplot(4,6,6*(ch-1)+kk)
+                meanPower = nanmean(specbase,1);
+                stdPower = nanstd(specbase,[],1)./sqrt(size(specbase,1));
+                dev1 = meanPower - stdPower;
+                dev2 = meanPower + stdPower;
+                hold on
+                fill([freqs flip(freqs)],[dev1 flip(dev2)],colMat(1,:),'FaceAlpha',.2,'EdgeColor','none');
+                plot(freqs,meanPower,'color',colMat(1,:),'LineWidth',1.5);
+                xlim([0 80])
+                xlabel('Frequency')
+                ylabel('Spec Power')    
+                hold on
+
+                meanPower = nanmean(specCA3,1);
+                stdPower = nanstd(specCA3,[],1)./sqrt(size(specCA3,1));
+                dev1 = meanPower - stdPower;
+                dev2 = meanPower + stdPower;
+                hold on
+                fill([freqs flip(freqs)],[dev1 flip(dev2)],colMat(2,:),'FaceAlpha',.2,'EdgeColor','none');
+                plot(freqs,meanPower,'color',colMat(2,:),'LineWidth',1.5);
+                xlim([0 80])
+                xlabel('Frequency')
+                ylabel('Spec Power')    
+                hold on
+
+                meanPower = nanmean(specmEC,1);
+                stdPower = nanstd(specmEC,[],1)./sqrt(size(specmEC,1));
+                dev1 = meanPower - stdPower;
+                dev2 = meanPower + stdPower;
+                hold on
+                fill([freqs flip(freqs)],[dev1 flip(dev2)],colMat(3,:),'FaceAlpha',.2,'EdgeColor','none');
+                plot(freqs,meanPower,'color',colMat(3,:),'LineWidth',1.5);
+                xlim([0 80])
+                xlabel('Frequency')
+                ylabel('Spec Power')    
+                hold on
+
+                meanPower = nanmean(specBoth,1);
+                stdPower = nanstd(specBoth,[],1)./sqrt(size(specBoth,1));
+                dev1 = meanPower - stdPower;
+                dev2 = meanPower + stdPower;
+                hold on
+                fill([freqs flip(freqs)],[dev1 flip(dev2)],colMat(1,:),'FaceAlpha',.2,'EdgeColor','none');
+                plot(freqs,meanPower,'color',colMat(4,:),'LineWidth',1.5);
+                xlim([0 80])
+                xlabel('Frequency')
+                ylabel('Spec Power')    
+                hold on
+                
+                subplot(4,6,6*(ch-1)+kk+2)
+                stats{kk}.(chName{ch}).theta = groupStats([thetabase;thetaCA3;thetamEC;thetaBoth],[ones(length(thetabase),1);ones(length(thetaCA3),1)*2;ones(length(thetamEC),1)*3;ones(length(thetaBoth),1)*4],...
+                    'inAxis',true,'repeatedMeasures',true,'labelSummary',false,'Color',colMat);
+                title('theta power')
+                
+                subplot(4,6,6*(ch-1)+kk+4)
+                stats{kk}.(chName{ch}).gamma = groupStats([gammabase;gammaCA3;gammamEC;gammaBoth],[ones(length(gammabase),1);ones(length(gammaCA3),1)*2;ones(length(gammamEC),1)*3;ones(length(gammaBoth),1)*4],...
+                    'inAxis',true,'repeatedMeasures',true,'labelSummary',false,'Color',colMat);
+                title('gamma power')
+            end
+        end
+    end
+    if savePlot
+        saveas(gcf,strcat(parentDir,'\Compiled\Power spectrum\',tag,'CSDPowerSpectrum.png'));
+        saveas(gcf,strcat(parentDir,'\Compiled\Power spectrum\',tag,'CSDPowerSpectrum.eps'),'epsc');
+        saveas(gcf,strcat(parentDir,'\Compiled\Power spectrum\',tag,'CSDPowerSpectrum.fig'));
+        save(strcat(parentDir,'\Compiled\Power spectrum\',tag,'CSDPowerSpectrum.mat'),'stats')
+    end
+else
+    for ch = 1:length(chName)
+        for kk =1:2
+            specbase{kk}= [];
+            thetabase{kk} = [];
+            gammabase{kk} = [];
+        end
+        for kk = [1 2]   
+            for ii = 1:length(reg)
+                for jj = 1%:length(target)
+                    if combineSessions
+                        specbase{kk} = [specbase{kk}; specGramComb.(chName{ch}){ii,jj}{kk}];
+                        specstim = specGramComb.(chName{ch}){ii,jj}{kk+3};                       
+                        thetabase{kk} = [thetabase{kk}; thetapowerComb.(chName{ch}){ii,jj}(:,kk)];
+                        thetastim = thetapowerComb.(chName{ch}){ii,jj}(:,kk+3);
+                        gammabase{kk} = [gammabase{kk};gammapowerComb.(chName{ch}){ii,jj}(:,kk)];
+                        gammastim = gammapowerComb.(chName{ch}){ii,jj}(:,kk+3);              
+                    else
+                        specbase{kk} = [specbase{kk}; specGram.(chName{ch}){ii,jj}{kk}];
+                        specstim = specGram.(chName{ch}){ii,jj}{kk+3};                       
+                        thetabase{kk} = [thetabase{kk}; thetapower.(chName{ch}){ii,jj}(:,kk)];
+                        thetastim = thetapower.(chName{ch}){ii,jj}(:,kk+3);
+                        gammabase{kk} = [gammabase{kk};gammapower.(chName{ch}){ii,jj}(:,kk)];
+                        gammastim = gammapower.(chName{ch}){ii,jj}(:,kk+3);                               
+                    end
+
+                    subplot(4,6,6*(ch-1)+kk)
+                    meanPower = nanmean(specstim,1);
+                    stdPower = nanstd(specstim,[],1)./sqrt(size(specstim,1));
+                    dev1 = meanPower - stdPower;
+                    dev2 = meanPower + stdPower;
+                    hold on
+                    fill([freqs flip(freqs)],[dev1 flip(dev2)],colMat(ii+1,:),'FaceAlpha',.2,'EdgeColor','none');
+                    plot(freqs,meanPower,'color',colMat(ii+1,:),'LineWidth',1.5);
+                    xlim([0 80])
+                    xlabel('Frequency')
+                    ylabel('Spec Power')    
+                    hold on
+                end
+            end
+            
+            subplot(4,6,6*(ch-1)+kk)
+            meanPower = nanmean(specbase{kk},1);
+            stdPower = nanstd(specbase{kk},[],1)./sqrt(size(specbase{kk},1));
+            dev1 = meanPower - stdPower;
+            dev2 = meanPower + stdPower;
+            hold on
+            fill([freqs flip(freqs)],[dev1 flip(dev2)],colMat(1,:),'FaceAlpha',.2,'EdgeColor','none');
+            plot(freqs,meanPower,'color',colMat(1,:),'LineWidth',1.5);
+            xlim([0 80])
+            xlabel('Frequency')
+            ylabel('Spec Power')    
+            hold on
+            
+            subplot(4,6,6*(ch-1)+kk+2)
+            stats{kk}.(chName{ch}).theta = groupStats([thetabase{kk};thetapower.(chName{ch}){1,1}(:,kk+3);thetapower.(chName{ch}){2,1}(:,kk+3);...
+            thetapower.(chName{ch}){3,1}(:,kk+3)],[ones(length(thetabase{kk}),1);ones(length(thetapower.(chName{ch}){1,1}(:,kk+3)),1)*2;ones(length(thetapower.(chName{ch}){2,1}(:,kk+3)),1)*3;ones(length(thetapower.(chName{ch}){3,1}(:,kk+3)),1)*4],...   
+            'inAxis',true,'labelSummary',false,'Color',colMat);
+            title('theta power')
+            
+            subplot(4,6,6*(ch-1)+kk+4)
+            stats{kk}.(chName{ch}).gamma = groupStats([gammabase{kk};gammapower.(chName{ch}){1,1}(:,kk+3);gammapower.(chName{ch}){2,1}(:,kk+3);...
+            gammapower.(chName{ch}){3,1}(:,kk+3)],[ones(length(gammabase{kk}),1);ones(length(gammapower.(chName{ch}){1,1}(:,kk+3)),1)*2;ones(length(gammapower.(chName{ch}){2,1}(:,kk+3)),1)*3;ones(length(gammapower.(chName{ch}){3,1}(:,kk+3)),1)*4],...   
+            'inAxis',true,'labelSummary',false,'Color',colMat);
+            title('gamma power')
+
+        end
+    end                   
+    if savePlot
+        saveas(gcf,strcat(parentDir,'\Compiled\Power spectrum\',tag,'CSDPowerSpectrum.png'));
+        saveas(gcf,strcat(parentDir,'\Compiled\Power spectrum\',tag,'CSDPowerSpectrum.eps'),'epsc');
+        saveas(gcf,strcat(parentDir,'\Compiled\Power spectrum\',tag,'CSDPowerSpectrum.fig'));
+        save(strcat(parentDir,'\Compiled\Power spectrum\',tag,'CSDPowerSpectrum.mat'),'stats')
+    end    
+end
+
+%%
+theta = [];
+gamma = [];
+for ch = 1:length(chName)
+    for ii = 1:3
+        for jj = 1
+            thetaEff = thetapowerComb.(chName{ch}){ii,jj}(:,5)./thetapowerComb.(chName{ch}){ii,jj}(:,2);
+            gammaEff = gammapowerComb.(chName{ch}){ii,jj}(:,5)./gammapowerComb.(chName{ch}){ii,jj}(:,2);
+        end
+        theta = catpad(2,theta,thetaEff);
+        gamma = [gamma gammaEff];
+    end            
+end
+
+%for CA3
+% theta = [];
+% gamma = [];
+% for ch = 1:length(chName)
+%     mECeff = thetapowerComb.(chName{ch}){2,jj}(:,5)./thetapowerComb.(chName{ch}){2,jj}(:,2);
+%     CA3eff = thetapowerComb.(chName{ch}){3,jj}(:,2)./thetapowerComb.(chName{ch}){2,jj}(:,2);
+%     botheff = thetapowerComb.(chName{ch}){3,jj}(:,5)./thetapowerComb.(chName{ch}){2,jj}(:,2); 
+%     theta = [theta  CA3eff mECeff botheff];
+%     
+%     mECeff = gammapowerComb.(chName{ch}){2,jj}(:,5)./gammapowerComb.(chName{ch}){2,jj}(:,2);
+%     CA3eff = gammapowerComb.(chName{ch}){3,jj}(:,2)./gammapowerComb.(chName{ch}){2,jj}(:,2);
+%     botheff = gammapowerComb.(chName{ch}){3,jj}(:,5)./gammapowerComb.(chName{ch}){2,jj}(:,2);     
+%     gamma = [gamma  CA3eff mECeff botheff];
+%end
