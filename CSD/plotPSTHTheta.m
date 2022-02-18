@@ -1,0 +1,93 @@
+function plotPSTHTheta(StimFreq, PSTH, cell_count,  avgRate, peakRatio)
+
+    response = 3; %0 if not sharply modulated, 1 if excited, 2 if inhibited
+    stimfrix = [8 10 12];
+    figure
+    for s = 1:length(stimfrix)
+
+
+        Collect_PSTH = PSTH(StimFreq == stimfrix(s),:);
+        Collect_rate = avgRate(StimFreq == stimfrix(s));
+        Collect_PR = peakRatio(StimFreq == stimfrix(s));
+
+        %% Now normalize the PSTH
+        Ncells = size(Collect_PSTH,1);
+        cellnum = 1;
+        NormPSTH  = [];
+        for n = 1:Ncells
+
+            FR_peak = max(Collect_PSTH(n,:));
+            rateRatio(n) = nanmean(Collect_PSTH(n,70:100))/nanmean(Collect_PSTH(n,30:60));
+            switch  response
+                case 0
+                    if rateRatio(n)>0.75 && rateRatio(n) < 2
+                        NormPSTH(cellnum,:) = Collect_PSTH(n,:)/FR_peak;
+                        cellnum = cellnum+1;
+                    else 
+                        continue
+                    end
+                case 1
+                    if rateRatio(n) >= 2
+                        NormPSTH(cellnum,:) = Collect_PSTH(n,:)/FR_peak;
+                        cellnum = cellnum+1;
+                    else 
+                        continue
+                    end
+                case 2
+                    if rateRatio(n) <= 0.75
+                        NormPSTH(cellnum,:) = Collect_PSTH(n,:)/FR_peak;
+                        cellnum = cellnum+1;
+                    else 
+                        continue
+                    end
+                case 3
+                    NormPSTH(cellnum,:) = Collect_PSTH(n,:)/FR_peak;
+                    cellnum = cellnum+1;
+                    
+             end
+            %Rate(n) = mean(NormPSTH(n,41:80));
+
+        end
+        %[~,I] = sort(Collect_depth,'ascend');
+        if ~isempty(NormPSTH)
+            subplot(3,2,2*(s-1)+1)  
+            imagesc(NormPSTH);  
+            %xlim([0 125])
+            if stimfrix(s) ==8
+                xlim([0 125])
+            elseif stimfrix(s) ==10
+                xlim([13 113])
+            elseif stimfrix(s) ==12
+                xlim([22 104])
+            end
+            xlabel('Peristimulus time');
+            ylabel('Cell number')
+            line([62.5 62.5],[0 cellnum-1],'Color','red')
+            title(strcat(num2str(stimfrix(s)),' Hz stimulation normalized'));
+
+            subplot(3,2,2*(s-1)+2)  
+            plot(nanmean(NormPSTH,1))
+            ylim([0 1])
+            xlim([0 125])
+            if stimfrix(s) ==8
+              %  xlim([0 125])
+            elseif stimfrix(s) ==10
+              %  xlim([13 113])
+            elseif stimfrix(s) ==12
+               % xlim([22 104])
+            end
+            line([62.5 62.5],[0 1],'Color','red')
+
+%             subplot(3,4,4*(s-1)+3)  
+%             scatter(Collect_rate, rateRatio,'k.')
+% 
+%             subplot(3,4,4*(s-1)+4)  
+%             scatter(Collect_PR, rateRatio,'k.')
+
+            clear Collect_PSTH NormPSTH Collect_rate Collect_PR rateRatio
+        end
+    end
+%end
+    
+end
+    
