@@ -2,8 +2,8 @@ function plotProfilePeriStim
 
 analogEv = 64;
 numAnalog = 2;
-pre = 3;
-post = -2.5;
+pre = 4;
+post = 4;
 fixChannels = 0;
 [colormap] = cbrewer('seq','PuBuGn',100);
 colormap(colormap<0) = 0;
@@ -18,12 +18,12 @@ end
 
 for jj = 1 %1:(size(sessionInfo.AnatGrps,2)-1)
     lfp = bz_GetLFP(sessionInfo.AnatGrps(jj).Channels,'noPrompts', true);
-    csd = bz_CSDIZ(lfp);
+    %csd = bz_CSDIZ(lfp);
     if fixChannels
         lfp = bz_interpolateLFP(lfp);
     end
     
-    lfp = csd;
+    %lfp = csd;
     %[colormap] = cbrewer('seq','PuBuGn',length(sessionInfo.AnatGrps(jj).Channels)+30);
     data = lfp.data;
     timestamps = lfp.timestamps;
@@ -41,12 +41,12 @@ for jj = 1 %1:(size(sessionInfo.AnatGrps,2)-1)
         events = round(events*1250);
         events = events(:,(events(1,:) + (15*1250) <= size(data,1)) & (events(1,:) - (5*1250) > 0));
 
-        for pp = 37%1:length(events(1,:))
+        for pp = 1:5%1:length(events(1,:))
             figure
             set(gcf,'renderer','Painters')
             hold on
             for kk = 1:(length(sessionInfo.AnatGrps(jj).Channels)-2)
-                plot(timestamps((events(1,pp)-(1250*pre)):(events(1,pp)+(1250*post))),10*(data((events(1,pp)-(1250*pre)):(events(1,pp)+(1250*post)),kk))-(kk-1)*400,'Color',colormap(kk+22,:))
+                plot(timestamps((events(1,pp)-(1250*pre)):(events(1,pp)+(1250*post))),1*(data((events(1,pp)-(1250*pre)):(events(1,pp)+(1250*post)),kk))-(kk-1)*400,'Color',colormap(kk+22,:))
             end
             title(strcat('AnalogCh = ',num2str(i)))
             xlim([timestamps((events(1,pp)-(1250*pre))) timestamps((events(1,pp)+(1250*post)))])

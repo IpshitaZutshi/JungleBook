@@ -20,7 +20,10 @@ for ii = 1:size(allSess,1)
    % try
         fprintf(' ** Examining session %3.i of %3.i... \n',ii, size(allSess,1));
         cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
-        [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true);
+        
+        autoDSdetectionIZ
+%        getPlaceFieldTemplates;
+%        [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true);
 %         if exist('badChannels.mat','file')
 %             load('badChannels.mat')            
 %         else 
@@ -38,19 +41,19 @@ for ii = 1:size(allSess,1)
         %getSessionLinearize('forceReload',true);
 %        getPlaceFields;
 %       getPlaceFieldsDownsample('isCA3',isCA3);
-        file = dir(('*.hippocampalLayers.channelInfo.mat'));
-        load(file.name);
-        
-        load([sessionInfo.FileName '.session.mat']);
-        if isfield(session.channelTags,'RippleNoise')
-            noiseCh = session.channelTags.RippleNoise.channels-1;
-        else
-            noiseCh = [];
-        end
-            
-        rippleMasterDetectorIZ('rippleChannel',hippocampalLayers.pyramidal,'SWChannel',hippocampalLayers.radiatum,'noiseCh',noiseCh);
-        close all
-%         getLFPduringtrack('refChannel',[],'pyrChPlus',hippocampalLayers.all,'numtrials',15);
+%         file = dir(('*.hippocampalLayers.channelInfo.mat'));
+%         load(file.name);
+%         
+%         load([sessionInfo.FileName '.session.mat']);
+%         if isfield(session.channelTags,'RippleNoise')
+%             noiseCh = session.channelTags.RippleNoise.channels-1;
+%         else
+%             noiseCh = [];
+%         end
+%             
+%         rippleMasterDetectorIZ('rippleChannel',hippocampalLayers.pyramidal,'SWChannel',hippocampalLayers.radiatum,'noiseCh',noiseCh);
+%         close all
+% %         getLFPduringtrack('refChannel',[],'pyrChPlus',hippocampalLayers.all,'numtrials',15);
 %        getPhasePrecession
 %         file = dir(('*.region.mat'));
 %         load(file.name);   

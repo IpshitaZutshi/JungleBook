@@ -7,9 +7,9 @@ p = inputParser;
 addParameter(p,'parentDir','Z:\Homes\zutshi01\Recordings\CA1_silencing\',@isfolder);
 addParameter(p,'analogEv',64,@isnumeric);
 addParameter(p,'numAnalog',2,@isnumeric);
-addParameter(p,'savePlot',true,@islogical);
+addParameter(p,'savePlot',false,@islogical);
 addParameter(p,'useZScore',false,@islogical);
-addParameter(p,'downsample',true,@islogical);
+addParameter(p,'downsample',false,@islogical);
 parse(p,varargin{:});
 
 parentDir = p.Results.parentDir;
@@ -19,7 +19,7 @@ savePlot = p.Results.savePlot;
 useZScore = p.Results.useZScore;
 downsample = p.Results.downsample;
 
-tag = 'CA1'; % or mEC
+tag = 'mECBilateral'; % or mEC
 YlGnBu=cbrewer('seq', 'YlGnBu', 11);
 
 if strcmp(tag,'CA1') == 1

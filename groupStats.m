@@ -49,10 +49,10 @@ addParameter(p,'inAxis',false,@islogical);
 addParameter(p,'orientation','vertical',@ischar);
 addParameter(p,'style','face')
 addParameter(p,'showOutliers',false,@islogical)
-addParameter(p,'labelSummary',true,@islogical);
+addParameter(p,'labelSummary',false,@islogical);
 addParameter(p,'sigStar',true,@islogical);
 addParameter(p,'sigStarTest','KW',@ischar);
-addParameter(p,'plotType','violinPlot',@ischar); % violinPlot boxplot
+addParameter(p,'plotType','boxPlot',@ischar); % violinPlot boxplot
 addParameter(p,'plotData',false,@islogical);
 addParameter(p,'repeatedMeasures',false,@islogical);
 addParameter(p,'dataColor',[.7 .7 .7],@isnumeric);

@@ -52,9 +52,10 @@ p = inputParser;
 addParameter(p,'expPath',[],@isdir);
 addParameter(p,'analogEv',[],@isnumeric);
 addParameter(p,'numAnalog',1,@isnumeric);
+addParameter(p,'analysisPath',[]); % Local paht to run the anaysis, is em
 addParameter(p,'forceSum',false,@islogical);
 addParameter(p,'forcesort',false,@islogical);
-addParameter(p,'medianSubstr',false,@islogical);
+addParameter(p,'medianSubstr',true,@islogical);
 addParameter(p,'analysisList','all');
 addParameter(p,'cleanArtifacts',false,@islogical);
 % addParameter(p,'pullData',[],@isdir); To do... 
@@ -62,6 +63,7 @@ parse(p,varargin{:});
 
 expPath = p.Results.expPath;
 analogEv = p.Results.analogEv;
+analysisPath = p.Results.analysisPath;
 numAnalog = p.Results.numAnalog;
 forceSum = p.Results.forceSum;
 medianSubstr = p.Results.medianSubstr;
@@ -75,7 +77,8 @@ end
 allpath = strsplit(genpath(expPath),';'); % all folders
 cd(allpath{1});
 
-%waitMin(40)
+%waitMin(90)
+%pause(90*60)
 %% deals with xml.
 disp('Check xml...');
 if isempty(dir('global.xml')) 
@@ -149,6 +152,24 @@ for ii = 1:size(allpath,2)
     end
 end
 
+%% Loading metadata
+try
+    session = sessionTemplate(pwd,'showGUI',false); % 
+    session.channels = 1:session.extracellular.nChannels;    
+    save([basepath filesep session.general.name,'.session.mat'],'session','-v7.3');
+catch
+    warning('it seems that CellExplorer is not on your path');
+end
+
+if ~isempty(analysisPath)
+    cd(analysisPath);
+    mkdir(session.general.name);
+    copyfile(basepath,[analysisPath,'\',session.general.name]);
+    disp('Copying files to analysis path folder...');
+    cd([analysisPath,'\',session.general.name]);
+    disp('Copied files. Peforming preprocessSession...')
+end
+    
 %% Concatenate sessions
 cd(allpath{1});
 allSess = dir('*_sess*');
@@ -160,40 +181,51 @@ for ii = 1:size(allSess,1)
         delete(strcat(allSess(ii).name,'.xml'));% bring xml file
         copyfile(strcat(allpath{1},'\global.xml'),strcat(allSess(ii).name,'.xml'),'f');
     end
-    % [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true);
-    bz_ConcatenateDats;
+    % Concatenate sessions
+    concatenateDats(pwd,0,1);
+
 end
 
-%% Remove stimulation artifacts
-
-if ~isempty(analogEv)
-    for ii = 1:numAnalog
-        analogCh(ii) = (analogEv-1)+ii;
-    end
-end
-
-if cleanArtifacts && ~isempty(analogEv)
-    for ii = 1:size(allSess,1)
-        cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
-        if exist('Pulses','dir')
-            [pulses] = bz_getAnalogPulses('analogCh',analogCh);
+%% Get analog and digital pulses
+for ii = 1:size(allSess,1)
+    cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
+    if  ~isempty(dir('analogin.dat'))
+        try
+            [pulses] = getAnalogPulses('analogChannelsList',analogChannelsList);
+        catch
+            warning('No analog pulses detected');
         end
     end
-   % sess = bz_getSessionInfo(pwd,'noPrompts',true);
-    %cleanPulses(pulses.ints{1}(:),'ch',0:sess.nChannels-mod(sess.nChannels,16)-1);
+    if ~isempty(dir('*digitalin.dat'))
+        digitalIn = getDigitalIn('all','fs',session.extracellular.sr); 
+    end
+    %% Make LFP
+%     if isempty(dir('*.lfp'))
+%         disp('Creating .lfp file. This could take a while...');
+%         ResampleBinary(strcat(allSess(ii).name,'.dat'),strcat(allSess(ii).name,'.lfp'),...
+%             session.extracellular.nChannels,1, session.extracellular.sr/session.extracellular.srLfp);
+%     end
+    
+%     %% MEDIAN SUBS
+%     if isempty(dir([session.general.name '_original.dat']))
+%         if islogical(medianSubstr) && medianSubstr
+%             medianSubtraction(pwd,'keepDat',true);
+%         elseif medianSubstr
+%             medianSubtraction(pwd,'ch',medianSubstr,'keepDat',true);
+%         end
+%     else
+%         warning('Session was already median-subtracted. Spiking...');
+%     end
+
 end
+
 
 %% Kilosort all sessions
 disp('Spike sort all sessions...');
 for ii = size(allSess,1):-1:1
     cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
     if forcesort ||  isempty(dir('*Kilosort*')) % if not kilosorted yet
-    fprintf(' ** Kilosorting session %3.i of %3.i... \n',ii, size(allSess,1));
-    
-        if medianSubstr
-            warning('Removing median from dat!');
-            removeNoiseFromDat(pwd);
-        end
+        fprintf(' ** Kilosorting session %3.i of %3.i... \n',ii, size(allSess,1));   
         KiloSortWrapper;
         kilosortFolder = dir('*Kilosort*');
         try
@@ -210,13 +242,13 @@ for ii = size(allSess,1):-1:1
     end
 end
 
-%% BatchAnalysis
-for ii = 1:size(allSess,1)
-    fprintf(' ** Summary %3.i of %3.i... \n',ii, size(allSess,1));
-    cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
-    if forceSum || (~isempty(dir('*Kilosort*')) && isempty(dir('summ'))) % is kilosorted but no summ
-      %  AnalysisBatchTheta;         
-    end
-end
+% %% BatchAnalysis
+% for ii = 1:size(allSess,1)
+%     fprintf(' ** Summary %3.i of %3.i... \n',ii, size(allSess,1));
+%     cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
+%     if forceSum || (~isempty(dir('*Kilosort*')) && isempty(dir('summ'))) % is kilosorted but no summ
+%       %  AnalysisBatchTheta;         
+%     end
+% end
 
 end

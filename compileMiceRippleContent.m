@@ -21,9 +21,9 @@ if strcmp(tag,'CA1') == 1
     mice = {'IZ15\Final','IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};
     reg = {'CA1','mEC','Both'};
 elseif strcmp(tag,'mEC') == 1
-    mice = {'IZ11\Final','IZ12\Final','IZ13\Final','IZ15\Final','IZ17\Final','IZ18\Final','IZ18\DG_CA3','IZ20\Final'...
-        'IZ21\Final','IZ24\Final','IZ25\Final','IZ26\Final','IZ27\Final','IZ28\Final','IZ29\Final','IZ30\Final',...
-        'IZ31\Final','IZ32\Final','IZ33\Final','IZ34\Final'};  % To add: IZ32, IZ33, IZ34
+    mice = {'IZ12\Final','IZ13\Final','IZ15\Final','IZ17\Final',...
+         'IZ18\Final','IZ20\Final','IZ21\Final','IZ24\Final','IZ25\Final','IZ26\Final','IZ27\Saline','IZ28\Saline','IZ29\Saline',...
+         'IZ30\Final','IZ31\Final','IZ32\Saline','IZ33\Saline','IZ34\Saline'};
     reg = {'CA1','mEC','Both'};
 elseif strcmp(tag,'CA3') == 1
     mice = {'IZ27\Final','IZ28\Final','IZ29\Final','IZ32\Final','IZ33\Final','IZ34\Final'};
@@ -87,8 +87,7 @@ else
 
 
             %% calculate ripple content
-            for rr = 1:length(reg)
-                
+            for rr = 1:length(reg)              
                 matPre{rr} = [];
                 matPost{rr} = [];
                             
@@ -108,11 +107,15 @@ else
                 events = pulses.intsPeriods(1,pulTr)';
                 
                 %Generate logicals for ripples in pre versus post
+                ripple_prestim = [];  
                 ripple_pre = [];                
-                ripple_post = [];               
+                ripple_post = [];  
+                ripple_poststim = [];                
 
                 ripple_pre(1:length(ripples.peaks)) = 0;                
                 ripple_post(1:length(ripples.peaks)) = 0;                
+                ripple_prestim(1:length(ripples.peaks)) = 0;                
+                ripple_poststim(1:length(ripples.peaks)) = 0;                              
 
                 for pp = 1:length(ripples.peaks)
                     tempDiff = ripples.peaks(pp) - events;
@@ -124,17 +127,25 @@ else
                        elseif tempDiff(idxmin) < 0
                            ripple_pre(pp) = 1;
                        end
+                    elseif min(abs(tempDiff)) >5 && min(abs(tempDiff)) <=10% If a ripple occurs within 5 seconds of a stimulus
+                       [~,idxmin] =  min(abs(tempDiff));
+                       if tempDiff(idxmin) > 0
+                           ripple_poststim(pp) = 1;
+                       elseif tempDiff(idxmin) < 0
+                           ripple_prestim(pp) = 1;
+                       end                   
                     else
                         continue
                     end
                 end      
                 
-                ripple_logical = [logical(ripple_pre)' logical(ripple_post)'];
+                ripple_logical{rr} = [logical(ripple_prestim)' logical(ripple_pre)'...
+                    logical(ripple_post)' logical(ripple_poststim)'];     
                 
-                %% Now calculate the psth for these specific ripples
-                for rippLog = 1:size(ripple_logical,2)
-                    if sum(ripple_logical(:,rippLog))~=0
-                        int = ripples.timestamps(ripple_logical(:,rippLog),:);
+                %% Now calculate the cells active for these specific ripples
+                for rippLog = 1:size(ripple_logical{rr},2)
+                    if sum(ripple_logical{rr}(:,rippLog))~=0
+                        int = ripples.peaks(ripple_logical(:,rippLog));
                         
                         for jj = 1:size(spikes.UID,2)
                             % Get psth

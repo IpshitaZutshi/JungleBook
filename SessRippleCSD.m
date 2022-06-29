@@ -49,15 +49,25 @@ else
         load(file.name);         
         file = dir(('*.hippocampalLayers.channelinfo.mat'));
         load(file.name);  
-        pyrCh = hippocampalLayers.pyramidal; 
+        file = dir(('*.region.mat'));
+        load(file.name);          
+        %pyrCh = hippocampalLayers.pyramidal;
+        pyrCh = region.CA1so; 
 
-        file = dir(('*.ripples.events.mat'));
-        load(file.name);
+        ripples = bz_FindRipples(pwd,pyrCh,'saveMat',false);
+        ripples = removeArtifactsFromEvents(ripples);
+        
+%         file = dir(('*.ripples.events.mat'));
+%         load(file.name);
   
-        % Only select channels from the shank that includes the pyramidal channel
+        % Only select channels from the shank that includes the pyramidal
+        % channel
+        % Get channels from pyr-11 ch to pyr+38
         for ch = 1:size(sessionInfo.AnatGrps,2)
             if ismember(pyrCh, sessionInfo.AnatGrps(ch).Channels)
-                channel_order = sessionInfo.AnatGrps(ch).Channels;
+                startCh = (find(sessionInfo.AnatGrps(ch).Channels==pyrCh)-11); % changed
+                endCh = (find(sessionInfo.AnatGrps(ch).Channels==pyrCh)+38); % changed
+                channel_order = sessionInfo.AnatGrps(ch).Channels(startCh:endCh); % changed
             end
         end               
         %Silly exception for these animals because shank was broken
@@ -180,10 +190,10 @@ else
     end
 
     if saveMat 
-        save([expPath '\Summ\' 'csdRippleData.mat'], 'csdData');
-        saveas(figure(1),strcat(expPath,'\Summ\CSDRipple.png'),'png');
-        saveas(figure(1),strcat(expPath,'\Summ\CSDRipple.fig'),'fig');
-        saveas(figure(1),strcat(expPath,'\Summ\CSDRipple.eps'),'epsc');
+        save([expPath '\Summ\' 'csdRippleData_shank2.mat'], 'csdData');
+        saveas(figure(1),strcat(expPath,'\Summ\CSDRipple_shank2.png'),'png');
+        saveas(figure(1),strcat(expPath,'\Summ\CSDRipple_shank2.fig'),'fig');
+        saveas(figure(1),strcat(expPath,'\Summ\CSDRipple_shank2.eps'),'epsc');
     end
 end
 close all
