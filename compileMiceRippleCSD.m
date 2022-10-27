@@ -13,10 +13,10 @@ parentDir = p.Results.parentDir;
 savePlot = p.Results.savePlot;
 combineSessions = p.Results.combineSessions;
 
-tag = 'mECBilateral'; 
+tag = 'CA1'; 
 
 if strcmp(tag,'CA1') == 1
-    mice = {'IZ18\Final','IZ20\Final','IZ21\Final','IZ31\Final'};
+    mice = {'IZ20\Final','IZ21\Final','IZ31\Final','IZ18\Final','IZ15\Final','IZ30\Final'};
     reg = {'CA1','mEC','Both'};% Excluded - 'IZ15\Final','IZ30\Final',
 elseif strcmp(tag,'mEC') == 1
     mice = {'IZ12\Final','IZ13\Final','IZ17\Final',...
@@ -101,7 +101,9 @@ for mm = 1:length(mice)
     
     for ii = 1:length(reg)
         for jj = 1:length(target) 
-            if isnan(layerInfoIdx(4))   
+            if isempty(csdData{ii,jj})
+                csd{ii,jj}(mm,1:4) = nan;            
+            elseif isnan(layerInfoIdx(4))   
                if strcmp(mice{mm},'IZ26\Final')==1 && ii<3
                    if ii == 1
                        csd{2,jj}(mm,[1 3]) = csdData{ii,jj}(layerInfoIdx([1 3]));                   
@@ -117,8 +119,6 @@ for mm = 1:length(mice)
                    csd{ii,jj}(mm,2) = -csdData{ii,jj}(layerInfoIdx(2));                     
                    csd{ii,jj}(mm,4) = nan;
                end
-            elseif isempty(csdData{ii,jj})
-                csd{ii,jj}(mm,1:4) = nan;
             else
                 if strcmp(mice{mm},'IZ26\Final')==1 && ii<3
                      if ii == 1

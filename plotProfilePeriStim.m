@@ -18,12 +18,12 @@ end
 
 for jj = 1 %1:(size(sessionInfo.AnatGrps,2)-1)
     lfp = bz_GetLFP(sessionInfo.AnatGrps(jj).Channels,'noPrompts', true);
-    %csd = bz_CSDIZ(lfp);
+    
     if fixChannels
         lfp = bz_interpolateLFP(lfp);
     end
-    
-    %lfp = csd;
+%     csd = bz_CSDIZ(lfp,'savemat');
+%     %lfp = csd;
     %[colormap] = cbrewer('seq','PuBuGn',length(sessionInfo.AnatGrps(jj).Channels)+30);
     data = lfp.data;
     timestamps = lfp.timestamps;

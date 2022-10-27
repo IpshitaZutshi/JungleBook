@@ -39,7 +39,7 @@ else
         end        
     end
     
-    for ii = 1:size(allSess,1)
+    for ii = 1:6%size(allSess,1)
         fprintf(' ** Examining session %3.i of %3.i... \n',ii, size(allSess,1));
         cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
         [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true); 
@@ -52,22 +52,25 @@ else
         file = dir(('*.region.mat'));
         load(file.name);          
         %pyrCh = hippocampalLayers.pyramidal;
-        pyrCh = region.CA1so; 
+        pyrCh = 27;%region.CA1so; 
 
         ripples = bz_FindRipples(pwd,pyrCh,'saveMat',false);
-        ripples = removeArtifactsFromEvents(ripples);
+%         ripples = removeArtifactsFromEvents(ripples);
         
 %         file = dir(('*.ripples.events.mat'));
 %         load(file.name);
-  
+        pyrCh = hippocampalLayers.pyramidal;
         % Only select channels from the shank that includes the pyramidal
         % channel
         % Get channels from pyr-11 ch to pyr+38
         for ch = 1:size(sessionInfo.AnatGrps,2)
+%             if ismember(pyrCh, sessionInfo.AnatGrps(ch).Channels)
+%                 startCh = (find(sessionInfo.AnatGrps(ch).Channels==pyrCh)-11); % changed
+%                 endCh = (find(sessionInfo.AnatGrps(ch).Channels==pyrCh)+38); % changed
+%                 channel_order = sessionInfo.AnatGrps(ch).Channels(startCh:endCh); % changed
+%             end
             if ismember(pyrCh, sessionInfo.AnatGrps(ch).Channels)
-                startCh = (find(sessionInfo.AnatGrps(ch).Channels==pyrCh)-11); % changed
-                endCh = (find(sessionInfo.AnatGrps(ch).Channels==pyrCh)+38); % changed
-                channel_order = sessionInfo.AnatGrps(ch).Channels(startCh:endCh); % changed
+                channel_order = sessionInfo.AnatGrps(ch).Channels;
             end
         end               
         %Silly exception for these animals because shank was broken
@@ -190,10 +193,14 @@ else
     end
 
     if saveMat 
-        save([expPath '\Summ\' 'csdRippleData_shank2.mat'], 'csdData');
-        saveas(figure(1),strcat(expPath,'\Summ\CSDRipple_shank2.png'),'png');
-        saveas(figure(1),strcat(expPath,'\Summ\CSDRipple_shank2.fig'),'fig');
-        saveas(figure(1),strcat(expPath,'\Summ\CSDRipple_shank2.eps'),'epsc');
+%         save([expPath '\Summ\' 'csdRippleData_shank2.mat'], 'csdData');
+%         saveas(figure(1),strcat(expPath,'\Summ\CSDRipple_shank2.png'),'png');
+%         saveas(figure(1),strcat(expPath,'\Summ\CSDRipple_shank2.fig'),'fig');
+%         saveas(figure(1),strcat(expPath,'\Summ\CSDRipple_shank2.eps'),'epsc');
+        save([expPath '\Summ\' 'csdRippleData.mat'], 'csdData');
+        saveas(figure(1),strcat(expPath,'\Summ\CSDRipple.png'),'png');
+        saveas(figure(1),strcat(expPath,'\Summ\CSDRipple.fig'),'fig');
+        saveas(figure(1),strcat(expPath,'\Summ\CSDRipple.eps'),'epsc');        
     end
 end
 close all

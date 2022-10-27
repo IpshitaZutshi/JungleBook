@@ -15,15 +15,17 @@
 
 %clear 
 
-if ~exist('analogEv','var')
-    analogEv = 64;
-    numAnalog = 2;
-    if ~isempty(analogEv)
-        for ii = 1:numAnalog
-            analogCh(ii) = (analogEv-1)+ii;
-        end
-    end
-end
+% if ~exist('analogEv','var')
+%     
+%     numAnalog = 2;
+%     if ~isempty(analogEv)
+%         for ii = 1:numAnalog
+%             analogCh(ii) = (analogEv-1)+ii;
+%         end
+%     end
+% end
+numAnalog = 1;
+analogEv = 128;
 
 disp('Get components...');
 [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true); sessionInfo.rates.lfp = 1250;  save(strcat(sessionInfo.session.name,'.sessionInfo.mat'),'sessionInfo');
@@ -50,7 +52,7 @@ close all
 nf = 1;
 if ~exist('analysisList')
     %analysisList = [0 1 1 1 1 0 1 1 0];
-    analysisList = [0 0 0 0 0 0 1 0 0];
+    analysisList = [0 0 0 0 0 0 0 1 0];
 end
 
 % C = strsplit(pwd,'\');
@@ -136,8 +138,10 @@ if analysisList(2)==1
    % try
         %Calculate power and frequency profile before and after stim
         % First calculate wavelet
-        [pulses] = bz_getAnalogPulsesSine('analogCh',analogCh);
+        [pulses] = bz_getAnalogPulsesSine;%('analogCh',analogCh);
         channels = [1:sessionInfo.nChannels]-1;
+        load([sessionInfo.FileName '.MergePoints.events.mat'])
+        
         if exist([sessionInfo.FileName '.PowerSpectrumProfile_6_12.channelinfo.mat'],'file')  && ...
                 exist([sessionInfo.FileName '.PowerSpectrumProfile_30_60.channelinfo.mat'],'file')
             powerProfile_theta = load([sessionInfo.FileName '.PowerSpectrumProfile_6_12.channelinfo.mat']);
@@ -614,8 +618,9 @@ if analysisList(7)==1
         load('chanMap.mat','xcoords','ycoords');
         xcoords = xcoords - min(xcoords); xcoords = xcoords/max(xcoords);
         ycoords = ycoords - min(ycoords); ycoords = ycoords/max(ycoords); 
+        figure
         for jj = 1:size(spikes.UID,2)
-            figure(nf)
+           % figure%(nf)
             dur = 0.08;
             set(gcf,'Position',[100 100 2500 1200])
             subplot(7,ceil(size(spikes.UID,2)/7),jj); % autocorrelogram
@@ -686,7 +691,7 @@ if analysisList(8)==1
         try 
             
             disp('Psth and CSD from analog-in inputs...');
-            [pulses] = bz_getAnalogPulsesSine('analogCh',analogCh);
+            [pulses] = bz_getAnalogPulsesSine;%('analogCh',analogCh);
             % copy NPY file to Kilosort folder, for phy psth option
 %             writeNPY(pulses.intsPeriods(1,:)','pulTime.npy'); % 
 %             kilosort_path = dir('*Kilosort*');
@@ -731,7 +736,7 @@ if analysisList(8)==1
                 end
 
                 st = pulses.intsPeriods(1,pulTr)';
-                win = [-1 1];
+                win = [-.2 .2];
                 disp('Plotting spikes raster and psth...');
                 figure(nf);
                 set(gcf,'Position',[100 100 2500 1200])
@@ -743,7 +748,7 @@ if analysisList(8)==1
                         rast_x = [rast_x temp_rast'];
                         rast_y = [rast_y kk*ones(size(temp_rast))'];
                     end
-                    [stccg, t] = CCG({spikes.times{jj} st},[],'binSize',0.1,'duration',12);
+                    [stccg, t] = CCG({spikes.times{jj} st},[],'binSize',0.01,'duration',0.4);
                     subplot(7,ceil(size(spikes.UID,2)/7),jj); % autocorrelogram
                     plot(rast_x, rast_y,'.','MarkerSize',2)
                     hold on

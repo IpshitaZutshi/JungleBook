@@ -57,7 +57,7 @@
     timelag = [.75 .75]; %time surrounding trigger
     restrictIn = 'NREM';%'all'; %options: NREM, all, WAKE
     xtile = 5; % for making plots - only works w 5 right now
-    lowerBoundCutoff = .08;%.08,.01,[]; %only take DOWNs this length and above, leave upperBoundCutoff empty
+    lowerBoundCutoff = .01;%.08,.01,[]; %only take DOWNs this length and above, leave upperBoundCutoff empty
     upperBoundCutoff = [];%.08,[] %only take DOWNs this length and below, leave lowerBoundCutoff empty
     SWRFeatureSelection = 'SWRamp'; %SWamp
     %sharpWavesIn = 'SharpWaves.events.mat'; %can include as input if want to separte by SW magnitude

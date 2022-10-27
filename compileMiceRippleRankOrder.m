@@ -68,8 +68,8 @@ for rr = 1:length(ripCutoff)
     %assembly = reshape(assemblyData(:,1:3),[size(assemblyData,1)*3,1]);
     assembly = reshape(assemblyData(:,1:2),[size(assemblyData,1)*2,1]);
     stats{rr}.mEC = groupStats(abs(assembly),dataID,'inAxis',true,'color',colMat,'repeatedMeasures',true,'plotType','BoxLinesSEM');
-    [stats{rr}.mEC.signrank.p,~,stats{rr}.mEC.signrank.stats] = signrank(assemblyData(:,1),assemblyData(:,2));
-    %[~,stats{rr}.mEC.signrank.p,~,stats{rr}.mEC.signrank.stats] = ttest(assemblyData(:,1),assemblyData(:,2));
+    %[stats{rr}.mEC.signrank.p,~,stats{rr}.mEC.signrank.stats] = signrank(assemblyData(:,1),assemblyData(:,2));
+    [~,stats{rr}.mEC.signrank.p,~,stats{rr}.mEC.signrank.stats] = ttest(assemblyData(:,1),assemblyData(:,2));
     title(strcat('ipsi mEC ', num2str(stats{rr}.mEC.signrank.p)))
     %ylim([0 1])
 

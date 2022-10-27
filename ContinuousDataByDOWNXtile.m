@@ -1226,7 +1226,7 @@ if SWRFeatureSelection
         
     end
     
-    suptitle(basePath)
+    subtitle(basePath)
     
 end
 
@@ -1444,7 +1444,7 @@ if strcmp(trigger,'DOWNtoUP')
         title('Synchrony x Mag(SWR)')
         
     end
-    suptitle('Aligned to DOWN->UP transition')
+    subtitle('Aligned to DOWN->UP transition')
 end
 
 %% Remove duplicates (ripples that fall during UP and DOWN bc right at transition)

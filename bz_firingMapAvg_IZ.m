@@ -204,7 +204,7 @@ end
 
 % inherit required fields from spikes cellinfo struct
 firingMaps.UID = spikes.UID;
-firingMaps.sessionName = spikes.sessionName;
+%firingMaps.sessionName = spikes.sessionName;
 try
 firingMaps.region = spikes.region; 
 catch
@@ -234,9 +234,9 @@ end
 
 if saveMat
    if ~downsample
-       save([firingMaps.sessionName '.firingMapsAvg.cellinfo.mat'],'firingMaps'); 
+       save([spikes.basename '.firingMapsAvg.cellinfo.mat'],'firingMaps'); 
    else
-       save([firingMaps.sessionName '_DS.firingMapsAvg.cellinfo.mat'],'firingMaps'); 
+       save([spikes.basename '_DS.firingMapsAvg.cellinfo.mat'],'firingMaps'); 
    end       
 end
 

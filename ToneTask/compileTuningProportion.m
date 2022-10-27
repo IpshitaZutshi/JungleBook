@@ -1,4 +1,4 @@
-function [sigMat, mutInfo] = compileTuningProportion
+function [sigMat, mutInfo] = compileTuningProportion;
 
 plotcells = 0;
 load('results_struct.mat')
@@ -47,13 +47,13 @@ for aa = 0:numCells
             mutInfo(aa+1,id) = nan;
         end
         if plotcells 
-            subplot(6,5,id)
+            subplot(6,6,id)
             fill([results(idx(id)).kernel_x flip(results(idx(id)).kernel_x)], [dev1 flip(dev2)],col,'FaceAlpha',.2,'EdgeColor','none')
             hold on
             plot(results(idx(id)).kernel_x, results(idx(id)).kernel,col,'LineWidth',2)
             title([results(idx(id)).variable])
 
-            subplot(6,5,id+15)
+            subplot(6,6,id+18)
             plot(results(idx(id)).x, results(idx(id)).model_rate_Hz,'k','LineWidth',1.5)
             hold on
             plot(results(idx(id)).x, results(idx(id)).raw_rate_Hz,'r','LineWidth',1.5)
@@ -76,9 +76,9 @@ figure
 set(gcf,'Renderer','painters')
 subplot(2,3,[1 2 3])
 propSig = sum(sigMat)./size(sigMat,1);
-bar(propSig)
+plot(propSig,'+');%bar(propSig)
 ylim([0 1])
-xticklabels({'x','yFwd','yRev','yLin','vel','freq','trialEnd','trialRamp','correct','incorrect','lick0','lick1','lick2','lick3','spikehist'});
+xticklabels({'x','yFwd','yRev','yLin','vel','freq','trialEnd','trialRamp','correct','incorrect','lick0','lick1','lick2','lick3','lick4','lick5','lick6','spikehist'});
 title('Distribution of significant tuning')
 
 %For cells tuned to space and frequency, what are they better tuned to

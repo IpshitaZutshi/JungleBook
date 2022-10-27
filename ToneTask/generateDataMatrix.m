@@ -47,7 +47,8 @@ file = dir([basepath filesep '*.MergePoints.events.mat']);
 load(file.name); 
 
 % Load digitalIn
-filename = [MergePoints.foldernames{2} filesep 'amplifier.DigitalIn.events.mat'];
+%filename = [MergePoints.foldernames{2} filesep '.DigitalIn.events.mat'];
+filename = [sessionInfo.session.name '.DigitalIn.events.mat'];
 load(filename)
 %% First generate spike matrix 
 win = [behavTrials.timestamps(1,1) behavTrials.timestamps((end-1),2)];
@@ -67,6 +68,7 @@ constVar.x = interp1(timeS,tracking.position.x(idxStart:idxEnd),spkData.timestam
 constVar.y = interp1(timeS,tracking.position.y(idxStart:idxEnd),spkData.timestamps)';
 constVar.vel = interp1(timeS,tracking.position.v(idxStart:idxEnd),spkData.timestamps)';
 constVar.velY = interp1(timeS,tracking.position.vy(idxStart:idxEnd),spkData.timestamps)';
+constVar.y = constVar.y-7;
 
 % Also generate separate y variables for forward versus reverse directions.
 constVar.yFwd = constVar.y;
@@ -89,12 +91,12 @@ logVar.forward(1:length(spkData.timestamps)) = 0;
 logVar.toneOn(1:length(spkData.timestamps)) = 0;
 
 %last lin track trial 
-lastLin = find(~behavTrials.linTrial,1);
-toneGain = behavTrials.toneGain;
-toneGain(lastLin:end) = toneGain(lastLin:end)+1;
-
+lastLin = behavTrials.linTrial;
+toneGain = (behavTrials.toneGain);
+toneGain(~lastLin) = toneGain(~lastLin)+1;
+toneGain(lastLin==1) = 0;
 choiceCorrect = behavTrials.correct;
-choiceCorrect(1:(lastLin-1)) = NaN;
+choiceCorrect(lastLin==1) = NaN;
 
 for tt = 1:(length(startIdx)-1)
     logVar.trialNum(startIdx(tt):startIdx(tt+1)) = tt;
@@ -113,15 +115,16 @@ for tt = 1:(length(startIdx)-1)
 end
 
 % Now can generate cont freq variable - transformed to Hz
-gain =[400/220, 400/320, 400/400];
+%gain =[435/72, 435/144, 435/216, 435/390, 435/370, 435/435];
+gain = [13, 4.2, 2.2068, 1.5205, 1.1698, 1.0000];
 
 constVar.freq(1:length(spkData.timestamps)) = nan;
 
-freqExp = log10(25000/1000);
+freqExp = log10(22000/1000);
 for ii = 1:length(logVar.trialType)
     if logVar.trialType(ii)>0 && logVar.toneOn(ii)>0
-         freq = (constVar.y(ii)*gain(logVar.trialType(ii)))/112;
-         constVar.freq(ii) = ((1000*(10.^(freqExp*freq)))/25000)*112;
+         freq = (constVar.y(ii)*gain(logVar.trialType(ii)))/111;
+         constVar.freq(ii) = ((1000*(10.^(freqExp*freq)))/22000)*111;
     end
 end
 
@@ -129,37 +132,37 @@ constVar.yLin(logVar.trialType>0) = nan;
 constVar.yFwd(logVar.trialType==0) = nan;
 %% Generate matrix for events - licks, trialStart, trialEnd
 
-lickport = [2 3 4 1];
-for ll = 1:4
-    event.times{ll} = digitalIn.timestampsOn{lickport(ll)+5}+MergePoints.timestamps(2,1);
+lickport = [1 2 3 4 5 6 7];
+for ll = 1:7
+    event.times{ll} = digitalIn.timestampsOn{lickport(ll)+2}+MergePoints.timestamps(2,1);
     event.UID(ll) = ll;
 end
 
-event.times{5} = behavTrials.timestamps((1:(end-1)),1);
-event.times{6} = behavTrials.timestamps((1:(end-1)),2);
+event.times{8} = behavTrials.timestamps((1:(end-1)),1);
+event.times{9} = behavTrials.timestamps((1:(end-1)),2);
 
 choiceIncorrect = behavTrials.correct == 0 & behavTrials.linTrial == 0;
-event.times{7} = behavTrials.timestamps(choiceIncorrect(1:(end-1)),2);
+event.times{10} = behavTrials.timestamps(choiceIncorrect(1:(end-1)),2);
 
 choiceCorrect = behavTrials.correct == 1;
-event.times{8} = behavTrials.timestamps(choiceCorrect(1:(end-1)),2);
-event.UID(5:8)  = [5 6 7 8];
+event.times{11} = behavTrials.timestamps(choiceCorrect(1:(end-1)),2);
+event.UID(8:11)  = [8 9 10 11];
 
 eventMat = bz_SpktToSpkmat(event,'dt',dt, 'win',win);
 % Add the first and last trials
-eventMat.data(1,5) = 1;
-eventMat.data(end,6) = 1;
+eventMat.data(1,8) = 1;
+eventMat.data(end,9) = 1;
 
-% add a variable that is shifted 1 sec previous to trialEnd
+% add a variable that is shifted 0.5 sec previous to trialEnd
 trialRamp = zeros(size(eventMat.data(:,6)));
-n = round(990/6);
+n = round(500/6);
 trialRamp(1:(end-n)) = eventMat.data(n+1:end,6)';
 
-eventVar.licks = eventMat.data(:,1:4)';
-eventVar.trialStart = eventMat.data(:,5)';
-eventVar.trialEnd = eventMat.data(:,6)';
-eventVar.incorrect = eventMat.data(:,7)';
-eventVar.correct = eventMat.data(:,8)';
+eventVar.licks = eventMat.data(:,1:7)';
+eventVar.trialStart = eventMat.data(:,8)';
+eventVar.trialEnd = eventMat.data(:,9)';
+eventVar.incorrect = eventMat.data(:,10)';
+eventVar.correct = eventMat.data(:,11)';
 eventVar.trialRamp = trialRamp;
 
 save('sessionData.mat','eventVar', 'constVar','timestamps','spkMat'); 

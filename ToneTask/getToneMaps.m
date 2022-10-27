@@ -55,13 +55,13 @@ else
     save([sessionInfo.FileName '.spikeData.cellinfo.mat'],'spikeData'); 
 end
 
-gain =[400/220, 400/320, 400/400];
-freqExp = log10(25000/1000);
+gain =[420/55, 420/130, 420/210, 420/290, 420/370, 420/420];
+freqExp = log10(22000/1000);
 
 for pf = 1:(size(behavTrials.timestamps,1)-1)    
     [idx] = InIntervals(tracking.timestamps,behavTrials.timestamps(pf,:));
     positions.forward{pf} = [tracking.timestamps(idx) tracking.position.y(idx)];
-    positions.forward{pf} = [positions.forward{pf};[behavTrials.timestamps(pf,2) 112]];% Add a  fake 112
+    positions.forward{pf} = [positions.forward{pf};[behavTrials.timestamps(pf,2) 118]];% Add a  fake 118
     if toneMap
         if behavTrials.linTrial(pf)==1
             positions.tone{pf} = [tracking.timestamps(idx) tracking.position.y(idx)*nan];
@@ -69,7 +69,7 @@ for pf = 1:(size(behavTrials.timestamps,1)-1)
             y = tracking.position.y(idx);
             tonepos = [];
             for ii = 1:length(y)
-                freq = (y(ii)*gain(behavTrials.toneGain(pf)+1))/110;
+                freq = (y(ii)*gain(behavTrials.toneGain(pf)+1))/118;
                 tonepos(ii) = 1000*(10.^(freqExp*freq));
             end
             tonepos(tonepos>25000) = nan;
@@ -108,6 +108,11 @@ if plotfig
     idx{2} = firingMaps.toneGain ==0 & firingMaps.toneTrial ==1 & firingMaps.linTrial ==0;
     idx{3} = firingMaps.toneGain ==1 & firingMaps.toneTrial ==1 & firingMaps.linTrial ==0;
     idx{4} = firingMaps.toneGain ==2 & firingMaps.toneTrial ==1 & firingMaps.linTrial ==0;
+    idx{5} = firingMaps.toneGain ==3 & firingMaps.toneTrial ==1 & firingMaps.linTrial ==0;
+    idx{6} = firingMaps.toneGain ==4 & firingMaps.toneTrial ==1 & firingMaps.linTrial ==0;
+    idx{7} = firingMaps.toneGain ==5 & firingMaps.toneTrial ==1 & firingMaps.linTrial ==0;
+    
+    
     idx{5} = firingMaps.toneGain ==0 & firingMaps.toneTrial ==0 & firingMaps.correct==1 & firingMaps.linTrial ==0;
     idx{6} = firingMaps.toneGain ==1 & firingMaps.toneTrial ==0 & firingMaps.correct==1 & firingMaps.linTrial ==0;
     idx{7} = firingMaps.toneGain ==2 & firingMaps.toneTrial ==0 & firingMaps.correct==1 & firingMaps.linTrial ==0;

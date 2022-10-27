@@ -1,6 +1,6 @@
 function compiledMiceRipples = compileMiceRipples
 
-tag = 'mECBilateral';% mEC, CA3, Bilateral mEC
+tag = 'mEC';% mEC, CA3, Bilateral mEC
 force = 0;
 Control = 0;
 
@@ -8,9 +8,9 @@ if strcmp(tag,'CA1') == 1
     mice = {'IZ15\Final','IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};
     reg = {'CA1','mEC','CA1Both'};
 elseif strcmp(tag,'mEC') == 1
-    mice = {'IZ12\Final','IZ13\Final','IZ15\Final',...
+    mice = {'IZ12\Final','IZ13\Final','IZ15\Final','IZ17\Final','IZ21\Final',...
          'IZ18\Final','IZ20\Final','IZ24\Final','IZ25\Final','IZ26\Final','IZ27\Saline','IZ28\Saline','IZ29\Saline',...
-         'IZ30\Final','IZ31\Final','IZ32\Saline','IZ33\Saline'}; % To add, IZ16, IZ23'IZ11\Final','IZ17\Final' ,'IZ21\Final',,'IZ34\Saline'
+         'IZ30\Final','IZ31\Final','IZ32\Saline','IZ33\Saline'}; % To add, IZ16, IZ23'IZ11\Final','IZ34\Saline'
     reg = {'CA1','mEC','Both'};
 elseif strcmp(tag,'CA3') == 1
     mice = {'IZ29\Final','IZ32\Final','IZ33\Final','IZ34\Final','IZ27\Final','IZ28\Final'};
@@ -189,106 +189,126 @@ elseif strcmp(tag,'mEC') == 1
    [ stats.ripplerate.signrank.p,~,stats.ripplerate.signrank.stats] = signrank(compiledMiceRipples.num{2}(:,2),compiledMiceRipples.num{2}(:,3));
     title(num2str(stats.ripplerate.signrank.p));
     ylabel('Number of ripples')
+    ylim([0 0.8])
        
     %subplot(1,4,2)
     subplot(2,5,2) 
+    hold off
     dataAll = [];
     %dataAll{1} = compiledMiceRipples.amplitude{2}(:,1);
     dataAll{1} = compiledMiceRipples.amplitude{2}(:,2);    
     dataAll{2} = compiledMiceRipples.amplitude{2}(:,3);    
-    %dataAll{4} = compiledMiceRipples.amplitude{2}(:,4);    
-    %nhist(dataAll(2:3), 'binfactor',1,'color','colormap','samebins','proportion','serror','linewidth',1.5)
-    [stats.amplitude.signrank.p,~,stats.amplitude.signrank.stats] = signrank(compiledMiceRipples.amplitude{2}(:,2),compiledMiceRipples.amplitude{2}(:,3));
+    dataAll{1}(dataAll{1}>2500) = nan;
+    dataAll{2}(dataAll{2}>2500) = nan;
+    h1 = raincloud_plot(dataAll{1}, 'box_on', 1, 'color', col(1,:),'alpha', 0.4,...
+     'box_dodge', 1, 'box_dodge_amount', .25, 'dot_dodge_amount', .3,...
+     'box_col_match', 0);
+    set(h1{2}, 'SizeData', 2);
+    h2 = raincloud_plot(dataAll{2}, 'box_on', 1, 'color', col(2,:), 'alpha', 0.4,...
+     'box_dodge', 1, 'box_dodge_amount', 0, 'dot_dodge_amount', .05, 'box_col_match', 0);
+    set(h2{2}, 'SizeData', 2);
+    box off
+    [stats.amplitude.signrank.p,~,stats.amplitude.signrank.stats] = ranksum(compiledMiceRipples.amplitude{2}(:,2),compiledMiceRipples.amplitude{2}(:,3));
     title(num2str(stats.amplitude.signrank.p));    
-    stats.amplitude = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col);          
-    ylabel('Ripple amplitude')    
-    %xlim([0 2800])
+    stats.amplitude = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col,'doPlot',false); 
+    set(gca,'view',[90 -90])
+    xlabel('Ripple amplitude')    
+    xlim([0 3000])
     
     %subplot(1,4,3)
     subplot(2,5,3) 
     dataAll = [];
-    %dataAll{1} = compiledMiceRipples.duration{2}(:,1);
     dataAll{1} = compiledMiceRipples.duration{2}(:,2);    
-    dataAll{2} = compiledMiceRipples.duration{2}(:,3);    
+    dataAll{2} = compiledMiceRipples.duration{2}(:,3); 
+%     dataAll{1}(dataAll{1}>2500) = nan;
+%     dataAll{2}(dataAll{2}>2500) = nan;
+    h1 = raincloud_plot(dataAll{1}, 'box_on', 1, 'color', col(1,:),'alpha', 0.4,...
+     'box_dodge', 1, 'box_dodge_amount', .25, 'dot_dodge_amount', .3,...
+     'box_col_match', 0);
+    set(h1{2}, 'SizeData', 2);
+    h2 = raincloud_plot(dataAll{2}, 'box_on', 1, 'color', col(2,:), 'alpha', 0.4,...
+     'box_dodge', 1, 'box_dodge_amount', 0, 'dot_dodge_amount', .05, 'box_col_match', 0);
+    set(h2{2}, 'SizeData', 2);
+    box off    
     %dataAll{4} = compiledMiceRipples.duration{2}(:,4);    
     %nhist(dataAll(2:3), 'binfactor',1,'color','colormap','samebins','proportion','serror','linewidth',1.5)
-    [stats.duration.signrank.p,~,stats.duration.signrank.stats] = signrank(compiledMiceRipples.duration{2}(:,2),compiledMiceRipples.duration{2}(:,3));
+    [stats.duration.signrank.p,~,stats.duration.signrank.stats] = ranksum(compiledMiceRipples.duration{2}(:,2),compiledMiceRipples.duration{2}(:,3));
     title(num2str(stats.duration.signrank.p));        
-    stats.duration = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col);          
-    ylabel('Ripple duration')
-    %xlim([0.019 0.1])
+    stats.duration = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col,'doPlot',false);          
+    set(gca,'view',[90 -90])
+    xlabel('Ripple duration')
+    xlim([0 0.12])
     
     %subplot(1,4,4)
     subplot(2,5,4) 
     dataAll = [];
-    %dataAll{1} = compiledMiceRipples.frequency{2}(:,1);
     dataAll{1} = compiledMiceRipples.frequency{2}(:,2);    
     dataAll{2} = compiledMiceRipples.frequency{2}(:,3);    
-    %dataAll{4} = compiledMiceRipples.frequency{2}(:,4);    
-    %nhist(dataAll(2:3), 'binfactor',1,'color','colormap','samebins','proportion','serror','linewidth',1.5)
-    [stats.frequency.signrank.p,~,stats.frequency.signrank.stats] = signrank(compiledMiceRipples.frequency{2}(:,2),compiledMiceRipples.frequency{2}(:,3));
+%     dataAll{1}(dataAll{1}>2500) = nan;
+%     dataAll{2}(dataAll{2}>2500) = nan;
+    h1 = raincloud_plot(dataAll{1}, 'box_on', 1, 'color', col(1,:),'alpha', 0.4,...
+     'box_dodge', 1, 'box_dodge_amount', .25, 'dot_dodge_amount', .3,...
+     'box_col_match', 0);
+    set(h1{2}, 'SizeData', 2);
+    h2 = raincloud_plot(dataAll{2}, 'box_on', 1, 'color', col(2,:), 'alpha', 0.4,...
+     'box_dodge', 1, 'box_dodge_amount', 0, 'dot_dodge_amount', .05, 'box_col_match', 0);
+    set(h2{2}, 'SizeData', 2);
+    box off       
+    [stats.frequency.signrank.p,~,stats.frequency.signrank.stats] = ranksum(compiledMiceRipples.frequency{2}(:,2),compiledMiceRipples.frequency{2}(:,3));
     title(num2str(stats.frequency.signrank.p));         
-    stats.frequency = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col);          
-    ylabel('Ripple frequency')
-    %xlim([140 190])
-    
-%     dataAll = [];
-%     dataAll{1} = compiledMiceRipples.ISI{2}(:,1);
-%     dataAll{2} = diff(compiledMiceRipples.ISI{2}(:,2));    
-%     dataAll{3} = diff(compiledMiceRipples.ISI{2}(:,3));    
-%     dataAll{4} = compiledMiceRipples.ISI{2}(:,4);  
-%     histogram(dataAll{2},0:0.05:20)
-%     
-%     nhist(dataAll(2:3), 'binfactor',1,'color','colormap','samebins','proportion','serror','linewidth',1.5)
-    
+    stats.frequency = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col,'doPlot',false);     
+    set(gca,'view',[90 -90])
+    xlabel('Ripple frequency')
+    xlim([130 200])
+       
     subplot(2,5,5) 
     dataAll = [];
-    %dataAll{1} = compiledMiceRipples.swMag{2}(:,1);
     dataAll{1} = compiledMiceRipples.swMag{2}(:,2);    
-    dataAll{2} = compiledMiceRipples.swMag{2}(:,3);    
-    %dataAll{4} = compiledMiceRipples.swMag{2}(:,4);    
-    stats.swMag = groupStats(dataAll,[],'inAxis',true,'plotType','violinPlot','color',col);     
-    [stats.swMag.signrank.p,~,stats.swMag.signrank.stats] = signrank(compiledMiceRipples.swMag{2}(:,2),compiledMiceRipples.swMag{2}(:,3));
-    title(num2str(stats.swMag.signrank.p));          
-    ylabel('Sharp wave magnitude')
+    dataAll{2} = compiledMiceRipples.swMag{2}(:,3);       
+%     dataAll{1}(dataAll{1}>2500) = nan;
+%     dataAll{2}(dataAll{2}>2500) = nan;
+    h1 = raincloud_plot(dataAll{1}, 'box_on', 1, 'color', col(1,:), 'alpha', 0.4,...
+     'box_dodge', 1, 'box_dodge_amount', .25, 'dot_dodge_amount', .3,...
+     'box_col_match', 0);
+    set(h1{2}, 'SizeData', 2);
+    h2 = raincloud_plot(dataAll{2}, 'box_on', 1, 'color', col(2,:), 'alpha', 0.4,...
+     'box_dodge', 1, 'box_dodge_amount', 0, 'dot_dodge_amount', .05, 'box_col_match', 0);
+    set(h2{2}, 'SizeData', 2);
+    box off          
+    stats.swMag = groupStats(dataAll,[],'inAxis',true,'plotType','violinPlot','color',col,'doPlot',false);     
+    [stats.swMag.signrank.p,~,stats.swMag.signrank.stats] = ranksum(compiledMiceRipples.swMag{2}(:,2),compiledMiceRipples.swMag{2}(:,3));
+    title(num2str(stats.swMag.signrank.p));     
+    set(gca,'view',[90 -90])
+    xlabel('Sharp wave magnitude')
+    xlim([-10 0])
     
     subplot(2,5,6) 
+    swMag1 = compiledMiceRipples.swMag{2}(:,2);     
+    swMag2 = compiledMiceRipples.swMag{2}(:,3);     
+    ripAmp1 = compiledMiceRipples.amplitude{2}(:,2);    
+    ripAmp2 = compiledMiceRipples.amplitude{2}(:,3);  
+   
+    scatter(abs(swMag1),ripAmp1,15,col(1,:),'.')
+    hold on
+    scatter(abs(swMag2),ripAmp2, 15, col(2,:),'.') 
+    [stats.swMagripAmp.Pre.R,stats.swMagripAmp.Pre.p]  = corr(abs(swMag1),ripAmp1);
+    [stats.swMagripAmp.Post.R,stats.swMagripAmp.Post.p]  = corr(abs(swMag2),ripAmp2);
+    ylabel('Ripple amplitude') 
+    xlabel('SPW amplitude') 
+
+    subplot(2,5,7) 
     dataAll = [];
-    %dataAll{1} = compiledMiceRipples.swProp{2}(:,1);
     dataAll{1} = compiledMiceRipples.swProp{2}(:,2);    
-    dataAll{2} = compiledMiceRipples.swProp{2}(:,3);    
-    %dataAll{4} = compiledMiceRipples.swProp{2}(:,4);    
-    stats.swProp = groupStats(dataAll,[],'inAxis',true,'plotType','violinPlot','color',col);      
-    [stats.swProp.signrank.p,~,stats.swProp.signrank.stats] = signrank(compiledMiceRipples.swProp{2}(:,2),compiledMiceRipples.swProp{2}(:,3));
+    dataAll{2} = compiledMiceRipples.swProp{2}(:,3);  
+%     dataAll{1}(dataAll{1}<0.0267) = nan;
+%     dataAll{2}(dataAll{2}<0.0267) = nan;    
+    stats.swProp = groupStats(dataAll,[],'inAxis',true,'plotType','boxplot','color',col); 
+    hold on
+    plot(compiledMiceRipples.swProp{2}(:,2:3)')
+    [stats.swProp.signrank.p,~,stats.swProp.signrank.stats] = signrank(dataAll{1},dataAll{2});
     title(num2str(stats.swProp.signrank.p));      
-    ylabel('Sharp wave proportion') 
+    xlabel('Sharp wave proportion') 
     
-%     freq_base = compiledMiceRipples.frequency{2}(:,2);  
-%     freq_stim = compiledMiceRipples.frequency{2}(:,3);    
-%     amplitude_base = compiledMiceRipples.duration{2}(:,2);  
-%     amplitude_stim = compiledMiceRipples.duration{2}(:,3);      
-%     subplot(2,5,7)
-%     [N, Xedges,Yedges] = histcounts2(freq_base,amplitude_base,50,'Normalization','pdf');
-%     imagesc(Yedges,Xedges,N)
-%     colormap default
-%     colormap hot
-%     set(gca,'YDir','normal')
-%     %xlim([400 5000])
-%     ylim([140 190])
-%     title('Baseline')
-%     ylabel('Ripple frequency (Hz)')
-%     xlabel('Ripple duration')
-%     
-%     subplot(2,5,8)
-%     [N, Xedges,Yedges] = histcounts2(freq_stim,amplitude_stim,50,'Normalization','pdf');
-%     imagesc(Yedges,Xedges,N)
-%     set(gca,'YDir','normal')
-%     %xlim([400 5000])
-%     ylim([140 190])
-%     title('Stim')    
-%     ylabel('Ripple frequency (Hz)')
-%     xlabel('Ripple duration')
-%     
     subplot(2,5,9) 
     dataAll = [];
     dataAll{1} = compiledMiceRipples.numpost{2}(:,1);
@@ -307,10 +327,10 @@ elseif strcmp(tag,'mEC') == 1
 %     dataAll(:,5) = compiledMiceRipples.numpost{2}(:,5);  
 %     
 else
-    set(gcf,'Position',[50 50 1200 1000])
+    set(gcf,'Position',[35 150 1800 680])
     for ii = 1:(numAnalog+1)
 
-        subplot((numAnalog+1),6,6*(ii-1)+1) 
+        subplot((numAnalog+1),8,8*(ii-1)+1) 
         hold on
         dataAll = [];
         dataAll{1} = compiledMiceRipples.num{ii}(:,1);
@@ -322,72 +342,131 @@ else
         [stats.ripplerate{ii}.signrank.p,~,stats.ripplerate{ii}.signrank.stats] = signrank(compiledMiceRipples.num{ii}(:,2),compiledMiceRipples.num{ii}(:,3));
         title(num2str(stats.ripplerate{ii}.signrank.p));
         ylabel('Number of ripples')
-
-        dataAll = [];
-        subplot((numAnalog+1),6,6*(ii-1)+2)
+        ylim([0 0.8])
+        
+        subplot((numAnalog+1),8,8*(ii-1)+2)
         title('Ripple power')
-        %dataAll{1} = compiledMiceRipples.amplitude{ii}(:,1);
-        dataAll{1} = compiledMiceRipples.amplitude{ii}(:,2);
-        dataAll{2} = compiledMiceRipples.amplitude{ii}(:,3);
-        %dataAll{4} = compiledMiceRipples.amplitude{ii}(:,4);        
-        stats.amplitude{ii} = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col);
-        %nhist(dataAll(2:3), 'binfactor',2,'color','colormap','samebins','proportion','serror','linewidth',1.5)
-        %nhist(dataAll(2:3),'color','colormap','samebins','pdf','serror','linewidth',1.5)
-        [stats.amplitude{ii}.signrank.p,~,stats.amplitude{ii}.signrank.stats] = signrank(compiledMiceRipples.amplitude{ii}(:,2),compiledMiceRipples.amplitude{ii}(:,3));
-        title(num2str(stats.amplitude{ii}.signrank.p));
-        ylabel('Ripple Amplitude')
-        %xlim([0 2800])
-
         dataAll = [];
-        subplot((numAnalog+1),6,6*(ii-1)+3)
+        dataAll{1} = compiledMiceRipples.amplitude{ii}(:,2);    
+        dataAll{2} = compiledMiceRipples.amplitude{ii}(:,3);    
+        dataAll{1}(dataAll{1}>2500) = nan;
+        dataAll{2}(dataAll{2}>2500) = nan;
+        h1 = raincloud_plot(dataAll{1}, 'box_on', 1, 'color', col(1,:),'alpha', 0.4,...
+         'box_dodge', 1, 'box_dodge_amount', 0.25, 'dot_dodge_amount', .3,...
+         'box_col_match', 0);
+        set(h1{2}, 'SizeData', 2);
+        h2 = raincloud_plot(dataAll{2}, 'box_on', 1, 'color', col(2,:), 'alpha', 0.4,...
+         'box_dodge', 1, 'box_dodge_amount', 0, 'dot_dodge_amount', .05, 'box_col_match', 0);
+        set(h2{2}, 'SizeData', 2);
+        box off    
+        stats.amplitude{ii} = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col,'doPlot',false);  
+        [stats.amplitude{ii}.signrank.p,~,stats.amplitude{ii}.signrank.stats] = ranksum(compiledMiceRipples.amplitude{ii}(:,2),compiledMiceRipples.amplitude{ii}(:,3));
+        title(num2str(stats.amplitude{ii}.signrank.p));        
+        set(gca,'view',[90 -90])
+        xlabel('Ripple amplitude')    
+        xlim([0 3000])        
+        
+        dataAll = [];
+        subplot((numAnalog+1),8,8*(ii-1)+3)
         title('Ripple duration')
-        %dataAll{1} = compiledMiceRipples.duration{ii}(:,1);
         dataAll{1} = compiledMiceRipples.duration{ii}(:,2);
         dataAll{2} = compiledMiceRipples.duration{ii}(:,3);
-        %dataAll{4} = compiledMiceRipples.duration{ii}(:,4);
-        stats.duration{ii} = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col);
-        %nhist(dataAll(2:3), 'binfactor',2,'color','colormap','samebins','proportion','serror','linewidth',1.5)
-        %nhist(dataAll(2:3),'color','colormap','samebins','pdf','serror','linewidth',1.5)       
-        [stats.duration{ii}.signrank.p,~,stats.duration{ii}.signrank.stats] = signrank(compiledMiceRipples.duration{ii}(:,2),compiledMiceRipples.duration{ii}(:,3));
-        title(num2str(stats.duration{ii}.signrank.p));        
-        ylabel('Ripple duration')
-        %xlim([0.019 0.1])
-        
-        dataAll = [];
-        subplot((numAnalog+1),6,6*(ii-1)+4)
-        title('Ripple frequency')
-        %dataAll{1} = compiledMiceRipples.frequency{ii}(:,1);
-        dataAll{1} = compiledMiceRipples.frequency{ii}(:,2);
-        dataAll{2} = compiledMiceRipples.frequency{ii}(:,3);
-        %dataAll{4} = compiledMiceRipples.frequency{ii}(:,4);        
-        %nhist(dataAll(2:3), 'binfactor',2,'color','colormap','samebins','proportion','serror','linewidth',1.5)
-        %nhist(dataAll(2:3),'color','colormap','pdf','serror','linewidth',1.5)           
-        stats.frequency{ii} = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col);
-        [stats.frequency{ii}.signrank.p,~,stats.frequency{ii}.signrank.stats] = signrank(compiledMiceRipples.frequency{ii}(:,2),compiledMiceRipples.frequency{ii}(:,3));
-        title(num2str(stats.frequency{ii}.signrank.p));  
-        ylabel('Ripple frequency')
-        %xlim([140 190])
-        
-        dataAll = [];
-        subplot((numAnalog+1),6,6*(ii-1)+5)
-        title('SW magnitude')
-        dataAll{1} = compiledMiceRipples.swMag{ii}(:,2);
-        dataAll{2} = compiledMiceRipples.swMag{ii}(:,3);
-        stats.swMag{ii} = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col);
-        [stats.swMag{ii}.signrank.p,~,stats.swMag{ii}.signrank.stats] = signrank(compiledMiceRipples.swMag{ii}(:,2),compiledMiceRipples.swMag{ii}(:,3));
-        title(num2str(stats.swMag{ii}.signrank.p));  
-        ylabel('SW magnitude')
+        h1 = raincloud_plot(dataAll{1}, 'box_on', 1, 'color', col(1,:),'alpha', 0.4,...
+         'box_dodge', 1, 'box_dodge_amount', 0.25, 'dot_dodge_amount', .3,...
+         'box_col_match', 0);
+        set(h1{2}, 'SizeData', 2);
+        h2 = raincloud_plot(dataAll{2}, 'box_on', 1, 'color', col(2,:), 'alpha', 0.4,...
+         'box_dodge', 1, 'box_dodge_amount', 0, 'dot_dodge_amount', .05, 'box_col_match', 0);
+        set(h2{2}, 'SizeData', 2);
+        box off    
+        stats.duration{ii} = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col,'doPlot',false);  
+        [stats.duration{ii}.signrank.p,~,stats.duration{ii}.signrank.stats] = ranksum(compiledMiceRipples.duration{ii}(:,2),compiledMiceRipples.duration{ii}(:,3));
+        title(num2str(stats.duration{ii}.signrank.p));         
+        set(gca,'view',[90 -90])
+        xlabel('Ripple duration')
+        xlim([0 0.12])
 
         dataAll = [];
-        subplot((numAnalog+1),6,6*(ii-1)+6)
+        subplot((numAnalog+1),8,8*(ii-1)+4)
+        title('Ripple frequency')
+        dataAll{1} = compiledMiceRipples.frequency{ii}(:,2);
+        dataAll{2} = compiledMiceRipples.frequency{ii}(:,3);
+        h1 = raincloud_plot(dataAll{1}, 'box_on', 1, 'color', col(1,:),'alpha', 0.4,...
+         'box_dodge', 1, 'box_dodge_amount', 0.25, 'dot_dodge_amount', .3,...
+         'box_col_match', 0);
+        set(h1{2}, 'SizeData', 2);
+        h2 = raincloud_plot(dataAll{2}, 'box_on', 1, 'color', col(2,:), 'alpha', 0.4,...
+         'box_dodge', 1, 'box_dodge_amount', 0, 'dot_dodge_amount', .05, 'box_col_match', 0);
+        set(h2{2}, 'SizeData', 2);
+        box off    
+        stats.frequency{ii} = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col,'doPlot',false);        
+        [stats.frequency{ii}.signrank.p,~,stats.frequency{ii}.signrank.stats] = ranksum(compiledMiceRipples.frequency{ii}(:,2),compiledMiceRipples.frequency{ii}(:,3));
+        title(num2str(stats.frequency{ii}.signrank.p));            
+        set(gca,'view',[90 -90])
+        xlabel('Ripple frequency')
+        xlim([130 200])
+        
+        dataAll = [];
+        subplot((numAnalog+1),8,8*(ii-1)+5)
+        title('SW magnitude')
+        dataAll{1} = compiledMiceRipples.swMag{ii}(:,2);
+        dataAll{2} = compiledMiceRipples.swMag{ii}(:,3);        
+        h1 = raincloud_plot(dataAll{1}, 'box_on', 1, 'color', col(1,:), 'alpha', 0.4,...
+         'box_dodge', 1, 'box_dodge_amount', 0.25, 'dot_dodge_amount', .3,...
+         'box_col_match', 0);
+        set(h1{2}, 'SizeData', 2);
+        h2 = raincloud_plot(dataAll{2}, 'box_on', 1, 'color', col(2,:), 'alpha', 0.4,...
+         'box_dodge', 1, 'box_dodge_amount', 0, 'dot_dodge_amount', .05, 'box_col_match', 0);
+        set(h2{2}, 'SizeData', 2);
+        box off          
+        stats.swMag{ii} = groupStats(dataAll,[],'inAxis',true,'plotType','violinPlot','color',col,'doPlot',false);     
+        [stats.swMag{ii}.signrank.p,~,stats.swMag{ii}.signrank.stats] = ranksum(compiledMiceRipples.swMag{ii}(:,2),compiledMiceRipples.swMag{ii}(:,3));
+        title(num2str(stats.swMag{ii}.signrank.p));          
+        set(gca,'view',[90 -90])
+        xlabel('Sharp wave magnitude')
+        xlim([-10 0])
+        
+        %% Only count those sessions where there were at least 4 ripples
+        dataAll = [];
+        subplot((numAnalog+1),8,8*(ii-1)+6)
         title('SW proportion')
         dataAll{1} = compiledMiceRipples.swProp{ii}(:,2);
-        dataAll{2} = compiledMiceRipples.swProp{ii}(:,3);
-        stats.swProp{ii} = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col);
-        [stats.swProp{ii}.signrank.p,~,stats.swProp{ii}.signrank.stats] = signrank(compiledMiceRipples.swProp{ii}(:,2),compiledMiceRipples.swProp{ii}(:,3));
-        title(num2str(stats.swProp{ii}.signrank.p));  
-        ylabel('SW proportion')        
+        dataAll{2} = compiledMiceRipples.swProp{ii}(:,3); 
+%         dataAll{1}(compiledMiceRipples.num{ii}(:,2)<0.015) = nan;
+%         dataAll{2}(compiledMiceRipples.num{ii}(:,3)<0.015) = nan;
+        stats.swProp{ii} = groupStats(dataAll,[],'inAxis',true,'plotType','boxplot','color',col);  
+        hold on
+        plot([dataAll{1} dataAll{2}]')
+        [stats.swProp{ii}.signrank.p,~,stats.swProp{ii}.signrank.stats] = signrank(dataAll{1},dataAll{2});
+        title(num2str(stats.swProp{ii}.signrank.p));   
+        xlabel('Sharp wave proportion') 
+    
+        subplot((numAnalog+1),8,8*(ii-1)+7)
+        swMag1 = compiledMiceRipples.swMag{ii}(:,2);     
+        swMag2 = compiledMiceRipples.swMag{ii}(:,3);     
+        ripAmp1 = compiledMiceRipples.amplitude{ii}(:,2);    
+        ripAmp2 = compiledMiceRipples.amplitude{ii}(:,3);  
+
+        scatter(abs(swMag1),ripAmp1,45,col(1,:),'.')
+        hold on
+        scatter(abs(swMag2),ripAmp2, 45, col(2,:),'.') 
+        [stats.swMagripAmp.Pre.R,stats.swMagripAmp.Pre.p]  = corr(abs(swMag1),ripAmp1);
+        [stats.swMagripAmp.Post.R,stats.swMagripAmp.Post.p]  = corr(abs(swMag2),ripAmp2);
+        ylabel('Ripple amplitude') 
+        xlabel('SPW amplitude') 
+        ylim([500 2000])
+        
+        subplot((numAnalog+1),8,8*(ii-1)+8)
+        dataAll = [];
+        dataAll{1} = compiledMiceRipples.numpost{ii}(:,1);
+        dataAll{2} = compiledMiceRipples.numpost{ii}(:,2);    
+        dataAll{3} = compiledMiceRipples.numpost{ii}(:,3);    
+        dataAll{4} = compiledMiceRipples.numpost{ii}(:,4);    
+        dataAll{5} = compiledMiceRipples.numpost{ii}(:,5);  
+        stats.rippleratepost{ii} = groupStats(dataAll,[],'inAxis',true,'plotType','boxLinesSEM','repeatedMeasures',true,'color',colMat(1,:));      
+        ylabel('Number of ripples in recovery')
     end    
+
 end
 
 if ~Control

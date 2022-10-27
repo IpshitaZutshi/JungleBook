@@ -2,7 +2,7 @@ function SessRippleAssemblies(varargin)
 
 p = inputParser;
 addParameter(p,'expPath',[],@isfolder);
-addParameter(p,'makePlot',false,@islogical);
+addParameter(p,'makePlot',true,@islogical);
 addParameter(p,'saveMat',true,@islogical);
 addParameter(p,'force',true,@islogical);
 parse(p,varargin{:});
@@ -189,9 +189,9 @@ else
                    subplot(size(Activities,1),1,kk)
                    plot(Activities(kk,:))
                    hold on
-                   plot(timeLog(1,:)*50)
-                   plot(timeLog(2,:)*50)
-                   plot(timeLog(3,:)*50)
+                   plot(timeLog(1,:)*50,'r')
+                   plot(timeLog(2,:)*50,'k')
+                   %plot(timeLog(3,:)*50)
                end
                saveas(gcf,strcat(allSess(ii).folder,'\',allSess(ii).name,'\SummaryFigures\RippleAssemblyActivation_onlyRip.fig'))
                saveas(gcf,strcat(allSess(ii).folder,'\',allSess(ii).name,'\SummaryFigures\RippleAssemblyActivation_onlyRip.png'))

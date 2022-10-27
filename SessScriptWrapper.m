@@ -46,12 +46,12 @@ parfor m = 1:length(mice)
      %UpdateSessPhaseLocking('expPath',strcat(parentDir, mice{m}))
      %SessBehaviorPhasePrecession('expPath',strcat(parentDir, mice{m}))
      %SessRippleCSD('expPath',strcat(parentDir, mice{m}));
-     %compileRipples('expPath',pwd);
+     compileRipplesNREM('expPath',pwd);
      %SessSleepAssemblies('expPath',strcat(parentDir, mice{m}));
      %SessRippleAssemblies('expPath',strcat(parentDir, mice{m}));
      %SessRippleCorrMatrix('expPath',strcat(parentDir, mice{m}));
      %SessClusterRipples('expPath',strcat(parentDir, mice{m}));
-     SessRippleRankOrder('expPath',strcat(parentDir, mice{m}),'dSample',true);
+     %SessRippleRankOrder('expPath',strcat(parentDir, mice{m}),'dSample',true);
      %SessTemplateRankOrder('expPath',strcat(parentDir, mice{m}));
      %SessBehaviorRipples('expPath',strcat(parentDir, mice{m}));
      %SessRippleRankOrder_SeqvsDur('expPath',strcat(parentDir, mice{m}),'dSample',true);

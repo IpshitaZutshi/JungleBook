@@ -1,6 +1,6 @@
 function compiledMiceRipples = compileMiceMazeRipples
 
-tag = 'CA3';% mEC, CA3, Bilateral mEC
+tag = 'CA1';% mEC, CA3, Bilateral mEC
 
 if strcmp(tag,'CA1') == 1
     mice = {'IZ15\Final','IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};
@@ -137,7 +137,7 @@ if strcmp(tag,'CA3') == 1 || strcmp(tag,'CA3Saline') == 1
     title('Side arm mEC, delay ripples')
     
 else
-    for ii = 2%1:3 
+    for ii = 1%1:3 
         figure    
         set(gcf,'Renderer','painters')
         set(gcf,'Color','w')

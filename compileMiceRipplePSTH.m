@@ -15,7 +15,7 @@ force = p.Results.force;
 binSize = p.Results.binSize;
 normalized = p.Results.normalized;
 
-tag = 'mECBilateral'; % or mEC
+tag = 'CA1'; % or mEC
 
 if strcmp(tag,'CA1') == 1
     mice = {'IZ15\Final','IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};
@@ -139,7 +139,7 @@ else
                         st = ripples.peaks(ripple_logical(:,rippLog));
                         for jj = 1:size(spikes.UID,2)
                             % Get psth
-                            [stccg, t] = CCG({spikes.times{jj} st},[],'binSize',0.01,'duration',0.5);
+                            [stccg, t] = CCG({spikes.times{jj} st},[],'binSize',0.01,'duration',0.5,'norm','rate');
                             compiledData.psthtimes = [compiledData.psthtimes; t'];
                             compiledData.psthstccg = [compiledData.psthstccg; stccg(:,2,1)'];
                             compiledData.analogCh = [compiledData.analogCh; rr];
@@ -216,7 +216,9 @@ for ii = 1:length(reg)
 
                 if normalized
                     psth = zscore(psth,[],2);%(:,:)./nanmean(psth(:,1:20),2);      
+                     psth(psth ==0) = nan;
                 end
+               
                 FR_ratio{jj} = nanmean(psth(:,24:28),2);
                 [~, idxsort] = sort(FR_ratio{jj});                
             
@@ -245,13 +247,14 @@ for ii = 1:length(reg)
                     hi = line(x,meanpsth,'Color',col(ii+1,:));                    
                 end
                 if normalized
-                    ylim([-0.5 2])
+                    ylim([-0.5 2.2])
+                else
+                    if kk == 1
+                        ylim([0 30])
+                    else
+                        ylim([0 12])
+                    end
                 end
-%                 if kk == 1
-%                     ylim([0 1])
-%                 else
-%                     ylim([0 1])
-%                 end
              end
              
              if rr == 1

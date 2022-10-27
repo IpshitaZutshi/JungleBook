@@ -42,12 +42,15 @@ behavTS = vertcat(behavTS{:});
 behavTS = str2double(behavTS);
 behavTS(:,1) = behavTS(:,1)-behavTS(1,1);
 
+digitalIn.timestampsOn{10} = digitalIn.timestampsOn{10}(digitalIn.dur{10}>0.02);
 % Start of each trial coincides with the solenoid valve 1, i.e., digital input 10
 % End of trial coincides with digital input 2
 if length(digitalIn.timestampsOn{2})==length(digitalIn.timestampsOn{10})
     behavTrials.timestamps = [digitalIn.timestampsOn{10}(1:(end-1)) digitalIn.timestampsOn{2}(2:end)];
 elseif length(digitalIn.timestampsOn{2})> length(digitalIn.timestampsOn{10})
     behavTrials.timestamps = [digitalIn.timestampsOn{10}(1:end) digitalIn.timestampsOn{2}(2:end)];
+elseif length(digitalIn.timestampsOn{2})< length(digitalIn.timestampsOn{10})
+    behavTrials.timestamps = [digitalIn.timestampsOn{10}(2:(end-1)) digitalIn.timestampsOn{2}(2:end)];    
 end
 % 
 % %Assign gain to every trial
@@ -61,6 +64,8 @@ behavTrials.toneGain = zeros(size(behavTrials.timestamps,1),1);
 behavTrials.numLicks = zeros(size(behavTrials.timestamps,1),7);
 behavTrials.correct = zeros(size(behavTrials.timestamps,1),1);
 behavTrials.lickLoc = zeros(size(behavTrials.timestamps,1),1);
+behavTrials.stim = zeros(size(behavTrials.timestamps,1),1);
+
 
 [~,idx] = unique(behavTS(:,2));
 numTrials = size(behavTrials.timestamps,1);
@@ -72,6 +77,9 @@ if size(behavTS,2)>5
     behavTrials.training =behavTS(idx(2:(numTrials+1))+10,6);
 end
 
+if size(behavTS,2)>=9
+    behavTrials.stim =behavTS(idx(2:(numTrials+1))+10,9);
+end
 for ii = 1:size(behavTrials.timestamps,1)
     
     trialWin = behavTrials.timestamps(ii,:)*1250;
@@ -128,6 +136,7 @@ if plotfig
     scatter(ones(1,sum(behavTrials.toneGain==3))*7.1,find(behavTrials.toneGain==3),25,colMap(11,:),'filled');
     scatter(ones(1,sum(behavTrials.toneGain==4))*7.1,find(behavTrials.toneGain==4),25,colMap(14,:),'filled');
     scatter(ones(1,sum(behavTrials.toneGain==5))*7.1,find(behavTrials.toneGain==5),25,colMap(17,:),'filled');
+    scatter(ones(1,sum(behavTrials.stim==1))*7.3,find(behavTrials.stim==1),25,[1 0 0.5],'filled');
 
     % For incorrect trials, where does the lick happen
     subplot(2,3,2)
@@ -165,15 +174,15 @@ if plotfig
         num2str(sum(behavTrials.toneGain==5 & behavTrials.toneTrial==0 & behavTrials.linTrial==0))))
     
     subplot(2,3,6)
-    performance = [];
+    behavTrials.performance = [];
     for kk = 1:10:numTrials
         if (kk+10)<numTrials
-            performance = [performance sum(behavTrials.correct(kk:kk+10))/10];
+            behavTrials.performance = [behavTrials.performance sum(behavTrials.correct(kk:kk+10))/10];
         else 
-            performance = [performance sum(behavTrials.correct(kk:end))/(numTrials-kk)];
+            behavTrials.performance = [behavTrials.performance sum(behavTrials.correct(kk:end))/(numTrials-kk)];
         end
     end
-    plot(performance,'LineWidth',1.5)
+    plot(behavTrials.performance,'LineWidth',1.5)
     ylabel('Performance')
     xlabel('Trials (blocks of 10)')
     ylim([0 1])

@@ -20,7 +20,8 @@ for jj = 1 %1:(size(sessionInfo.AnatGrps,2)-1)
     if fixChannels
         lfp = bz_interpolateLFP(lfp);
     end
-    
+    %csd = bz_CSDIZ(lfp);
+    %lfp = csd;    
     [colormap] = cbrewer('seq','PuBuGn',length(sessionInfo.AnatGrps(jj).Channels)+40);
     colormap(colormap<0) = 0;
     data = lfp.data;
@@ -29,7 +30,7 @@ for jj = 1 %1:(size(sessionInfo.AnatGrps,2)-1)
 %         [Lia] = ismember(sessionInfo.AnatGrps(ii).Channels, channels);
 %         nC = 1:length(sessionInfo.AnatGrps(ii).Channels);
 %         nC = nC(Lia)';
-    for i = 2%:(numAnalog+1)
+    for i = 1%:(numAnalog+1)
         if i<=numAnalog
             pulTr = (pulses.stimComb==i);
         else
@@ -39,11 +40,11 @@ for jj = 1 %1:(size(sessionInfo.AnatGrps,2)-1)
         events = round(events*1250);
         events = events(:,(events(1,:) + (15*1250) <= size(data,1)) & (events(1,:) - (5*1250) > 0));
 
-        for pp = [36 38]%1:length(events(1,:))
+        for pp = 1:length(events(1,:))
             figure
             set(gcf,'renderer','Painters')
             hold on
-            for kk = 1:(length(sessionInfo.AnatGrps(jj).Channels))
+            for kk = 1:((length(sessionInfo.AnatGrps(jj).Channels)))
                 plot(timestamps((events(1,pp)-(1250*pre)):(events(1,pp)+(1250*post))),0.75*(data((events(1,pp)-(1250*pre)):(events(1,pp)+(1250*post)),kk))-(kk-1)*400,'Color',colormap(kk+22,:))
             end
             title(strcat('AnalogCh = ',num2str(i)))

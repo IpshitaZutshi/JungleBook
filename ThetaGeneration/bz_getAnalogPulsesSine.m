@@ -118,7 +118,7 @@ for jj = 1 : size(d,1)
         if thr == 0 || ~any(d(jj,:)>thr)
             disp('Trying 5*std threshold...');
             d(jj,:) = d(jj,:) - mean(d(jj,:));
-            thr = 7 * std(double(d(jj,:)));
+            thr = 8 * std(double(d(jj,:)));
         end
     else
         h = figure;
@@ -177,9 +177,10 @@ for jj = 1 : size(d,1)
         stimPer{jj}(2,end) = pul{jj}(2,end);
         stimPerID{jj}(end+1) = jj;
         
-        % For a train of pulses, the start, trains separated by at least 5 minutes
+        % For a train of pulses, the start, trains separated by at least 30
+        % s
         stimPerSess{jj}(1,1) = pul{jj}(1,1); % find stimulation intervals
-        intPeaks_sess = find(diff(pul{jj}(1,:))>(60*5)); 
+        intPeaks_sess = find(diff(pul{jj}(1,:))>(30)); 
         
         for ii = 1:length(intPeaks_sess)
             stimPerSess{jj}(2,ii) = pul{jj}(2,intPeaks_sess(ii));

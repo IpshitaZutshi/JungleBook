@@ -48,6 +48,8 @@ addParameter(p,'basepath',pwd,@isstr);
 addParameter(p,'fs',30,@isnumeric);
 addParameter(p,'artifactThreshold',10,@isnumeric);
 addParameter(p,'convFact',[],@isnumeric); % 0.1149
+addParameter(p,'roiLED',[],@ismatrix);
+addParameter(p,'ledSync',[],@ismatrix);
 addParameter(p,'forceReload',false,@islogical)
 addParameter(p,'saveFrames',true,@islogical)
 addParameter(p,'verbose',false,@islogical);
@@ -60,8 +62,10 @@ parse(p,varargin{:});
 basepath = p.Results.basepath;
 fs = p.Results.fs;
 artifactThreshold = p.Results.artifactThreshold;
+roiLED = p.Results.roiLED;
 convFact = p.Results.convFact;
 forceReload = p.Results.forceReload;
+ledSync = p.Results.ledSync;
 saveFrames = p.Results.saveFrames;
 verbose = p.Results.verbose;
 thresh = p.Results.thresh;
@@ -174,6 +178,81 @@ end
 
 pos = [Rr_x; Rr_y]';
 
+%% Figure out LED for sync
+if ledSync
+    
+    if ~exist([basepath filesep aviFile '_red.mat'],'file') || forceReload
+        disp('Get average frame...');
+        videoObj = VideoReader([aviFile '.avi']);   % get video
+        numFrames = get(videoObj, 'NumFrames');
+        frames = [];
+        tic
+        f = waitbar(0,'Getting frames...');
+        for ii = 1:numFrames
+            waitbar(ii/numFrames,f)
+            temp_frames = read(videoObj,ii);        % get all frames
+            frames_red(:,:,ii) = temp_frames(:,:,1);      % convert to grayscale
+        end
+        close(f)
+        toc
+        
+        if saveFrames
+            disp('Saving frames...');
+            save([basepath filesep aviFile '_red.mat'],'frames_red','-v7.3');
+        end
+    else
+        disp('Loading frames from mat file...');
+        load([basepath filesep aviFile '.mat'],'frames_red');
+    end
+end
+
+cd(basepath); cd ..; upBasepath = pwd; pwd; cd ..; up_upBasepath = pwd;cd(basepath);
+% deal with the ROI for the LED
+if exist([basepath filesep 'roiLED.mat'],'file')
+    load([basepath filesep 'roiLED.mat'],'roiLED');
+elseif exist([upBasepath filesep 'roiLED.mat'],'file')
+    load([upBasepath filesep 'roiLED.mat'],'roiLED');
+    disp('ROI LED from master folder... copying locally...');
+    save([basepath filesep 'roiLED.mat'],'roiLED');
+elseif ischar(roiLED) && strcmpi(roiLED,'manual')
+    disp('Draw ROI for LED...');
+    h1 = figure;
+    imshow(frames_red(:,:,1));
+    roi = drawpolygon;
+    roiLED = [roi.Position; roi.Position(1,:)];
+    save([basepath filesep 'roiLED.mat'],'roiLED');
+    close(h1);
+end
+
+% %% detect LED pulses for sync
+% if ~isempty(roiLED)
+%     disp('Detect LED for sync...');
+%     bwLED = uint8(poly2mask(roiLED(:,1),roiLED(:,2),size(frames_red,1),size(frames_red,2)));
+%     parfor ii = 1:size(frames_red,3)
+%         fr = double(frames_red(:,:,ii).*bwLED);
+%         fr(fr==0) = NaN;
+%         sync(ii) = nanmedian(fr(:)); 
+%     end
+% 
+%     sync = sync.^2;
+%     syncBin = (sync>median(sync)); % binarize signal
+%     locsA = find(diff(syncBin)==1)/fs; % start of pulses
+%     locsB = find(diff(syncBin)==-1)/fs; % end of pulses
+%     pul = locsA(1:min([length(locsA) length(locsB)]));
+%     for ii = 1 : size(pul,2) % pair begining and end of the pulse
+%         if sum(locsB > pul(1,ii)) > 0
+%             pul(2,ii) =  locsB(find(locsB - pul(1,ii) ==...
+%                 min(locsB(locsB > pul(1,ii)) - pul(1,ii))));
+%         else
+%             pul(2,ii) = nan;
+%         end
+%     end
+%     % if a jump happened only for 1-2 frames, ignore
+%     a = pul(2,:)-pul(1,:);
+% else
+%     sync = []; pul = [];
+% end
+
 %% postprocessing of LED position 
 pos = pos * convFact;                                   % cm or normalized
 art = find(sum(abs(diff(pos))>artifactThreshold,2))+1;  % remove artefacs as movement > 10cm/frame
@@ -208,21 +287,25 @@ if isempty(bazlerTtl)
     bazlerTtl = digitalIn.timestampsOn{1};
 end
 
+tracking.framesDropped = length(bazlerTtl) - length(x);
+
 % match basler frames con ttl pulses
 if length(bazlerTtl) == length(x)
     disp('Number of frames match!!');
-elseif length(bazlerTtl) > length(x) && length(bazlerTtl) <= length(x) + 15 * 1 
+elseif length(bazlerTtl) > length(x) && length(bazlerTtl) <= length(x) + 36 * 1 
     fprintf('%3.i frames were dropped, probably at the end of the recording. Skipping... \n',...
         length(bazlerTtl) - length(x));
     bazlerTtl = bazlerTtl(1:length(x));
-elseif length(bazlerTtl) < length(x) && (length(x)-length(bazlerTtl)) < 30 * 4
+elseif length(bazlerTtl) > length(x) && length(bazlerTtl) > length(x) + 30 * 1 
+    fprintf('%3.i frames were dropped!! Examine the recording carefully!... \n',...
+        length(bazlerTtl) - length(x));
+elseif length(bazlerTtl) < length(x) 
     fprintf('%3.i video frames without TTL... Was the recording switched off before the camera?. Skipping... \n',...
         length(x) - length(bazlerTtl));
     x = x(1:length(bazlerTtl));
     y = y(1:length(bazlerTtl));
     vx = vx(1:length(bazlerTtl));
     vy = vy(1:length(bazlerTtl));
-    v = v(1:length(bazlerTtl));
     ax = ax(1:length(bazlerTtl));
     ay = ay(1:length(bazlerTtl)); 
 elseif isempty(bazlerTtl)

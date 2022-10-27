@@ -77,7 +77,7 @@ if ~isfield(session,'animal')
     session.animal.sex = 'Male'; % Male, Female, Unknown
     session.animal.species = 'Mouse'; % Mouse, Rat
     session.animal.strain = 'C57B1/6';
-    session.animal.geneticLine = 'Grik4-cre';
+    session.animal.geneticLine = 'C57BL/6J';
 end
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % %

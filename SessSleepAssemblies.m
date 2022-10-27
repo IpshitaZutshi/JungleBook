@@ -157,9 +157,9 @@ else
                    subplot(size(Activities,1),1,kk)
                    plot(Activities(kk,:))
                    hold on
-                   plot(timeLog(1,:)*20)
-                   plot(timeLog(2,:)*20)
-                   plot(timeLog(3,:)*20)
+                   plot(timeLog(1,:)*20,'r')
+                   plot(timeLog(2,:)*20,'k')
+                   plot(timeLog(3,:)*20,'m')
                end
                saveas(gcf,strcat(allSess(ii).folder,'\',allSess(ii).name,'\SummaryFigures\RippleAssemblyActivation.fig'))
                saveas(gcf,strcat(allSess(ii).folder,'\',allSess(ii).name,'\SummaryFigures\RippleAssemblyActivation.png'))

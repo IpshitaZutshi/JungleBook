@@ -38,7 +38,7 @@ addParameter(p,'trackLength',112,@isnumeric);
 addParameter(p,'trackImgLength',410,@isnumeric);
 addParameter(p,'freqRange',[1000 22000],@isnumeric);
 addParameter(p,'saveMat',true,@islogical)
-addParameter(p,'forceReload',true,@islogical)
+addParameter(p,'forceReload',false,@islogical)
 
 parse(p,varargin{:});
 basepath = p.Results.basepath;
@@ -72,8 +72,8 @@ if exist([basepath filesep strcat(sessionInfo.session.name,'.MergePoints.events.
 %             tempTracking{count}= toneTracking('analogInputPos',analogInputPos,'analogInputTone',...
 %                  analogInputTone,'fs',fs,'trackLength',trackLength,'trackImgLength',trackImgLength,...
 %                  'freqRange',freqRange,'forceReload',forceReload); % computing trajectory
+            tempBehav{count} = getToneBehavior7ports('forceRun',forceReload);
             tempTracking{count}= Pos2Tracking([],'convFact',0.2732,'forceReload',forceReload); % computing trajectory
-            tempBehav{count} = getToneBehavior('forceRun',forceReload);
             trackFolder(count) = ii; 
             count = count + 1;
         end
@@ -112,7 +112,7 @@ else
 end
 
 % Concatenating tracking fields...
-x = []; y = []; vx = []; vy = []; v = []; folder = []; samplingRate = []; description = [];
+x = []; y = []; vx = []; vy = []; v = []; folder = []; samplingRate = []; description = [];framesDropped = [];
 for ii = 1:size(tempTracking,2) 
     x = [x; tempTracking{ii}.position.x];     
     y = [y; tempTracking{ii}.position.y]; 
@@ -124,6 +124,7 @@ for ii = 1:size(tempTracking,2)
     folder{ii} = tempTracking{ii}.folder; 
     samplingRate = [samplingRate; tempTracking{ii}.samplingRate];  
     description{ii} = tempTracking{ii}.description;  
+    framesDropped{ii} = tempTracking{ii}.framesDropped;  
 end
 
 tracking.position.x = x;
@@ -135,6 +136,7 @@ tracking.position.v = v;
 tracking.folders = folder;
 tracking.samplingRate = samplingRate;
 tracking.timestamps = ts;
+tracking.framesDropped = framesDropped;
 tracking.events.subSessions =  subSessions;
 tracking.events.subSessionsMask = maskSessions;
 

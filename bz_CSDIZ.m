@@ -44,7 +44,7 @@ addParameter(p,'temp_sm',11,@isnumeric);
 addParameter(p,'doDetrend',false,@islogical);
 addParameter(p,'plotCSD',false,@islogical);
 addParameter(p,'plotLFP',false,@islogical);
-addParameter(p,'force',false,@islogical);
+addParameter(p,'force',true,@islogical);
 addParameter(p,'saveMat',true,@islogical);
 
 parse(p,varargin{:});
@@ -116,7 +116,7 @@ csd.params.temp_sm = temp_sm;
 csd.params.detrend = doDetrend;
 
 if saveMat
-    save(strcat(lfp.Filename(1:(end-4)),'.csd.mat'), 'csd','-v7.3');
+    save(strcat(lfp.Filename(1:(end-4)),'.csd2.mat'), 'csd','-v7.3');
 end
 
 %% Plot
