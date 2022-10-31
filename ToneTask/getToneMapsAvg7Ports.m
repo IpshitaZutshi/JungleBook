@@ -45,43 +45,67 @@ idx{4} = behavTrials.toneGain ==2 & behavTrials.correct==1 & behavTrials.linTria
 idx{5} = behavTrials.toneGain ==3 & behavTrials.correct==1 & behavTrials.linTrial ==0;
 idx{6} = behavTrials.toneGain ==4 & behavTrials.correct==1 & behavTrials.linTrial ==0;
 idx{7} = behavTrials.toneGain ==5 & behavTrials.correct==1 & behavTrials.linTrial ==0;
+idx{8} = behavTrials.toneGain ==0 & behavTrials.correct==0 & behavTrials.linTrial ==0;
+idx{9} = behavTrials.toneGain ==1 & behavTrials.correct==0 & behavTrials.linTrial ==0;
+idx{10} = behavTrials.toneGain ==2 & behavTrials.correct==0 & behavTrials.linTrial ==0;
+idx{11} = behavTrials.toneGain ==3 & behavTrials.correct==0 & behavTrials.linTrial ==0;
+idx{12} = behavTrials.toneGain ==4 & behavTrials.correct==0 & behavTrials.linTrial ==0;
+idx{13} = behavTrials.toneGain ==5 & behavTrials.correct==0 & behavTrials.linTrial ==0;    
+idx{14} = behavTrials.correct==0 & behavTrials.linTrial ==0;
+idx{15} = behavTrials.correct==1 & behavTrials.linTrial ==0;  
 
 %gain =[420/55, 420/130, 420/210, 420/290, 420/370, 420/420];
 gain = [13, 4.2, 2.2068, 1.5205, 1.1698, 1.0000];
 freqExp = log10(22000/1000);
 
 for ii = 1:length(idx)    
-    [idxPos] = InIntervals(tracking.timestamps,behavTrials.timestamps(idx{ii}(1:(end-1)),:));
-    y = tracking.position.y(idxPos);
-    y = y-7;    
-    positions.forward{ii} = [tracking.timestamps(idxPos) y];
-    if ~isempty(positions.forward{ii})
-        positions.forward{ii} = [positions.forward{ii};[positions.forward{ii}(end,1)+0.000001 112]];% Add a  fake 112
-    end
-    if ii==1
-        positions.tone{ii} = [tracking.timestamps(idxPos) y*nan];
-        kk = 0;
+    if ii<14
+        [idxPos] = InIntervals(tracking.timestamps,behavTrials.timestamps(idx{ii}(1:(end-1)),:));   
+        positions.forward{ii} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)];
+        if ii==1
+            positions.tone{ii} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)*nan];
+            kk = 0;
+        elseif ii<=7
+            kk = ii-1;
+        else
+            kk = ii-7;
+        end
+
+        if kk >0
+            y = tracking.position.y(idxPos); 
+            tonepos = [];
+            for jj = 1:length(y)
+                freq = (y(jj)*gain(kk))/122;
+                tonepos(jj) = (1000*(10.^(freqExp*freq)));
+            end
+            tonepos(tonepos>25000) = nan;        
+            if isempty(tracking.timestamps(idxPos))
+                positions.tone{ii} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)];    
+            else
+                positions.tone{ii} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tonepos'];    
+            end
+                
+        end  
+        if ii == 1
+            idPos = find(idx{ii}(1:(end-1)));
+            [idxPos] = InIntervals(tracking.timestamps,[behavTrials.timestamps(idPos,2) behavTrials.timestamps(idPos+1,1)]);  
+            positions.reverse{ii}= [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)];             
+        end
     else
-        kk = ii-1;
+        idPos = find(idx{ii}(1:(end-1)));
+        [idxPos] = InIntervals(tracking.timestamps,[behavTrials.timestamps(idPos,2) behavTrials.timestamps(idPos+1,1)]);  
+        positions.reverse{ii-12}= [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)]; 
     end
     
-    if kk >0
-        y = tracking.position.y(idxPos);
-        y = y-7;    
-        tonepos = [];
-        for jj = 1:length(y)
-            freq = (y(jj)*gain(kk))/111;
-            tonepos(jj) = (1000*(10.^(freqExp*freq)));%/22000)*111;
-        end
-        tonepos(tonepos>25000) = nan;        
-        positions.tone{ii} = [tracking.timestamps(idxPos) tonepos'];    
-    end  
 end
 
-firingMaps.forward = bz_firingMapAvg_IZ(positions.forward,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
+firingMaps.forward = bz_getRateMaps(positions.forward,spikes,'xRange',[0 6],'yRange',[0 125], 'binSize',2.5,'saveMat',false);
+%firingMaps.forward = bz_firingMapAvg_IZ(positions.forward,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
 if toneMap
-    firingMaps.tone = bz_firingMapAvg_IZ(positions.tone,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
+   firingMaps.tone = bz_getRateMaps(positions.tone,spikes,'xRange',[0 6],'yRange',[2000 22000], 'binSize',400,'minOccupancy',0,'saveMat',false);    
+   %firingMaps.tone = bz_firingMapAvg_IZ(positions.tone,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
 end
+firingMaps.reverse = bz_getRateMaps(positions.reverse,spikes,'xRange',[0 6],'yRange',[0 125], 'binSize',2.5,'saveMat',false);
 
 firingMaps.linTrial = behavTrials.linTrial(1:(end-1));
 firingMaps.toneTrial = behavTrials.toneTrial(1:(end-1));
@@ -89,92 +113,136 @@ firingMaps.toneGain = behavTrials.toneGain(1:(end-1));
 firingMaps.correct = behavTrials.correct(1:(end-1));
 firingMaps.numLicks = behavTrials.numLicks(1:(end-1),:);
 
-save([sessionInfo.FileName '.firingMapsAvg.cellinfo.mat'],'firingMaps'); 
+save([sessionInfo.FileName '.rateMapsAvg.cellinfo.mat'],'firingMaps'); 
 
-labels = {'forward','tone'};
-colmat{1}  = [175/243 54/243 60/243; 160/243 160/243 160/243; 85/243 85/243 85/243;52/243 52/243 52/243;...
-    160/243 160/243 160/243; 85/243 85/243 85/243;52/243 52/243 52/243];
-colmat{2} = [0 0 0; 103/243 189/243 170/243; 8/243 133/243 161/243;56/243 61/243 150/243;...
-    103/243 189/243 170/243; 8/243 133/243 161/243;56/243 61/243 150/243];
+labels = {'forward','tone','reverse'};
+col = [176/243 223/243 229/243; 149/243 200/243 216/243; 137/243 207/243 240/243;
+        70/243 130/243 180/243; 16/243 52/243 166/243;0/243 0/243 128/243];
+colRev = [0.5 0.5 0.5; 175/243 54/243 60/243; 70/243 148/243 73/243];
+a = linspace(2000,22000,50);
+b = linspace(0,125,50);
 
 if plotfig
     
-    if ~isfolder('FiringMap')
-        mkdir('FiringMap')
+    if ~isfolder('FiringMapAvg')
+        mkdir('FiringMapAvg')
     end
-    
-    figure(1)
-    set(gcf,'Renderer','painters')
-    set(gcf,'Position',[1921 41 1920 970])
-    figure(2)
-    set(gcf,'Renderer','painters')
-    set(gcf,'Position',[1921 41 1920 970])
-    corrMaps = [];
     for pf = 1:length(firingMaps.forward.rateMaps)
-%          figure(1)
-%          subplot(7,ceil(length(firingMaps.forward.rateMaps)/7),pf);                 
-%          hold on
-%          figure(2)
-%          subplot(7,ceil(length(firingMaps.forward.rateMaps)/7),pf);                 
-%          hold on         
-%          for ll = 1:length(labels)
-%              figure(ll)
-%              for ii = 1:7
-%                 datamat = firingMaps.(labels{ll}).rateMaps{pf}{ii};                
-%                 if ii ==2 && ll == 1
-%                     datamat(:,12:end) = nan;
-%                 elseif ii == 3 && ll == 1
-%                     datamat(:,21:end) = nan;
-%                 elseif ii ==4 && ll == 1
-%                     datamat(:,32:end) = nan;
-%                 elseif ii == 5 && ll == 1
-%                     datamat(:,43:end) = nan;
-%                 elseif ii ==6 && ll == 1
-%                     datamat(:,52:end) = nan;                 
-%                 end
-%                 plot(datamat, 'color',colmat{ll}(ii,:),'LineWidth',1.5);
-%              end                       
-%          end               
-         a = corrcoef(firingMaps.forward.rateMaps{pf}{5},firingMaps.forward.rateMaps{pf}{7},'Rows','pairwise');
-         corrMaps(pf,1) = a(1,2);
-         a = corrcoef(firingMaps.tone.rateMaps{pf}{5},firingMaps.tone.rateMaps{pf}{7},'Rows','pairwise');
-         corrMaps(pf,2) = a(1,2);
-         
-         
-         a = corrcoef(firingMaps.forward.rateMaps{pf}{1},firingMaps.forward.rateMaps{pf}{7},'Rows','pairwise');
-         corrMaps2(pf,1) = a(1,2);
-         a = corrcoef(firingMaps.tone.rateMaps{pf}{1},firingMaps.tone.rateMaps{pf}{7},'Rows','pairwise');
-         corrMaps2(pf,2) = a(1,2);
-    end
-         figure(1)
-         saveas(gcf,['FiringMap',filesep ,'SpaceAvg.png'],'png');
-         saveas(gcf,['FiringMap',filesep ,'SpaceAvg.fig'],'fig');
-         
-         figure(2)
-         saveas(gcf,['FiringMap',filesep ,'ToneAvg.png'],'png');
-         saveas(gcf,['FiringMap',filesep ,'ToneAvg.fig'],'fig');                  
+       figure
+       set(gcf,'Renderer','painters')
+       set(gcf,'Color','w')
+       set(gcf,'Position',[1154 358 1682 394])
+       %plot linear track   
+       subplot(2,6,1)
+       dataMat = firingMaps.forward.rateMaps{pf}{1};
+       h = imagesc(b,size(dataMat,2),dataMat);
+       set(h, 'AlphaData', ~isnan(dataMat))
+       title('Linear Track')
+       subplot(2,6,7)
+       plot(b, dataMat,'Color',[0.5 0.5 0.5],'LineWidth',1.5)
+       
+       dataMat = [];
+       dataMatTone = [];
+       for ii = 2:7           
+           dataMat = [dataMat;firingMaps.forward.rateMaps{pf}{ii}];
+           subplot(2,6,8)
+           plot(b, firingMaps.forward.rateMaps{pf}{ii},'Color',col(ii-1,:),'LineWidth',1.5)
+           hold on
+           
+           dataMatTone = [dataMatTone;firingMaps.tone.rateMaps{pf}{ii}];
+           subplot(2,6,9)
+           plot(a, firingMaps.tone.rateMaps{pf}{ii},'Color',col(ii-1,:),'LineWidth',1.5)           
+           hold on
+       end
+       subplot(2,6,2)
+       h = imagesc(b,size(dataMat,2),dataMat);
+       set(h, 'AlphaData', ~isnan(dataMat))
+       title('Space, correct')
+       
+       subplot(2,6,3)
+       h = imagesc(a,size(dataMatTone,2),dataMatTone);
+       set(h, 'AlphaData', ~isnan(dataMatTone))
+       title('Tone, correct')
+       
+       dataMat = [];
+       dataMatTone = [];
+       for ii = 8:13       
+           dataMat = [dataMat;firingMaps.forward.rateMaps{pf}{ii}];
+           subplot(2,6,10)
+           plot(b, firingMaps.forward.rateMaps{pf}{ii},'Color',col(ii-7,:),'LineWidth',1.5)
+           hold on
+           
+           dataMatTone = [dataMatTone;firingMaps.tone.rateMaps{pf}{ii}];
+           subplot(2,6,11)
+           plot(a, firingMaps.tone.rateMaps{pf}{ii},'Color',col(ii-7,:),'LineWidth',1.5)     
+           hold on
+       end
+       subplot(2,6,4)
+       h = imagesc(b,size(dataMat,2),dataMat);
+       set(h, 'AlphaData', ~isnan(dataMat))
+       title('Space, correct')
+       
+       subplot(2,6,5)
+       h = imagesc(a,size(dataMatTone,2),dataMatTone);
+       set(h, 'AlphaData', ~isnan(dataMatTone))
+       title('Tone, incorrect')       
+       
+       dataMat = [];
+       for ii = 1:3
+           dataMat = [dataMat;firingMaps.reverse.rateMaps{pf}{ii}];
+           subplot(2,6,12)
+           plot(a, firingMaps.reverse.rateMaps{pf}{ii},'Color',colRev(ii,:),'LineWidth',1.5) 
+           hold on
+       end
+       subplot(2,6,6)
+       h = imagesc(b,size(dataMat,2),dataMat);
+       set(h, 'AlphaData', ~isnan(dataMat))
+       title('Return')     
+       
+       saveas(gcf,['FiringMapAvg',filesep ,'cell_' num2str(pf) '.png'],'png');
+       saveas(gcf,['FiringMapAvg',filesep ,'cell_' num2str(pf) '.eps'],'epsc');
+       saveas(gcf,['FiringMapAvg',filesep ,'cell_' num2str(pf) '.fig'],'fig');
+       close all;
 
-%         saveas(gcf,['FiringMap',filesep ,'cell_' num2str(pf) '.png'],'png');
-%         saveas(gcf,['FiringMap',filesep ,'cell_' num2str(pf) '.fig'],'fig');
-%         close all; 
-    
-    figure
-    subplot(1,2,1)    
-    scatter(corrMaps(:,1),corrMaps(:,2),'o','filled')
-    refline(1)
-    xlim([-0.6 1])
-    ylim([-0.6 1])
-    ylabel('Tone correlation')
-    xlabel('Space correlation')
-    subplot(1,2,2)
-
-    scatter(corrMaps2(:,1),corrMaps2(:,2),'o','filled')
-    refline(1)
-    xlim([-0.6 1])
-    ylim([-0.6 1])
-    ylabel('Tone correlation')
-    xlabel('Space correlation')
-    saveas(gcf,['FiringMap',filesep ,'MapCorr.png'],'png');
-    saveas(gcf,['FiringMap',filesep ,'MapCorr.fig'],'fig');    
+    end   
 end
+
+% Calculate correlation
+for pf = 1:length(firingMaps.forward.rateMaps)
+    corrSpace = [];
+    corrTone = [];
+    dataMat = [];
+    dataMatTone = [];
+    for ii = 3:7           
+        dataMat = [dataMat;firingMaps.forward.rateMaps{pf}{ii}];   
+        a = fillmissing(firingMaps.tone.rateMaps{pf}{ii},'linear');
+        dataMatTone = [dataMatTone;a];
+    end    
+    for ii = 1:5
+       for jj = (ii+1):5
+           a = corrcoef(dataMat(ii,:),dataMat(jj,:),'rows','complete');
+           corrSpace = [corrSpace a(1,2)];
+           a = corrcoef(dataMatTone(ii,:),dataMatTone(jj,:),'rows','complete');         
+           corrTone = [corrTone a(1,2)];
+       end
+    end
+    avgRate  = nanmean(nanmean(dataMat,1));
+    maxRate = max(max(dataMat));
+    if avgRate<15 & maxRate>4
+        corrSpatial(pf) = nanmean(corrSpace);
+        corrFrequency(pf) = nanmean(corrTone);
+    else
+        corrSpatial(pf) = nan;
+        corrFrequency(pf) = nan;
+    end
+        
+end
+
+figure
+scatter(corrSpatial,corrFrequency)
+hold on
+ylim([-0.4 1])
+refline(1)
+
+find(corrFrequency>corrSpatial)
 end

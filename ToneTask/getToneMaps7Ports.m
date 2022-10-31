@@ -3,7 +3,7 @@ function getToneMaps7Ports(varargin)
 %% Defaults and Parms
 p = inputParser;
 addParameter(p,'basepath',pwd,@isstr);
-addParameter(p,'plotfig',true,@islogical);
+addParameter(p,'plotfig',false,@islogical);
 addParameter(p,'toneMap',true,@islogical);
 
 parse(p,varargin{:});
@@ -46,45 +46,52 @@ else
     for unit = 1:length(spikes.UID)
         [idx] = InIntervals(spikes.times{unit},[tracking.timestamps(1) tracking.timestamps(end)]); 
         tsBehav = spikes.times{unit}(idx);
-        for tt = 1:length(tsBehav)
-            [~,closestIndex] = min(abs(tracking.timestamps-tsBehav(tt)));
-            spikeData.posIdx{unit}(tt) = closestIndex;
+        if isempty(tsBehav)
+            spikeData.posIdx{unit} = [];
+        else
+            for tt = 1:length(tsBehav)
+                [~,closestIndex] = min(abs(tracking.timestamps-tsBehav(tt)));
+                spikeData.posIdx{unit}(tt) = closestIndex;
+            end
         end
         spikeData.pos{unit} = tracking.position.y(spikeData.posIdx{unit});
     end
     save([sessionInfo.FileName '.spikeData.cellinfo.mat'],'spikeData'); 
 end
 
-gain =[420/55, 420/130, 420/210, 420/290, 420/370, 420/420];
+%gain =[420/55, 420/130, 420/210, 420/290, 420/370, 420/420];
+gain = [120/11.6, 120/32.27 120/55.53 120/79.62 120/102.79 120/120];
 freqExp = log10(22000/1000);
 
 for pf = 1:(size(behavTrials.timestamps,1)-1)    
     [idx] = InIntervals(tracking.timestamps,behavTrials.timestamps(pf,:));
-    positions.forward{pf} = [tracking.timestamps(idx) tracking.position.y(idx)];
-    positions.forward{pf} = [positions.forward{pf};[behavTrials.timestamps(pf,2) 118]];% Add a  fake 118
+    positions.forward{pf} = [tracking.timestamps(idx) tracking.position.x(idx) tracking.position.y(idx)];
     if toneMap
         if behavTrials.linTrial(pf)==1
-            positions.tone{pf} = [tracking.timestamps(idx) tracking.position.y(idx)*nan];
+            positions.tone{pf} = [tracking.timestamps(idx) tracking.position.x(idx)*nan tracking.position.y(idx)*nan];
         else
             y = tracking.position.y(idx);
             tonepos = [];
             for ii = 1:length(y)
-                freq = (y(ii)*gain(behavTrials.toneGain(pf)+1))/118;
+                freq = (y(ii)*gain(behavTrials.toneGain(pf)+1))/122;
                 tonepos(ii) = 1000*(10.^(freqExp*freq));
             end
             tonepos(tonepos>25000) = nan;
-            positions.tone{pf} = [tracking.timestamps(idx) tonepos'];
+            positions.tone{pf} = [tracking.timestamps(idx) tracking.position.x(idx) tonepos'];
         end
     end    
     [idx] = InIntervals(tracking.timestamps,[behavTrials.timestamps(pf,2) behavTrials.timestamps(pf+1,1)]);    
-    positions.reverse{pf} = [tracking.timestamps(idx) tracking.position.y(idx)];
+    positions.reverse{pf} = [tracking.timestamps(idx) tracking.position.x(idx) tracking.position.y(idx)];
 end
 
-firingMaps.forward = bz_firingMapAvg_IZ(positions.forward,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
+firingMaps.forward = bz_getRateMaps(positions.forward,spikes,'saveMat',false);
+%firingMaps.forward = bz_firingMapAvg_IZ(positions.forward,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
 if toneMap
-    firingMaps.tone = bz_firingMapAvg_IZ(positions.tone,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
+    firingMaps.tone = bz_getRateMaps(positions.tone,spikes,'xRange',[0 6],'yRange',[0 22500], 'binSize',362,'minOccupancy',0,'saveMat',false);
+    %firingMaps.tone = bz_firingMapAvg_IZ(positions.tone,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
 end
-firingMaps.reverse = bz_firingMapAvg_IZ(positions.reverse,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
+firingMaps.reverse = bz_getRateMaps(positions.reverse,spikes,'saveMat',false);
+%firingMaps.reverse = bz_firingMapAvg_IZ(positions.reverse,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
 
 firingMaps.linTrial = behavTrials.linTrial(1:(end-1));
 firingMaps.toneTrial = behavTrials.toneTrial(1:(end-1));
@@ -92,7 +99,7 @@ firingMaps.toneGain = behavTrials.toneGain(1:(end-1));
 firingMaps.correct = behavTrials.correct(1:(end-1));
 firingMaps.numLicks = behavTrials.numLicks(1:(end-1),:);
 
-save([sessionInfo.FileName '.firingMapsTrial.cellinfo.mat'],'firingMaps'); 
+save([sessionInfo.FileName '.rateMapsTrial.cellinfo.mat'],'firingMaps'); 
 
 labels = {'forward','tone','reverse'};
 
@@ -130,23 +137,9 @@ if plotfig
                 for kk = 1:length(numtrials)
                     datamat = [datamat;firingMaps.(labels{ll}).rateMaps{pf}{numtrials(kk)}];
                 end
-                subplot(3,13,13*(ll-1)+ii) % linear trials
-                
-                if ii ==2 && ll == 1
-                    datamat(:,12:end) = nan;
-                elseif ii == 3 && ll == 1
-                    datamat(:,21:end) = nan;
-                elseif ii ==4 && ll == 1
-                    datamat(:,32:end) = nan;
-                elseif ii == 5 && ll == 1
-                    datamat(:,43:end) = nan;
-                elseif ii ==6 && ll == 1
-                    datamat(:,52:end) = nan;                 
-                end
-                    
+                subplot(3,13,13*(ll-1)+ii) % linear trials      
                 if ~isempty(datamat)
                     h = imagesc(datamat);
-                    %caxis([0 cmax])
                     set(h, 'AlphaData', ~isnan(datamat))
                     
                 else

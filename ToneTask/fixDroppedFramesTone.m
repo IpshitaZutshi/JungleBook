@@ -58,7 +58,7 @@ title(num2str(median(posLick)))
 % tracking.position.vy = vy;%(1:length(tracking.timestamps));
 % tracking.position.v = v;%(1:length(tracking.timestamps));
 
-tracking.timestamps = tracking.timestamps(1:length(tracking.position.x));
+%tracking.timestamps = tracking.timestamps(1:length(tracking.position.x));
 % tracking.position.x = x(1:length(tracking.timestamps));
 % tracking.position.y = y(1:length(tracking.timestamps));
 % tracking.position.vx = vx(1:length(tracking.timestamps));

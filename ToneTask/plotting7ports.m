@@ -1,6 +1,6 @@
 gain =[420/55, 420/130, 420/210, 420/290, 420/370, 420/420];
 
-for cellNum = 59%1:249    
+for cellNum = 4%1:249    
     for pf = 1:(size(behavTrials.timestamps,1)-1)    
         [idx] = InIntervals(tracking.timestamps,behavTrials.timestamps(pf,:));
         vy = tracking.position.vy;
@@ -28,7 +28,7 @@ for cellNum = 59%1:249
     %     end
     end
     ctrl = 0;
-    b = linspace(1,118,55);
+    b = linspace(1,125,50);
     % First lin trials
     idx = find(behavTrials.linTrial);
     figure
@@ -49,7 +49,7 @@ for cellNum = 59%1:249
     col = [176/243 223/243 229/243; 149/243 200/243 216/243; 137/243 207/243 240/243;
         70/243 130/243 180/243; 16/243 52/243 166/243;0/243 0/243 128/243];
     
-    a = linspace(1000,25000,55);
+    a = linspace(2000,22000,50);
 
     for kk = 1:6
         idx = find(behavTrials.linTrial(1:(end-1))==0 & behavTrials.correct(1:(end-1)) ==1 & behavTrials.toneGain(1:(end-1)) ==(kk-1));

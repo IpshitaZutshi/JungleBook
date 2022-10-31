@@ -68,7 +68,6 @@ constVar.x = interp1(timeS,tracking.position.x(idxStart:idxEnd),spkData.timestam
 constVar.y = interp1(timeS,tracking.position.y(idxStart:idxEnd),spkData.timestamps)';
 constVar.vel = interp1(timeS,tracking.position.v(idxStart:idxEnd),spkData.timestamps)';
 constVar.velY = interp1(timeS,tracking.position.vy(idxStart:idxEnd),spkData.timestamps)';
-constVar.y = constVar.y-7;
 
 % Also generate separate y variables for forward versus reverse directions.
 constVar.yFwd = constVar.y;
@@ -116,15 +115,18 @@ end
 
 % Now can generate cont freq variable - transformed to Hz
 %gain =[435/72, 435/144, 435/216, 435/390, 435/370, 435/435];
-gain = [13, 4.2, 2.2068, 1.5205, 1.1698, 1.0000];
+gain = [120/11.6, 120/32.27 120/55.53 120/79.62 120/102.79 120/120];
+freqExp = log10(22000/1000);
 
 constVar.freq(1:length(spkData.timestamps)) = nan;
 
 freqExp = log10(22000/1000);
 for ii = 1:length(logVar.trialType)
     if logVar.trialType(ii)>0 && logVar.toneOn(ii)>0
-         freq = (constVar.y(ii)*gain(logVar.trialType(ii)))/111;
-         constVar.freq(ii) = ((1000*(10.^(freqExp*freq)))/22000)*111;
+        freq = (constVar.y(ii)*gain(logVar.trialType(ii)))/122;
+%         tonepos(ii) = 1000*(10.^(freqExp*freq));        
+%          freq = (constVar.y(ii)*gain(logVar.trialType(ii)))/120;
+         constVar.freq(ii) = ((1000*(10.^(freqExp*freq)))/22000)*122;
     end
 end
 
