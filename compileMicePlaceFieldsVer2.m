@@ -7,7 +7,7 @@ p = inputParser;
 addParameter(p,'parentDir','Z:\Homes\zutshi01\Recordings\CA1_silencing\',@isfolder);
 addParameter(p,'analogEv',64,@isnumeric);
 addParameter(p,'numAnalog',2,@isnumeric);
-addParameter(p,'savePlot',true,@islogical);
+addParameter(p,'savePlot',false,@islogical);
 addParameter(p,'useZScore',false,@islogical);
 addParameter(p,'downsample',false,@islogical);
 parse(p,varargin{:});
@@ -19,11 +19,11 @@ savePlot = p.Results.savePlot;
 useZScore = p.Results.useZScore;
 downsample = p.Results.downsample;
 
-tag = 'CA3Saline'; % or mEC
+tag = 'CA1'; % or mEC
 YlGnBu=cbrewer('seq', 'YlGnBu', 11);
 
 if strcmp(tag,'CA1') == 1
-    mice = {'IZ15\Final','IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};
+    mice = {'IZ15\Final','IZ18\Final','IZ30\Final','IZ31\Final'};%'IZ20\Final',
     reg = {'CA1','mEC','Both'};
 elseif strcmp(tag,'mEC') == 1
     mice = {'IZ12\Final','IZ13\Final','IZ15\Final','IZ17\Final','IZ18\Final','IZ20\Final'...
@@ -295,7 +295,7 @@ if strcmp(tag,'CA1') == 1 || strcmp(tag,'mECBilateral') == 1 || strcmp(tag,'mEC'
             end
             if ~useZScore
                 for m = unique(PF.mice{ii,jj}{1})'
-                    idxMouse  = PF.mice{ii,jj}{1} == m;
+                    idxMouse  = PF.mice{ii,jj}{1} == m & idxSelect;
                     corrbase(1,:,m) = diag(corr(PF.sessCorrMap{ii,jj}{1}(idxMouse,:),PF.sessCorrMap{ii,jj}{2}(idxMouse,:),'Rows','pairwise','Type','Spearman'));
                     corrbase(2,:,m) = diag(corr(PF.sessCorrMap{ii,jj}{5}(idxMouse,:),PF.sessCorrMap{ii,jj}{6}(idxMouse,:),'Rows','pairwise','Type','Spearman'));
                     corrstim(1,:,m) = diag(corr(PF.sessCorrMap{ii,jj}{2}(idxMouse,:),PF.sessCorrMap{ii,jj}{4}(idxMouse,:),'Rows','pairwise','Type','Spearman'));
@@ -605,7 +605,7 @@ elseif strcmp(tag,'CA3') == 1 || strcmp(tag,'CA3Saline') == 1
         
         if ~useZScore
             for m = unique(PF.mice{ii,jj}{1})'
-                idxMouse  = PF.mice{ii,jj}{1} == m;
+                idxMouse  = PF.mice{ii,jj}{1} == m & idxSelect;
                 corrbase(1,:,m) = diag(corr(PF.sessCorrMap{2,jj}{1}(idxMouse,:),PF.sessCorrMap{2,jj}{2}(idxMouse,:),'Rows','pairwise','Type','Spearman'));
                 corrbase(2,:,m) = diag(corr(PF.sessCorrMap{2,jj}{5}(idxMouse,:),PF.sessCorrMap{2,jj}{6}(idxMouse,:),'Rows','pairwise','Type','Spearman'));
                 corrmEC(1,:,m) = diag(corr(PF.sessCorrMap{2,jj}{2}(idxMouse,:),PF.sessCorrMap{2,jj}{4}(idxMouse,:),'Rows','pairwise','Type','Spearman'));

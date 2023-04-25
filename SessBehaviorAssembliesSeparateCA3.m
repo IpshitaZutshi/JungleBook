@@ -66,6 +66,11 @@ else
         stimMat = []; 
         spikeMat = [];
         
+        %Skip return targeting sessions
+        if sessionPulses.(efields{1}).target==2
+            continue
+        end
+        
         for jj = 1:length(efields)
                         
             region = sessionPulses.(efields{jj}).region; %1 is CA1/CA3, 2 is mec, 3 is both

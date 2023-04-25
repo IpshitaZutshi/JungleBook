@@ -34,7 +34,7 @@ addParameter(p,'filterbounds',[500 5000]);
 addParameter(p,'movingNorm',false);
 addParameter(p,'MUAsmoothwin',0.005);
 addParameter(p,'usepeaks',true);
-addParameter(p,'SHOWFIG',false);
+addParameter(p,'SHOWFIG',true);
 addParameter(p,'compareEMG',false);
 addParameter(p,'peakthresh',4);
 addParameter(p,'forceRedetect',false);
@@ -76,11 +76,11 @@ end
 
 %%
 if isequal(channels,'all')
-    channels = sessionInfo.channels;
+    channels = sessionInfo.channels(1:(length(sessionInfo.channels)-5));
 end
 
 %%
-lfp = bz_GetLFP(channels,'basepath',basePath,'noPrompts',true);
+lfp = bz_GetLFP(channels(1),'basepath',basePath,'noPrompts',true);
 
 %%
 downfactor = 1;

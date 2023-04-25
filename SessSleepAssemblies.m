@@ -76,7 +76,7 @@ else
                 continue
             end
             for unit = 1:length(spikes.times)
-                if strcmp(cell_metrics.brainRegion(unit),'CA1')~=1
+                if strcmp(cell_metrics.brainRegion(unit),'CA1')~=1 || strcmp(cell_metrics.putativeCellType(unit),'Pyramidal Cell')~=1
                     continue
                 else 
                    spkData = bz_SpktToSpkmat(spikes.times(unit),'dt', .020, 'win',events(trials,:));
@@ -110,11 +110,11 @@ else
             events = pulses.intsPeriods(1,pulTr)';
             
             for trials = 1:length(events)
-                idx = find(timeMat>= events(trials) & timeMat< (events(trials)+5));
+                idx = find(timeMat>= (events(trials)) & timeMat< (events(trials)+5));
                 if ~isempty(idx)
                     timeLog(rr,idx) = 3;
                 end
-                idx = find(timeMat>= (events(trials)-5) & timeMat< events(trials));
+                idx = find(timeMat>= (events(trials)-5) & timeMat< (events(trials)));
                 if ~isempty(idx)
                     timeLog(rr,idx) = 2;
                 end
@@ -144,7 +144,7 @@ else
             assembliesVector = assembliesVector * assembliesVector(find(max(abs(assembliesVector)) == abs(assembliesVector)))...
                 /abs(assembliesVector(find(max(abs(assembliesVector)) == abs(assembliesVector))));
             Vectors(:,aa) = assembliesVector;
-%                     assembliesID{length(assembliesID)+1} = find(assembliesVector> 2*std(assembliesVector)) + cellCount;
+            assembliesID{aa} = find(assembliesVector> 2*std(assembliesVector));
 %                     sessionID(length(sessionID)+1) = ii;
        end
        
@@ -177,11 +177,12 @@ else
               close all
            end
        end           
-       clear Vectors timeLog
+       save('SleepAssemblyUnits.mat','assembliesID');
+       clear Vectors timeLog assembliesID
     end
     
     if saveMat
-        save([expPath '\Summ\' 'RippleAssemblies.mat'], 'RippleAssemblies','-v7.3');
+        save([expPath '\Summ\' 'RippleAssembliesPyrAll.mat'], 'RippleAssemblies','-v7.3');
     end
 end
     

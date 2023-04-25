@@ -115,7 +115,7 @@ else
         subplot(2,3,ii+3)
         dataAll  = [DS.amplitude{ii,1};DS.amplitude{ii,2};DS.amplitude{ii,3}];
         dataID = [ones(size(DS.amplitude{ii,1},1),1)*1;ones(size(DS.amplitude{ii,2},1),1)*2;ones(size(DS.amplitude{ii,3},1),1)*3];
-        stats.DSrate = groupStats(dataAll,dataID,'inAxis',true,'color',colMat);    
+        stats.DSamplitude = groupStats(dataAll,dataID,'inAxis',true,'color',colMat);    
         title('Dentate Spike 2 Amplitude')        
     end
     

@@ -1,4 +1,4 @@
-function [ripples] = rippleMasterDetector(varargin)
+function [ripples] = rippleMasterDetectorIZ(varargin)
 %   rippleMasterDetector - Wrapped function to compute different
 %                           characteristics about hippocampal ripples (100
 %                           ~ 200 Hz oscillations). It also computes
@@ -84,7 +84,7 @@ addParameter(p,'basepath',pwd,@isdir);
 addParameter(p,'rippleChannel',[],@isnumeric);
 addParameter(p,'SWChannel',[],@isnumeric);
 addParameter(p,'noiseCh',[],@isnumeric);
-addParameter(p,'thresholds',[2 5],@isnumeric);
+addParameter(p,'thresholds',[0.5 1],@isnumeric);
 addParameter(p,'SWthresholds',[-0.5 -2], @isnumeric);
 addParameter(p,'durations',[30 100],@isnumeric);
 addParameter(p,'restrict',[],@isnumeric);
@@ -94,9 +94,9 @@ addParameter(p,'show','off',@isstr);
 addParameter(p,'noise',[],@ismatrix);
 addParameter(p,'passband',[120 220],@isnumeric);
 addParameter(p,'SWpassband',[2 10],@isnumeric);
-addParameter(p,'EMGThresh',0.8,@isnumeric);
+addParameter(p,'EMGThresh',0.9,@isnumeric);
 addParameter(p,'saveMat',true,@islogical);
-addParameter(p,'minDuration',20,@isnumeric);
+addParameter(p,'minDuration',12,@isnumeric);
 addParameter(p,'plotType',2,@isnumeric);
 addParameter(p,'srLfp',1250,@isnumeric);
 addParameter(p,'rippleStats',true,@islogical);
@@ -126,7 +126,9 @@ srLfp = p.Results.srLfp;
 rippleStats = p.Results.rippleStats;
 debug = p.Results.debug;
 %% Load Session Metadata and several variables if not provided
-session = sessionTemplate(basepath,'showGUI',false);
+%session = sessionTemplate(basepath,'showGUI',false);
+file = dir(['*.session.mat']);
+load(file(1).name)
 
 % Ripple and SW Channel are loaded separately in case we want to provide
 % only one of the
@@ -158,8 +160,8 @@ end
 %% Computing Ripples
 %%%%%%%%%%%%%%%%%%%%%%%%
 ripples = bz_FindRipples(pwd,rippleChannel,'noise',noiseCh,'thresholds',thresholds,'passband',passband,...
-    'EMGThresh',EMGThresh,'durations',durations, 'saveMat',false);
-%ripples = removeArtifactsFromEvents(ripples);
+    'EMGThresh',EMGThresh,'durations',durations,'restrict',restrict,'saveMat',false);
+ripples = removeArtifactsFromEvents(ripples);
 %ripples = eventSpikingTreshold(ripples,[],'spikingThreshold',2,'figOpt',false);
 
 %% Ripple Stats
@@ -175,156 +177,156 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Computing SharpWaves
 %%%%%%%%%%%%%%%%%%%%%%%%%
-% Initialize of SW
-% if size(ripples.timestamps,1)>2
-%     SW = [];
-%     SW.detectorinfo = [];
-%     SW.timestamps = nan(size(ripples.timestamps,1),size(ripples.timestamps,2));
-%     SW.peaks = nan(size(ripples.peaks,1),1);
-%     SW.peakZScore = nan(size(ripples.peaks,1),1);
-% 
-%     % Getting zscore signal
-%     lfpRipple = bz_GetLFP(rippleChannel);
-%     filteredRipple = bz_Filter(lfpRipple,'filter','butter','passband',passband,'order',3);
-%     filteredSW = bz_Filter(bz_GetLFP(SWChannel),'filter','butter','passband',SWpassband,'order',3);
-%     zRipple = zscore(filteredRipple.data);
-%     zSW = zscore(filteredSW.data);
-%     ts = lfpRipple.timestamps;
-% 
-%     eliminatedSW = false;
-%     for i = 1:size(ripples.timestamps,1)
-%         dur = 0.01;
-%         signalSW = zSW(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
-%         signalR = zRipple(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
-%         t1SW = ts(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
-%         negPeak = find(signalSW < SWthresholds(2));
-% 
-%         if ~isempty(negPeak)
-%             [minP,indP] = min(signalSW);
-%             timePeak1 = t1SW(indP);
-%             SW.peaks(i) = t1SW(indP);
-%             SW.peakZScore(i) = signalSW(indP);
-%             disp('SharpWaveDetected')
-%             dur = 0.1;
+%Initialize of SW
+if size(ripples.timestamps,1)>2
+    SW = [];
+    SW.detectorinfo = [];
+    SW.timestamps = nan(size(ripples.timestamps,1),size(ripples.timestamps,2));
+    SW.peaks = nan(size(ripples.peaks,1),1);
+    SW.peakZScore = nan(size(ripples.peaks,1),1);
+
+    % Getting zscore signal
+    lfpRipple = bz_GetLFP(rippleChannel);
+    filteredRipple = bz_Filter(lfpRipple,'filter','butter','passband',passband,'order',3);
+    filteredSW = bz_Filter(bz_GetLFP(SWChannel),'filter','butter','passband',SWpassband,'order',3);
+    zRipple = zscore(filteredRipple.data);
+    zSW = zscore(filteredSW.data);
+    ts = lfpRipple.timestamps;
+
+    eliminatedSW = false;
+    for i = 1:size(ripples.timestamps,1)
+        dur = 0.01;
+        signalSW = zSW(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
+        signalR = zRipple(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
+        t1SW = ts(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
+        negPeak = find(signalSW < SWthresholds(2));
+
+        if ~isempty(negPeak)
+            [minP,indP] = min(signalSW);
+            timePeak1 = t1SW(indP);
+            SW.peaks(i) = t1SW(indP);
+            SW.peakZScore(i) = signalSW(indP);
+            disp('SharpWaveDetected')
+            dur = 0.1;
+            posSignalSW = zSW(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
+            tSW = ts(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp)); 
+
+            [minPeak,indPeak] = min(posSignalSW);
+            timePeak2 = tSW(indPeak);
+            while timePeak1 ~= timePeak2
+                posSignalSW(indPeak) = nan;
+                [minPeak,indPeak] = min(posSignalSW);
+                timePeak2 = tSW(indPeak);
+            end
+            % First value crossing threshold1 (first timestamp of SharpWave)
+            % It can happens that no crosses the threshold
+            if (any(posSignalSW(indPeak-1:-1:1) > SWthresholds(1)) && any(posSignalSW(indPeak+1:1:length(posSignalSW)) > SWthresholds(1)))
+                eliminatedSW = false;
+                for j = indPeak-1:-1:1
+                    if (posSignalSW(j) > SWthresholds(1))
+                        posPeak1 = j;
+                        SW.timestamps(i,1) = tSW(j);
+                        break 
+                    end
+                end
+                % Second value crossing threshold1 (second timestamp of SharpWave)
+                for j = indPeak+1:1:length(posSignalSW)
+                    if (posSignalSW(j) > SWthresholds(1))
+                        posPeak2 = j;
+                        SW.timestamps(i,2) = tSW(j);
+                        break     
+                    end
+                end  
+            else
+                % Any of before or after SW peak is not crossing the
+                % threshold(1). We discard this SW
+                eliminatedSW = true;
+                SW.peaks(i) = nan;
+            end
+            if debug
+                posSignalR = zRipple(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
+                figure,
+                subplot(2,1,1)
+                plot(tSW,posSignalR,'k')
+                xlim([tSW(1) tSW(end)])
+                subplot(2,1,2)
+                plot(tSW,posSignalSW,'k')
+                hold on
+                xlim([tSW(1) tSW(end)])
+                ylim([-4 4])
+                if ~eliminatedSW
+                    text(tSW(posPeak1),posSignalSW(posPeak1),'X','Color','g');
+                    text(tSW(posPeak2),posSignalSW(posPeak2),'X','Color','g');
+                    text(tSW(indPeak),posSignalSW(indPeak),'O','Color','g');
+                    title('SharpWave !!')
+                else
+                    title('SharpWave but eliminated ..');
+                    text(tSW(posPeak1),posSignalSW(posPeak1),'X','Color','r');
+                    text(tSW(posPeak2),posSignalSW(posPeak2),'X','Color','r');
+                    text(tSW(indPeak),posSignalSW(indPeak),'O','Color','r');
+                end
+                pause
+                close all
+            end
+
+        else
+         %   disp('No SW')
+            dur = 0.1;
 %             posSignalSW = zSW(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
 %             tSW = ts(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp)); 
-% 
-%             [minPeak,indPeak] = min(posSignalSW);
-%             timePeak2 = tSW(indPeak);
-%             while timePeak1 ~= timePeak2
-%                 posSignalSW(indPeak) = nan;
-%                 [minPeak,indPeak] = min(posSignalSW);
-%                 timePeak2 = tSW(indPeak);
-%             end
-%             % First value crossing threshold1 (first timestamp of SharpWave)
-%             % It can happens that no crosses the threshold
-%             if (any(posSignalSW(indPeak-1:-1:1) > SWthresholds(1)) && any(posSignalSW(indPeak+1:1:length(posSignalSW)) > SWthresholds(1)))
-%                 eliminatedSW = false;
-%                 for j = indPeak-1:-1:1
-%                     if (posSignalSW(j) > SWthresholds(1))
-%                         posPeak1 = j;
-%                         SW.timestamps(i,1) = tSW(j);
-%                         break 
-%                     end
-%                 end
-%                 % Second value crossing threshold1 (second timestamp of SharpWave)
-%                 for j = indPeak+1:1:length(posSignalSW)
-%                     if (posSignalSW(j) > SWthresholds(1))
-%                         posPeak2 = j;
-%                         SW.timestamps(i,2) = tSW(j);
-%                         break     
-%                     end
-%                 end  
-%             else
-%                 % Any of before or after SW peak is not crossing the
-%                 % threshold(1). We discard this SW
-%                 eliminatedSW = true;
-%                 SW.peaks(i) = nan;
-%             end
-%             if debug
-%                 posSignalR = zRipple(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
-%                 figure,
-%                 subplot(2,1,1)
-%                 plot(tSW,posSignalR,'k')
-%                 xlim([tSW(1) tSW(end)])
-%                 subplot(2,1,2)
-%                 plot(tSW,posSignalSW,'k')
-%                 hold on
-%                 xlim([tSW(1) tSW(end)])
-%                 ylim([-4 4])
-%                 if ~eliminatedSW
-%                     text(tSW(posPeak1),posSignalSW(posPeak1),'X','Color','g');
-%                     text(tSW(posPeak2),posSignalSW(posPeak2),'X','Color','g');
-%                     text(tSW(indPeak),posSignalSW(indPeak),'O','Color','g');
-%                     title('SharpWave !!')
-%                 else
-%                     title('SharpWave but eliminated ..');
-%                     text(tSW(posPeak1),posSignalSW(posPeak1),'X','Color','r');
-%                     text(tSW(posPeak2),posSignalSW(posPeak2),'X','Color','r');
-%                     text(tSW(indPeak),posSignalSW(indPeak),'O','Color','r');
-%                 end
-%                 pause
-%                 close all
-%             end
-% 
-%         else
-%             disp('No SW')
-%             dur = 0.1;
-%             posSignalSW = zSW(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
-%             tSW = ts(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp)); 
-%             if debug
-%                 posSignalR = zRipple(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
-%                 figure,
-%                 subplot(2,1,1)
-%                 plot(tSW,posSignalR,'k')
-%                 xlim([tSW(1) tSW(end)])
-%                 subplot(2,1,2)
-%                 plot(tSW,posSignalSW,'k')
-%                 hold on
-%                 xlim([tSW(1) tSW(end)])
-%                 ylim([-4 4])
-%                 title('No SharpWave detected')
-%                 pause
-%                 close all
-%             end
-%         end
-%     end
-% 
-% 
-%     % % of Sharp Waves ocurring in the detected ripples
-%     SWnumber = sum(~isnan(SW.timestamps(:,1)));
-%     SWperc = (SWnumber / size(ripples.timestamps,1));
-% 
-%     % Distance of peaks between ripples and SW
-%     rippleSWdifference = ripples.peaks - SW.peaks;
-%     SWbefore = find(rippleSWdifference > 0);
-%     SWbeforePerc = length(SWbefore) / SWnumber;
-%     SWafter = find(rippleSWdifference < 0);
-%     SWafterPerc = length(SWafter) / SWnumber;
-%     SWequal = find(rippleSWdifference == 0);
-%     SWequalPerc = length(SWequal) / SWnumber;
-% 
-%     %% OUTPUT SHARPWAVES
-%     SW.stats.SWperc = SWperc;
-%     SW.stats.SWbeforeperc = SWbeforePerc;
-%     SW.stats.SWafterperc = SWafterPerc;
-%     SW.stats.SWequalperc = SWequalPerc;
-% 
-%     SW.detectorinfo.detectionparams = p.Results;
-%     SW.detectorinfo.detectorname = 'rippleMasterDetector';
-%     SW.detectorinfo.detectiondate = today;
-%     SW.detectorinfo.detectionintervals = [];
-%     SW.detectorinfo.detectionchannel = SWChannel;
-% end
+            if debug
+                posSignalR = zRipple(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
+                figure,
+                subplot(2,1,1)
+                plot(tSW,posSignalR,'k')
+                xlim([tSW(1) tSW(end)])
+                subplot(2,1,2)
+                plot(tSW,posSignalSW,'k')
+                hold on
+                xlim([tSW(1) tSW(end)])
+                ylim([-4 4])
+                title('No SharpWave detected')
+                pause
+                close all
+            end
+        end
+    end
+
+
+    % % of Sharp Waves ocurring in the detected ripples
+    SWnumber = sum(~isnan(SW.timestamps(:,1)));
+    SWperc = (SWnumber / size(ripples.timestamps,1));
+
+    % Distance of peaks between ripples and SW
+    rippleSWdifference = ripples.peaks - SW.peaks;
+    SWbefore = find(rippleSWdifference > 0);
+    SWbeforePerc = length(SWbefore) / SWnumber;
+    SWafter = find(rippleSWdifference < 0);
+    SWafterPerc = length(SWafter) / SWnumber;
+    SWequal = find(rippleSWdifference == 0);
+    SWequalPerc = length(SWequal) / SWnumber;
+
+    %% OUTPUT SHARPWAVES
+    SW.stats.SWperc = SWperc;
+    SW.stats.SWbeforeperc = SWbeforePerc;
+    SW.stats.SWafterperc = SWafterPerc;
+    SW.stats.SWequalperc = SWequalPerc;
+
+    SW.detectorinfo.detectionparams = p.Results;
+    SW.detectorinfo.detectorname = 'rippleMasterDetector';
+    SW.detectorinfo.detectiondate = today;
+    SW.detectorinfo.detectionintervals = [];
+    SW.detectorinfo.detectionchannel = SWChannel;
+end
 
 if saveMat
     disp('Saving Ripples Results...');
     save([session.general.name , '.ripples.events.mat'],'ripples');
     
-%     if size(ripples.timestamps,1)>2
-%         disp('Saving SharpWaves Results...');
-%         save([session.general.name , '.sharpwaves.events.mat'],'SW');
-%     end
+    if size(ripples.timestamps,1)>2
+        disp('Saving SharpWaves Results...');
+        save([session.general.name , '.sharpwaves.events.mat'],'SW');
+    end
 end
 
 

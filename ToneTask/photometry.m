@@ -268,3 +268,8 @@ xlabel('Time(s)')
 % plot(dfbfF)
 % subplot(2,1,2)
 % plot(dfbfFfake)
+
+for ii = 1:size(behavTrials.timestamps,1)
+    [~,idxStart(ii)] = min(abs(photometry.timestamps-behavTrials.timestamps(ii,1)));
+    [~,idxEnd(ii)] = min(abs(photometry.timestamps-behavTrials.timestamps(ii,2)));
+end

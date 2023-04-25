@@ -28,19 +28,19 @@ for tag = 1:2
 
     for m = 1:length(mice{tag})       
         cd(strcat(parentDir, mice{tag}{m},'\Summ'));
-        if exist(strcat('Summ\RippleRankOrder_DS.mat'),'file')
-            load(strcat('Summ\RippleRankOrder_DS.mat'));
-        else 
-%         if exist(strcat('Summ\RippleRankOrder.mat'),'file')
-%             load(strcat('Summ\RippleRankOrder.mat'));
+%         if exist(strcat('Summ\RippleRankOrder_DS.mat'),'file')
+%             load(strcat('Summ\RippleRankOrder_DS.mat'));
 %         else 
+        if exist(strcat('Summ\RippleRankOrder.mat'),'file')
+            load(strcat('Summ\RippleRankOrder.mat'));
+        else 
             disp(['Rank Order not computed for mouse' mice{tag}{m}])
             continue;
         end
 
         for ii = 1:length(range)
             compiledAssemblies{rangetag(ii)} = [compiledAssemblies{rangetag(ii)}; rippleRankOrder(:,:,range(ii))];
-            numRipples{rangetag(ii)} = [numRipples{rangetag(ii)}; numRip(:,:,range(ii))];
+           % numRipples{rangetag(ii)} = [numRipples{rangetag(ii)}; numRip(:,:,range(ii))];
         end
     end
 end
@@ -56,20 +56,21 @@ set(gcf,'Position',[100 68 740 900])
 for rr = 1:length(ripCutoff)
     % First all ipsi mEC manipulations    
     assemblyData = compiledAssemblies{1};
-    assemblyRip = numRipples{1};    
-    idxPick = assemblyRip(:,2)>=ripCutoff(rr);
-    if rr == 1
-        idxPick(42) = 0;
-    end
-    assemblyData = assemblyData(idxPick,:);
-    
+%     assemblyRip = numRipples{1};    
+%     idxPick = assemblyRip(:,2)>=ripCutoff(rr);
+%     if rr == 1
+%         idxPick(42) = 0;
+%     end
+%     assemblyData = assemblyData(idxPick,:);
+%     
     subplot(4,length(ripCutoff),rr)
-    dataID = [ones(size(assemblyData,1),1)*1;ones(size(assemblyData,1),1)*2];%;ones(size(assemblyData,1),1)*3];
+    dataID = [ones(size(assemblyData,1),1)*1;ones(size(assemblyData,1),1)*2;ones(size(assemblyData,1),1)*3];
     %assembly = reshape(assemblyData(:,1:3),[size(assemblyData,1)*3,1]);
     assembly = reshape(assemblyData(:,1:2),[size(assemblyData,1)*2,1]);
     stats{rr}.mEC = groupStats(abs(assembly),dataID,'inAxis',true,'color',colMat,'repeatedMeasures',true,'plotType','BoxLinesSEM');
-    %[stats{rr}.mEC.signrank.p,~,stats{rr}.mEC.signrank.stats] = signrank(assemblyData(:,1),assemblyData(:,2));
-    [~,stats{rr}.mEC.signrank.p,~,stats{rr}.mEC.signrank.stats] = ttest(assemblyData(:,1),assemblyData(:,2));
+    [stats{rr}.mEC.signrank.p,~,stats{rr}.mEC.signrank.stats] = signrank(assemblyData(:,1),assemblyData(:,2));
+    [stats{rr}.mEC.signrank.n] = [sum(~isnan(assemblyData(:,1))) sum(~isnan(assemblyData(:,2)))];
+    %[~,stats{rr}.mEC.signrank.p,~,stats{rr}.mEC.signrank.stats] = ttest(assemblyData(:,1),assemblyData(:,2));
     title(strcat('ipsi mEC ', num2str(stats{rr}.mEC.signrank.p)))
     %ylim([0 1])
 
@@ -83,8 +84,9 @@ for rr = 1:length(ripCutoff)
     assembly = reshape(assemblyData(:,1:2),[size(assemblyData,1)*2,1]);
     if length(assembly)>6
         stats{rr}.contramEC = groupStats(abs(assembly),dataID,'inAxis',true,'color',colMat,'repeatedMeasures',true,'plotType','BoxLinesSEM');
-        %[stats{rr}.contramEC.signrank.p,~,stats{rr}.contramEC.signrank.stats] = signrank(assemblyData(:,1),assemblyData(:,2));
-        [~,stats{rr}.contramEC.signrank.p,~,stats{rr}.contramEC.signrank.stats] = ttest(assemblyData(:,1),assemblyData(:,2));
+        [stats{rr}.contramEC.signrank.p,~,stats{rr}.contramEC.signrank.stats] = signrank(assemblyData(:,1),assemblyData(:,2),'method','approximate');
+        [stats{rr}.contramEC.signrank.n] = [sum(~isnan(assemblyData(:,1))) sum(~isnan(assemblyData(:,2)))];
+        %[~,stats{rr}.contramEC.signrank.p,~,stats{rr}.contramEC.signrank.stats] = ttest(assemblyData(:,1),assemblyData(:,2));
         title(strcat('contra mEC ', num2str(stats{rr}.contramEC.signrank.p)))
     end
     %ylim([0 1])
@@ -99,8 +101,9 @@ for rr = 1:length(ripCutoff)
     assembly = reshape(assemblyData(:,1:2),[size(assemblyData,1)*2,1]);
     if length(assembly)>6
         stats{rr}.ipsimEC = groupStats(abs(assembly),dataID,'inAxis',true,'color',colMat,'repeatedMeasures',true,'plotType','BoxLinesSEM');
-        %[stats{rr}.ipsimEC.signrank.p,~,stats{rr}.ipsimEC.signrank.stats] = signrank(assemblyData(:,1),assemblyData(:,2));
-        [~,stats{rr}.ipsimEC.signrank.p,~,stats{rr}.ipsimEC.signrank.stats] = ttest(assemblyData(:,1),assemblyData(:,2));
+        [stats{rr}.ipsimEC.signrank.p,~,stats{rr}.ipsimEC.signrank.stats] = signrank(assemblyData(:,1),assemblyData(:,2),'method','approximate');
+        [stats{rr}.ipsimEC.signrank.n] = [sum(~isnan(assemblyData(:,1))) sum(~isnan(assemblyData(:,2)))];
+        %[~,stats{rr}.ipsimEC.signrank.p,~,stats{rr}.ipsimEC.signrank.stats] = ttest(assemblyData(:,1),assemblyData(:,2));
         title(strcat('ipsi mEC ', num2str(stats{rr}.ipsimEC.signrank.p)))
     end
     %ylim([0 1])
@@ -115,8 +118,9 @@ for rr = 1:length(ripCutoff)
     assembly = reshape(assemblyData(:,1:2),[size(assemblyData,1)*2,1]);
     if length(assembly)>6    
         stats{rr}.bilteralmEC = groupStats(abs(assembly),dataID,'inAxis',true,'color',colMat,'repeatedMeasures',true,'plotType','BoxLinesSEM');
-        %[stats{rr}.bilteralmEC.signrank.p,~,stats{rr}.bilteralmEC.signrank.stats] = signrank(assemblyData(:,1),assemblyData(:,2));
-        [~,stats{rr}.bilteralmEC.signrank.p,~,stats{rr}.bilteralmEC.signrank.stats] = ttest(assemblyData(:,1),assemblyData(:,2));
+        [stats{rr}.bilteralmEC.signrank.p,~,stats{rr}.bilteralmEC.signrank.stats] = signrank(assemblyData(:,1),assemblyData(:,2),'method','approximate');
+        [stats{rr}.bilteralmEC.signrank.n] = [sum(~isnan(assemblyData(:,1))) sum(~isnan(assemblyData(:,2)))];
+        %[~,stats{rr}.bilteralmEC.signrank.p,~,stats{rr}.bilteralmEC.signrank.stats] = ttest(assemblyData(:,1),assemblyData(:,2));
         title(strcat('bilateral mEC ', num2str(stats{rr}.bilteralmEC.signrank.p)))
     end
     %ylim([0 1])
@@ -126,7 +130,7 @@ saveas(gcf,strcat(parentDir,'Compiled\Ripples\Assemblies\RippleRankOrder_DS.png'
 saveas(gcf,strcat(parentDir,'Compiled\Ripples\Assemblies\RippleRankOrder_DS.eps'),'epsc');
 saveas(gcf,strcat(parentDir,'Compiled\Ripples\Assemblies\RippleRankOrder_DS.fig'));
 save(strcat(parentDir,'Compiled\Ripples\Assemblies\RippleRankOrder_DS.mat'),'stats');
-
+% 
 % saveas(gcf,strcat(parentDir,'Compiled\Ripples\Assemblies\RippleRankOrder.png'));
 % saveas(gcf,strcat(parentDir,'Compiled\Ripples\Assemblies\RippleRankOrder.eps'),'epsc');
 % saveas(gcf,strcat(parentDir,'Compiled\Ripples\Assemblies\RippleRankOrder.fig'));

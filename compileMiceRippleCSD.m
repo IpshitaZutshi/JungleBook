@@ -16,8 +16,8 @@ combineSessions = p.Results.combineSessions;
 tag = 'CA1'; 
 
 if strcmp(tag,'CA1') == 1
-    mice = {'IZ20\Final','IZ21\Final','IZ31\Final','IZ18\Final','IZ15\Final','IZ30\Final'};
-    reg = {'CA1','mEC','Both'};% Excluded - 'IZ15\Final','IZ30\Final',
+    mice = {'IZ20\Final','IZ21\Final','IZ31\Final','IZ18\Final'};
+    reg = {'CA1','mEC','Both'};% Excluded - 'IZ15\Final','IZ30\Final','IZ15\Final',,'IZ30\Final'
 elseif strcmp(tag,'mEC') == 1
     mice = {'IZ12\Final','IZ13\Final','IZ17\Final',...
         'IZ18\Final','IZ20\Final','IZ21\Final','IZ24\Final','IZ25\Final','IZ26\Final','IZ27\Saline','IZ28\Saline',...

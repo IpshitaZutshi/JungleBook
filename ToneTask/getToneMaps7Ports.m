@@ -3,7 +3,7 @@ function getToneMaps7Ports(varargin)
 %% Defaults and Parms
 p = inputParser;
 addParameter(p,'basepath',pwd,@isstr);
-addParameter(p,'plotfig',false,@islogical);
+addParameter(p,'plotfig',true,@islogical);
 addParameter(p,'toneMap',true,@islogical);
 
 parse(p,varargin{:});

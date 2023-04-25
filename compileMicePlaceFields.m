@@ -19,16 +19,16 @@ savePlot = p.Results.savePlot;
 useZScore = p.Results.useZScore;
 downsample = p.Results.downsample;
 
-tag = 'mECBilateral'; % or mEC
+tag = 'CA3'; % or mEC
 YlGnBu=cbrewer('seq', 'YlGnBu', 11);
 
 if strcmp(tag,'CA1') == 1
-    mice = {'IZ15\Final','IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};
+    mice = {'IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};%'IZ15\Final'
     reg = {'CA1','mEC','Both'};
 elseif strcmp(tag,'mEC') == 1
-    mice = {'IZ12\Final','IZ13\Final','IZ15\Final','IZ17\Final','IZ18\Final','IZ20\Final'...
+    mice = {'IZ12\Final','IZ13\Final','IZ17\Final','IZ18\Final','IZ20\Final'...
         'IZ21\Final','IZ24\Final','IZ25\Final','IZ26\Final','IZ27\Saline','IZ28\Saline','IZ29\Saline',...
-        'IZ30\Final','IZ31\Final','IZ32\Saline','IZ33\Saline','IZ34\Final'};  % To add: IZ34
+        'IZ30\Final','IZ31\Final','IZ32\Saline','IZ33\Saline','IZ34\Final'};  % To add: 'IZ15\Final'
     reg = {'CA1','mEC','Both'};
 elseif strcmp(tag,'CA3') == 1
     mice = {'IZ27\Final','IZ28\Final','IZ29\Final','IZ32\Final','IZ33\Final','IZ34\Final'};
@@ -151,7 +151,7 @@ if strcmp(tag,'CA1') == 1 || strcmp(tag,'mECBilateral') == 1 || strcmp(tag,'mEC'
             224/243 163/243 46/243;...
             8/243 133/243 161/243;...
             56/243 61/243 150/243];  
-    for jj = 1%:length(target)            
+    for jj = 2%1:length(target)            
         figure(jj)
         set(gcf,'renderer','painters');
         set(gcf,'Position',[50 50 1000 800])
@@ -304,8 +304,8 @@ if strcmp(tag,'CA1') == 1 || strcmp(tag,'mECBilateral') == 1 || strcmp(tag,'mEC'
             else 
                 clear temp
                 for nn = 1:8
-                    temp1 = zscore(PF.sessCorrMap{ii,jj}{nn}(:,1:63),[],2);
-                    temp2 = zscore(PF.sessCorrMap{ii,jj}{nn}(:,64:100),[],2);
+                    temp1 = zscore(PF.sessCorrMap{ii,jj}{nn}(idxSelect,1:63),[],2);
+                    temp2 = zscore(PF.sessCorrMap{ii,jj}{nn}(idxSelect,64:100),[],2);
                     temp{nn} = [temp1 temp2];
                 end
                 corrbase(1,:) = diag(corr(temp{1},temp{2},'Rows','pairwise','Type','Spearman'));
@@ -435,13 +435,20 @@ elseif strcmp(tag,'CA3') == 1 || strcmp(tag,'CA3Saline') == 1
             PFstim = []; 
             for zz = 1:4               
                 % Separate CA1, select principal cells with place fields
+%                 if zz == 1 || zz == 2
+%                     idxSelect = PF.putativeClass{2,jj}{1,zz} == 2 & PF.region{2,jj}{1,zz} == 1 &...
+%                         (PF.placefield{2,jj}{1,1} == 1 | PF.placefield{2,jj}{1,2} == 1 | PF.placefield{3,jj}{1,1} == 1 | PF.placefield{3,jj}{1,1} == 1);
+%                     PFtemp = PF.rateMap{ii,jj}{1,zz}(idxSelect,:);
+%                 elseif zz == 3 || zz == 4
+%                     idxSelect = PF.putativeClass{2,jj}{1,zz} == 2 & PF.region{2,jj}{1,zz} == 1 &...
+%                         (PF.placefield{2,jj}{1,3} == 1 | PF.placefield{2,jj}{1,4} == 1 | PF.placefield{3,jj}{1,3} == 1 | PF.placefield{3,jj}{1,4} == 1);
+%                     PFtemp = PF.rateMap{ii,jj}{1,zz}(idxSelect,:);
+%                 end
                 if zz == 1 || zz == 2
-                    idxSelect = PF.putativeClass{2,jj}{1,zz} == 2 & PF.region{2,jj}{1,zz} == 1 &...
-                        (PF.placefield{2,jj}{1,1} == 1 | PF.placefield{2,jj}{1,2} == 1 | PF.placefield{3,jj}{1,1} == 1 | PF.placefield{3,jj}{1,1} == 1);
+                    idxSelect = PF.putativeClass{2,jj}{1,zz} == 1 & PF.region{2,jj}{1,zz} == 1;
                     PFtemp = PF.rateMap{ii,jj}{1,zz}(idxSelect,:);
                 elseif zz == 3 || zz == 4
-                    idxSelect = PF.putativeClass{2,jj}{1,zz} == 2 & PF.region{2,jj}{1,zz} == 1 &...
-                        (PF.placefield{2,jj}{1,3} == 1 | PF.placefield{2,jj}{1,4} == 1 | PF.placefield{3,jj}{1,3} == 1 | PF.placefield{3,jj}{1,4} == 1);
+                    idxSelect = PF.putativeClass{2,jj}{1,zz} == 1 & PF.region{2,jj}{1,zz} == 1;                      
                     PFtemp = PF.rateMap{ii,jj}{1,zz}(idxSelect,:);
                 end
 
@@ -544,7 +551,7 @@ elseif strcmp(tag,'CA3') == 1 || strcmp(tag,'CA3Saline') == 1
             
         % Get session correlations
         idxPF = PF.placefield{2,jj}{1,1} == 1 | PF.placefield{2,jj}{1,2} == 1 | PF.placefield{2,jj}{1,3} == 1 | PF.placefield{2,jj}{1,4} == 1;
-        idxSelect = PF.putativeClass{2,jj}{1,1} == 2 & PF.region{2,jj}{1,1} == 1 & idxPF == 1;
+        idxSelect = PF.putativeClass{2,jj}{1,1} == 1 & PF.region{2,jj}{1,1} == 1;% & idxPF == 1;
         
          % Correlations
          

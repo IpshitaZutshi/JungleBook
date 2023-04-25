@@ -29,7 +29,7 @@ for m = 1:length(mice)
 
     cd(strcat(parentDir, mice{m}));
     allSess = dir('*_sess*');
-    for ii = 2:size(allSess,1)
+    for ii = 1:size(allSess,1)
         fprintf(' ** Analyzing session %3.i of %3.i... \n',ii, size(allSess,1));
         cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
         basepaths{kk} = strcat(allSess(ii).folder,'\',allSess(ii).name);

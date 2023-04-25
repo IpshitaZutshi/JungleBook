@@ -12,7 +12,7 @@
 % 
 % Spike matrix
 
-function[spkMat,constVar,logVar,eventVar,timestamps] = generateDataMatrix(varargin)
+function [spkMat,constVar,logVar,eventVar,timestamps] = generateDataMatrix(varargin)
 
 %% Defaults and Parms
 p = inputParser;
@@ -47,7 +47,7 @@ file = dir([basepath filesep '*.MergePoints.events.mat']);
 load(file.name); 
 
 % Load digitalIn
-%filename = [MergePoints.foldernames{2} filesep '.DigitalIn.events.mat'];
+%filename = [MergePoints.foldernames{2} filesep 'amplifier.DigitalIn.events.mat'];
 filename = [sessionInfo.session.name '.DigitalIn.events.mat'];
 load(filename)
 %% First generate spike matrix 
@@ -116,17 +116,17 @@ end
 % Now can generate cont freq variable - transformed to Hz
 %gain =[435/72, 435/144, 435/216, 435/390, 435/370, 435/435];
 gain = [120/11.6, 120/32.27 120/55.53 120/79.62 120/102.79 120/120];
-freqExp = log10(22000/1000);
+%gain = [120/10.3, 120/31.27 120/53.53 120/78.62 120/102.79 120/120];
 
 constVar.freq(1:length(spkData.timestamps)) = nan;
 
 freqExp = log10(22000/1000);
 for ii = 1:length(logVar.trialType)
     if logVar.trialType(ii)>0 && logVar.toneOn(ii)>0
-        freq = (constVar.y(ii)*gain(logVar.trialType(ii)))/122;
+        freq = (constVar.y(ii)*gain(logVar.trialType(ii)))/120;
 %         tonepos(ii) = 1000*(10.^(freqExp*freq));        
 %          freq = (constVar.y(ii)*gain(logVar.trialType(ii)))/120;
-         constVar.freq(ii) = ((1000*(10.^(freqExp*freq)))/22000)*122;
+         constVar.freq(ii) = ((1000*(10.^(freqExp*freq)))/22000)*120;
     end
 end
 
@@ -136,7 +136,7 @@ constVar.yFwd(logVar.trialType==0) = nan;
 
 lickport = [1 2 3 4 5 6 7];
 for ll = 1:7
-    event.times{ll} = digitalIn.timestampsOn{lickport(ll)+2}+MergePoints.timestamps(2,1);
+    event.times{ll} = digitalIn.timestampsOn{lickport(ll)+2};%+MergePoints.timestamps(2,1);
     event.UID(ll) = ll;
 end
 
@@ -156,9 +156,9 @@ eventMat.data(1,8) = 1;
 eventMat.data(end,9) = 1;
 
 % add a variable that is shifted 0.5 sec previous to trialEnd
-trialRamp = zeros(size(eventMat.data(:,6)));
+trialRamp = zeros(size(eventMat.data(:,9)));
 n = round(500/6);
-trialRamp(1:(end-n)) = eventMat.data(n+1:end,6)';
+trialRamp(1:(end-n)) = eventMat.data(n+1:end,9)';
 
 eventVar.licks = eventMat.data(:,1:7)';
 eventVar.trialStart = eventMat.data(:,8)';

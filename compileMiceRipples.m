@@ -5,12 +5,12 @@ force = 0;
 Control = 0;
 
 if strcmp(tag,'CA1') == 1
-    mice = {'IZ15\Final','IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};
+    mice = {'IZ3\Final'};%{'IZ15\Final','IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};
     reg = {'CA1','mEC','CA1Both'};
 elseif strcmp(tag,'mEC') == 1
-    mice = {'IZ12\Final','IZ13\Final','IZ15\Final','IZ17\Final','IZ21\Final',...
-         'IZ18\Final','IZ20\Final','IZ24\Final','IZ25\Final','IZ26\Final','IZ27\Saline','IZ28\Saline','IZ29\Saline',...
-         'IZ30\Final','IZ31\Final','IZ32\Saline','IZ33\Saline'}; % To add, IZ16, IZ23'IZ11\Final','IZ34\Saline'
+    mice = {'IZ30\Final'};%IZ12\Final','IZ13\Final','IZ15\Final','IZ17\Final','IZ21\Final',...
+%          'IZ18\Final','IZ20\Final','IZ24\Final','IZ25\Final','IZ26\Final','IZ27\Saline','IZ28\Saline','IZ29\Saline',...
+%          'IZ30\Final','IZ31\Final','IZ32\Saline','IZ33\Saline'}; % To add, IZ16, IZ23'IZ11\Final','IZ34\Saline'
     reg = {'CA1','mEC','Both'};
 elseif strcmp(tag,'CA3') == 1
     mice = {'IZ29\Final','IZ32\Final','IZ33\Final','IZ34\Final','IZ27\Final','IZ28\Final'};
@@ -198,14 +198,14 @@ elseif strcmp(tag,'mEC') == 1
     %dataAll{1} = compiledMiceRipples.amplitude{2}(:,1);
     dataAll{1} = compiledMiceRipples.amplitude{2}(:,2);    
     dataAll{2} = compiledMiceRipples.amplitude{2}(:,3);    
-    dataAll{1}(dataAll{1}>2500) = nan;
-    dataAll{2}(dataAll{2}>2500) = nan;
+    dataAll{1}(dataAll{1}>450) = nan;
+    dataAll{2}(dataAll{2}>450) = nan;
     h1 = raincloud_plot(dataAll{1}, 'box_on', 1, 'color', col(1,:),'alpha', 0.4,...
-     'box_dodge', 1, 'box_dodge_amount', .25, 'dot_dodge_amount', .3,...
+     'box_dodge', 1, 'box_dodge_amount', .85, 'dot_dodge_amount', 3,...
      'box_col_match', 0);
     set(h1{2}, 'SizeData', 2);
     h2 = raincloud_plot(dataAll{2}, 'box_on', 1, 'color', col(2,:), 'alpha', 0.4,...
-     'box_dodge', 1, 'box_dodge_amount', 0, 'dot_dodge_amount', .05, 'box_col_match', 0);
+     'box_dodge', 1, 'box_dodge_amount', .2, 'dot_dodge_amount', 3, 'box_col_match', 0);
     set(h2{2}, 'SizeData', 2);
     box off
     [stats.amplitude.signrank.p,~,stats.amplitude.signrank.stats] = ranksum(compiledMiceRipples.amplitude{2}(:,2),compiledMiceRipples.amplitude{2}(:,3));
@@ -213,7 +213,8 @@ elseif strcmp(tag,'mEC') == 1
     stats.amplitude = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col,'doPlot',false); 
     set(gca,'view',[90 -90])
     xlabel('Ripple amplitude')    
-    xlim([0 3000])
+    xlim([0 600])
+    ylim([-0.005 0.005])
     
     %subplot(1,4,3)
     subplot(2,5,3) 
@@ -232,12 +233,12 @@ elseif strcmp(tag,'mEC') == 1
     box off    
     %dataAll{4} = compiledMiceRipples.duration{2}(:,4);    
     %nhist(dataAll(2:3), 'binfactor',1,'color','colormap','samebins','proportion','serror','linewidth',1.5)
+    stats.duration = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col,'doPlot',false);              
     [stats.duration.signrank.p,~,stats.duration.signrank.stats] = ranksum(compiledMiceRipples.duration{2}(:,2),compiledMiceRipples.duration{2}(:,3));
     title(num2str(stats.duration.signrank.p));        
-    stats.duration = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col,'doPlot',false);          
     set(gca,'view',[90 -90])
     xlabel('Ripple duration')
-    xlim([0 0.12])
+    %xlim([0 0.12])
     
     %subplot(1,4,4)
     subplot(2,5,4) 
@@ -254,12 +255,12 @@ elseif strcmp(tag,'mEC') == 1
      'box_dodge', 1, 'box_dodge_amount', 0, 'dot_dodge_amount', .05, 'box_col_match', 0);
     set(h2{2}, 'SizeData', 2);
     box off       
+    stats.frequency = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col,'doPlot',false);         
     [stats.frequency.signrank.p,~,stats.frequency.signrank.stats] = ranksum(compiledMiceRipples.frequency{2}(:,2),compiledMiceRipples.frequency{2}(:,3));
     title(num2str(stats.frequency.signrank.p));         
-    stats.frequency = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col,'doPlot',false);     
     set(gca,'view',[90 -90])
     xlabel('Ripple frequency')
-    xlim([130 200])
+ %   xlim([130 200])
        
     subplot(2,5,5) 
     dataAll = [];
@@ -352,11 +353,11 @@ else
         dataAll{1}(dataAll{1}>2500) = nan;
         dataAll{2}(dataAll{2}>2500) = nan;
         h1 = raincloud_plot(dataAll{1}, 'box_on', 1, 'color', col(1,:),'alpha', 0.4,...
-         'box_dodge', 1, 'box_dodge_amount', 0.25, 'dot_dodge_amount', .3,...
+         'box_dodge', 1, 'box_dodge_amount', .85, 'dot_dodge_amount', 3,...
          'box_col_match', 0);
         set(h1{2}, 'SizeData', 2);
         h2 = raincloud_plot(dataAll{2}, 'box_on', 1, 'color', col(2,:), 'alpha', 0.4,...
-         'box_dodge', 1, 'box_dodge_amount', 0, 'dot_dodge_amount', .05, 'box_col_match', 0);
+         'box_dodge', 1,  'box_dodge_amount', .2, 'dot_dodge_amount', 3, 'box_col_match', 0);
         set(h2{2}, 'SizeData', 2);
         box off    
         stats.amplitude{ii} = groupStats(dataAll,[],'plotType','violinPlot','inAxis',true,'color',col,'doPlot',false);  
@@ -364,7 +365,7 @@ else
         title(num2str(stats.amplitude{ii}.signrank.p));        
         set(gca,'view',[90 -90])
         xlabel('Ripple amplitude')    
-        xlim([0 3000])        
+        xlim([0 600])        
         
         dataAll = [];
         subplot((numAnalog+1),8,8*(ii-1)+3)

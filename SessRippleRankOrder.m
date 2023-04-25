@@ -4,7 +4,7 @@ p = inputParser;
 addParameter(p,'expPath',[],@isfolder);
 addParameter(p,'saveMat',true,@islogical);
 addParameter(p,'force',true,@islogical);
-addParameter(p,'dSample',true,@islogical);
+addParameter(p,'dSample',false,@islogical);
 parse(p,varargin{:});
 
 expPath = p.Results.expPath;
@@ -33,7 +33,7 @@ else
     rippleRankOrder = zeros(size(allSess,1),3,3);
     numRip = zeros(size(allSess,1),3,3);
     
-    for ii = 1:size(allSess,1)
+    for ii =2:size(allSess,1)
         fprintf(' ** Examining session %3.i of %3.i... \n',ii, size(allSess,1));
         cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
         [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true);
@@ -55,7 +55,7 @@ else
         end
         
         %% calculate ripple rank order
-        for rr = 1:3             
+        for rr = 2%1:3             
 
             if exist('pulses')
                 if rr <= 2
@@ -101,7 +101,7 @@ else
                 end
             end   
 
-            if sum(ripple_post) < 1 || sum(ripple_pre)< 1|| sum(ripple_poststim)< 1
+            if sum(ripple_post) < 5 || sum(ripple_pre)< 5|| sum(ripple_poststim)< 5
                 rippleRankOrder(ii,1,rr) = nan;
                 rippleRankOrder(ii,2,rr) = nan;
                 rippleRankOrder(ii,3,rr) = nan;
@@ -128,11 +128,11 @@ else
                         ripple_poststim(ripIds(pickIds)) = 0;                            
                     end
                 end
-                rankStats_pre = bz_RankOrder('spkEventTimes',spkEventTimes,'eventIDs',ripple_pre,'saveMat',false,'doPlot',false);
+                rankStats_pre = bz_RankOrder('spkEventTimes',spkEventTimes,'eventIDs',ripple_pre,'saveMat',false,'doPlot',true);
                 rippleRankOrder(ii,1,rr) = rankStats_pre.corrMean;            
-                rankStats_post = bz_RankOrder('spkEventTimes',spkEventTimes,'eventIDs',ripple_post,'saveMat',false,'doPlot',false);
+                rankStats_post = bz_RankOrder('spkEventTimes',spkEventTimes,'eventIDs',ripple_post,'saveMat',false,'doPlot',true);
                 rippleRankOrder(ii,2,rr) = rankStats_post.corrMean;                       
-                rankStats_poststim = bz_RankOrder('spkEventTimes',spkEventTimes,'eventIDs',ripple_poststim,'saveMat',false,'doPlot',false);
+                rankStats_poststim = bz_RankOrder('spkEventTimes',spkEventTimes,'eventIDs',ripple_poststim,'saveMat',false,'doPlot',true);
                 rippleRankOrder(ii,3,rr) = rankStats_poststim.corrMean;     
                 numRip(ii,1,rr) = sum(ripple_pre);
                 numRip(ii,2,rr) = sum(ripple_post);
@@ -145,7 +145,7 @@ else
         if dSample
             save([expPath '\Summ\' 'RippleRankOrder_DS.mat'], 'rippleRankOrder','numRip','-v7.3');
         else
-            save([expPath '\Summ\' 'RippleRankOrder.mat'], 'rippleRankOrder','numRip','-v7.3');
+            save([expPath '\Summ\' 'RippleRankOrderUpdated.mat'], 'rippleRankOrder','numRip','-v7.3');
         end
     end    
 end

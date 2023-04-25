@@ -31,53 +31,36 @@ if ~isempty(dir([basepath filesep '*.spikes.cellinfo.mat']))
     load(file.name);
 end
 
+if isempty(dir([basepath filesep '*.rateMapsAvg.cellinfo.mat']))
+    disp('First calculate average rate maps!');
+    return
+else
+    file = dir([basepath filesep '*.rateMapsAvg.cellinfo.mat']);
+    load(file.name);
+end
+
+
 [sessionInfo] = bz_getSessionInfo(basepath, 'noPrompts', true);
 
 fprintf('Computing place fields\n');
 
-% Compute three sets of maps. Forward mapped to space, forward, mapped to
-% tone, and reverse. 
+% Compute three sets of maps. Spatial trials, forward mapped to space, forward mapped to tone
 %Get the index for different conditions
-idx{1} = behavTrials.linTrial ==1;
-idx{2} = behavTrials.toneGain ==0 & behavTrials.correct==1 & behavTrials.linTrial ==0;
-idx{3} = behavTrials.toneGain ==1 & behavTrials.correct==1 & behavTrials.linTrial ==0;
-idx{4} = behavTrials.toneGain ==2 & behavTrials.correct==1 & behavTrials.linTrial ==0;
-idx{5} = behavTrials.toneGain ==3 & behavTrials.correct==1 & behavTrials.linTrial ==0;
-idx{6} = behavTrials.toneGain ==4 & behavTrials.correct==1 & behavTrials.linTrial ==0;
-idx{7} = behavTrials.toneGain ==5 & behavTrials.correct==1 & behavTrials.linTrial ==0;
-% idx{8} = firingMaps.toneGain ==0 & firingMaps.correct==0 & firingMaps.linTrial ==0;
-% idx{9} = firingMaps.toneGain ==1 & firingMaps.correct==0 & firingMaps.linTrial ==0;
-% idx{10} = firingMaps.toneGain ==2 & firingMaps.correct==0 & firingMaps.linTrial ==0;
-% idx{11} = firingMaps.toneGain ==3 & firingMaps.correct==0 & firingMaps.linTrial ==0;
-% idx{12} = firingMaps.toneGain ==4 & firingMaps.correct==0 & firingMaps.linTrial ==0;
-% idx{13} = firingMaps.toneGain ==5 & firingMaps.correct==0 & firingMaps.linTrial ==0;    
-gain =[420/55, 420/130, 420/210, 420/290, 420/370, 420/420];
+linIdx = find(behavTrials.linTrial==1);
+jumpLin = find(diff(linIdx)>1);
+
+% Spatial trials
+idx{1} = linIdx(1:round(jumpLin/2)); % Idx of first half of initial runs
+idx{2} = linIdx(round(jumpLin/2)+1:jumpLin); % Idx of second half of initial runs
+idx{3} = linIdx(1:jumpLin); % Idx of initial runs
+idx{4} = linIdx(jumpLin:end); % Idx of later runs
 
 for ii = 1:length(idx)    
     [idxPos] = InIntervals(tracking.timestamps,behavTrials.timestamps(idx{ii}(1:(end-1)),:));
-    positions.forward{ii} = [tracking.timestamps(idxPos) tracking.position.y(idxPos)];
-    if ~isempty(positions.forward{ii})
-        positions.forward{ii} = [positions.forward{ii};[positions.forward{ii}(end,1)+0.000001 112]];% Add a  fake 112
-    end
-    if ii==1
-        positions.tone{ii} = [tracking.timestamps(idxPos) tracking.position.y(idxPos)*nan];
-    else
-        tonepos = tracking.position.y(idxPos)*gain(ii-1);
-        tonepos(tonepos>112) = nan;
-        positions.tone{ii} = [tracking.timestamps(idxPos) tonepos];
-    end
+    positions.forward{ii} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)];
 end
 
-firingMaps.forward = bz_firingMapAvg_IZ(positions.forward,spikes,'minTime',0.1,'plotFig',false,'saveMat',false);
-if toneMap
-    firingMaps.tone = bz_firingMapAvg_IZ(positions.tone,spikes,'minTime',0.1,'plotFig',false,'saveMat',false);
-end
-
-firingMaps.linTrial = behavTrials.linTrial(1:(end-1));
-firingMaps.toneTrial = behavTrials.toneTrial(1:(end-1));
-firingMaps.toneGain = behavTrials.toneGain(1:(end-1));
-firingMaps.correct = behavTrials.correct(1:(end-1));
-firingMaps.numLicks = behavTrials.numLicks(1:(end-1),:);
+firingMaps.spatial = bz_getRateMaps(positions.forward,spikes,'xRange',[0 6],'yRange',[0 125], 'binSize',2.5,'saveMat',false);
 
 save([sessionInfo.FileName '.firingMapsAvg.cellinfo.mat'],'firingMaps'); 
 

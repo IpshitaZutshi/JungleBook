@@ -2,7 +2,7 @@ function SessRippleAssemblies(varargin)
 
 p = inputParser;
 addParameter(p,'expPath',[],@isfolder);
-addParameter(p,'makePlot',true,@islogical);
+addParameter(p,'makePlot',false,@islogical);
 addParameter(p,'saveMat',true,@islogical);
 addParameter(p,'force',true,@islogical);
 parse(p,varargin{:});
@@ -76,7 +76,7 @@ else
                 continue
             end
             for unit = 1:length(spikes.times)
-                if strcmp(cell_metrics.brainRegion(unit),'CA1')~=1
+                if strcmp(cell_metrics.brainRegion(unit),'CA1')~=1 || strcmp(cell_metrics.putativeCellType(unit),'Pyramidal Cell')~=1
                     continue
                 else 
                    spkData = bz_SpktToSpkmat(spikes.times(unit),'dt', .025, 'win',events(trials,:));
@@ -121,16 +121,16 @@ else
 
                 if min(abs(tempDiff)) <=5 % If a ripple occurs within 5 seconds of a stimulus
                    [~,idxmin] =  min(abs(tempDiff));
-                   if tempDiff(idxmin) > 0
+                   if tempDiff(idxmin) > 1
                        ripple_post(pp) = 1;
-                   elseif tempDiff(idxmin) < 0
+                   elseif tempDiff(idxmin) < -1
                        ripple_pre(pp) = 1;
                    end
                 elseif min(abs(tempDiff)) >5 && min(abs(tempDiff)) <=10% If a ripple occurs within 5 seconds of a stimulus
                    [~,idxmin] =  min(abs(tempDiff));
-                   if tempDiff(idxmin) > 0
+                   if tempDiff(idxmin) > 6
                        ripple_poststim(pp) = 1;
-                   elseif tempDiff(idxmin) < 0
+                   elseif tempDiff(idxmin) < -6
                        ripple_prestim(pp) = 1;
                    end                   
                 else
@@ -213,7 +213,7 @@ else
     end
     
     if saveMat
-        save([expPath '\Summ\' 'RippleOnlyAssemblies.mat'], 'RippleAssemblies','-v7.3');
+        save([expPath '\Summ\' 'RippleOnlyAssembliesPyr.mat'], 'RippleAssemblies','-v7.3');
     end    
 end
     

@@ -25,10 +25,10 @@ for tag = 1:2
 
     for m = 1:length(mice{tag})       
         cd(strcat(parentDir, mice{tag}{m},'\Summ'));
-        if exist(strcat('Summ\RippleOnlyAssemblies.mat'),'file')
-            load(strcat('Summ\RippleOnlyAssemblies.mat'));
+        if exist(strcat('Summ\RippleOnlyAssembliesPyr.mat'),'file')
+            load(strcat('Summ\RippleOnlyAssembliesPyr.mat'));
         else 
-            disp(['Assembly not computed for mouse' mice{m}])
+            disp(['Assembly not computed for mouse' mice{tag}{m}])
             continue;
         end
 

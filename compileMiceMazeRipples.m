@@ -1,6 +1,6 @@
 function compiledMiceRipples = compileMiceMazeRipples
 
-tag = 'CA1';% mEC, CA3, Bilateral mEC
+tag = 'mEC';% mEC, CA3, Bilateral mEC
 
 if strcmp(tag,'CA1') == 1
     mice = {'IZ15\Final','IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};
@@ -57,7 +57,7 @@ for m = 1:length(mice)
                     compiledMiceRipples.number{ii,jj}{kk} = [compiledMiceRipples.number{ii,jj}{kk};mazeRipples.number{ii,jj}{kk}(:,:,p)];
                     compiledMiceRipples.duration{ii,jj}{kk} = [compiledMiceRipples.duration{ii,jj}{kk};mazeRipples.duration{ii,jj}{kk}(:,:,p)];
                     compiledMiceRipples.frequency{ii,jj}{kk} = [compiledMiceRipples.frequency{ii,jj}{kk};mazeRipples.frequency{ii,jj}{kk}(:,:,p)];
-                    compiledMiceRipples.peakPower{ii,jj}{kk} = [compiledMiceRipples.peakPower{ii,jj}{kk};mazeRipples.peakPower{ii,jj}{kk}(:,:,p)];
+                    compiledMiceRipples.peakPower{ii,jj}{kk} = [compiledMiceRipples.peakPower{ii,jj}{kk};mazeRipples.peakPower{ii,jj}{kk}(:,:,p)*0.195];
                 end                    
             end          
         end
@@ -137,7 +137,7 @@ if strcmp(tag,'CA3') == 1 || strcmp(tag,'CA3Saline') == 1
     title('Side arm mEC, delay ripples')
     
 else
-    for ii = 1%1:3 
+    for ii = 2 
         figure    
         set(gcf,'Renderer','painters')
         set(gcf,'Color','w')

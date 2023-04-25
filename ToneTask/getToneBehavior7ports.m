@@ -52,7 +52,14 @@ elseif length(digitalIn.timestampsOn{2})> length(digitalIn.timestampsOn{10})
 elseif length(digitalIn.timestampsOn{2})< length(digitalIn.timestampsOn{10})
     behavTrials.timestamps = [digitalIn.timestampsOn{10}(2:(end-1)) digitalIn.timestampsOn{2}(2:end)];    
 end
-% 
+% if length(digitalIn.timestampsOn{10})==length(digitalIn.timestampsOn{2})
+%     behavTrials.timestamps = [digitalIn.timestampsOn{2}(1:(end-1)) digitalIn.timestampsOn{10}(2:end)];
+% elseif length(digitalIn.timestampsOn{10})> length(digitalIn.timestampsOn{2})
+%     behavTrials.timestamps = [digitalIn.timestampsOn{2}(1:end) digitalIn.timestampsOn{10}(2:end)];
+% elseif length(digitalIn.timestampsOn{10})< length(digitalIn.timestampsOn{2})
+%     behavTrials.timestamps = [digitalIn.timestampsOn{2}(2:(end-1)) digitalIn.timestampsOn{10}(2:end)];    
+% end
+% % 
 % %Assign gain to every trial
 % posGain = posInfoDS(2,:)./posInfoDS(1,:);
 % posGain(posGain==Inf) = nan;
@@ -192,6 +199,7 @@ if plotfig
         
     mkdir('Behavior');
     saveas(gcf,'Behavior\toneBehavior.png');
+    saveas(gcf,'Behavior\toneBehavior.eps','epsc');
 
 end
 

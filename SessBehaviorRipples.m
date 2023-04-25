@@ -3,7 +3,7 @@ function ripples = SessBehaviorRipples(varargin)
 p = inputParser;
 addParameter(p,'expPath',[],@isfolder);
 addParameter(p,'saveMat',true,@islogical);
-addParameter(p,'force',false,@islogical);
+addParameter(p,'force',true,@islogical);
 addParameter(p,'plotfig',false,@islogical);
 parse(p,varargin{:});
 

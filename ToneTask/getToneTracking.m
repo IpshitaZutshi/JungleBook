@@ -38,7 +38,7 @@ addParameter(p,'trackLength',112,@isnumeric);
 addParameter(p,'trackImgLength',410,@isnumeric);
 addParameter(p,'freqRange',[1000 22000],@isnumeric);
 addParameter(p,'saveMat',true,@islogical)
-addParameter(p,'forceReload',false,@islogical)
+addParameter(p,'forceReload',true,@islogical)
 
 parse(p,varargin{:});
 basepath = p.Results.basepath;

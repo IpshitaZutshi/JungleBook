@@ -254,10 +254,10 @@ groupStats([ca3baseManip(1) ca3Manip(2) mecca3Manip(3)],[],'inAxis',true,'plotTy
 title('CA3')
 ylim([-1 1])
 
-
-saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyStability.png'))
-saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyStability.fig'),'fig')    
-saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyStability.eps'),'epsc') 
+% 
+% saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyStability.png'))
+% saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyStability.fig'),'fig')    
+% saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyStability.eps'),'epsc') 
 
 
 figure
@@ -309,9 +309,9 @@ title(num2str(stats.CA3.Stability.kruskalWallis.p))
 subplot(3,5,11:15)
 [stats.Expression] = groupStats([mecManip(1) contraManip(1) biManip(1) ca1Manip(1) mecca1Manip(1) ca3Manip(1) mecca3Manip(1) ca3salManip(1)],[],'doPlot',true,'inAxis',true,'plotType','boxplot');
 
-saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyExpression.png'))
-saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyExpression.fig'),'fig')    
-saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyExpression.eps'),'epsc') 
+% saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyExpression.png'))
+% saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyExpression.fig'),'fig')    
+% saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyExpression.eps'),'epsc') 
 
 figure
 set(gcf,'renderer','painters')
@@ -396,9 +396,9 @@ stats.numAss.ca3 = groupStats([{numca3baseA} {numca3A} {nummecca3A}],[],'inAxis'
 title(num2str(stats.numAss.ca3.kruskalWallis.p));
 ylim([0 15])
 
-saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyNum.png'))
-saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyNum.fig'),'fig')    
-saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyNum.eps'),'epsc') 
-
-save(strcat(parentDir,'Compiled\Assemblies\separateStats.mat'),'stats') 
+% saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyNum.png'))
+% saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyNum.fig'),'fig')    
+% saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyNum.eps'),'epsc') 
+% 
+% save(strcat(parentDir,'Compiled\Assemblies\separateStats.mat'),'stats') 
 end

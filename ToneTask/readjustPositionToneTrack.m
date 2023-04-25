@@ -24,7 +24,9 @@ end
 %Find current range -
 start = min(tracking.position.y);
 tracking.position.y  = tracking.position.y-start;
-tracking.position.y = (tracking.position.y*(122/(120-start)));
+if start>0
+    tracking.position.y = (tracking.position.y*(122/(120-start)));
+end
 
 save([basepath filesep sessionInfo.FileName '.Tracking.Behavior.mat'],'tracking');
 end

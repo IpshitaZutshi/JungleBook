@@ -1,4 +1,4 @@
-function compiledRipples = compileMiceRipplePSTH(varargin)
+function stats = compileMiceRipplePSTH(varargin)
 
 %% Defaults and Parms
 p = inputParser;
@@ -6,7 +6,7 @@ addParameter(p,'parentDir','Z:\Homes\zutshi01\Recordings\CA1_silencing\',@isfold
 addParameter(p,'saveMat',true,@islogical);
 addParameter(p,'force',false,@islogical);
 addParameter(p,'binSize',0.1,@isnumerical);
-addParameter(p,'normalized',true,@islogical);
+addParameter(p,'normalized',false,@islogical);
 parse(p,varargin{:});
 
 parentDir = p.Results.parentDir;
@@ -15,7 +15,7 @@ force = p.Results.force;
 binSize = p.Results.binSize;
 normalized = p.Results.normalized;
 
-tag = 'CA1'; % or mEC
+tag = 'mECBilateral'; % or mEC
 
 if strcmp(tag,'CA1') == 1
     mice = {'IZ15\Final','IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};
@@ -135,7 +135,7 @@ else
                 
                 %% Now calculate the psth for these specific ripples
                 for rippLog = 1:size(ripple_logical,2)
-                    if sum(ripple_logical(:,rippLog))~=0
+                    if sum(ripple_logical(:,1))>2 && sum(ripple_logical(:,2))>2
                         st = ripples.peaks(ripple_logical(:,rippLog));
                         for jj = 1:size(spikes.UID,2)
                             % Get psth
@@ -200,7 +200,7 @@ YlGnBu=cbrewer('div', 'BrBG', 11);
 col = [85/243 85/243 85/243;224/243 163/243 46/243;8/243 133/243 161/243;56/243 61/243 150/243];
 figure
 set(gcf,'renderer','Painters')    
-set(gcf,'Position',[35 50 1900 1000])    
+set(gcf,'Position',[310 80 1600 920])    
 for ii = 1:length(reg)
     for kk = 1:length(classifier)
         for rr = 1:2
@@ -215,11 +215,16 @@ for ii = 1:length(reg)
                 psth = compiledData.psthstccg(IdxCombined,:);
 
                 if normalized
-                    psth = zscore(psth,[],2);%(:,:)./nanmean(psth(:,1:20),2);      
-                     psth(psth ==0) = nan;
+                    psth = zscore(psth,[],2);%psth./nanmean(psth(:,1:20),2);      %
+                     %psth(psth ==0) = nan;
                 end
                
-                FR_ratio{jj} = nanmean(psth(:,24:28),2);
+                if kk == 1
+                    psth(psth>250) = nan;
+                elseif kk == 2
+                    psth(psth>80) = nan;
+                end
+                FR_ratio{jj} = nanmean(psth(:,26),2);
                 [~, idxsort] = sort(FR_ratio{jj});                
             
                 subplot(6,8,(4*(rr-1)+16*(ii-1)+2*(kk-1)+jj))
@@ -230,7 +235,7 @@ for ii = 1:length(reg)
                 if normalized
                     caxis([-2 5])
                 else
-                    caxis([0 5])    
+                    caxis([0 20])    
                 end
                 %colormap(YlGnBu)
                 
@@ -250,7 +255,7 @@ for ii = 1:length(reg)
                     ylim([-0.5 2.2])
                 else
                     if kk == 1
-                        ylim([0 30])
+                        ylim([0 35])
                     else
                         ylim([0 12])
                     end
@@ -258,9 +263,11 @@ for ii = 1:length(reg)
              end
              
              if rr == 1
+                subplot(6,8,(4*(rr-1)+16*(ii-1)+2*(kk-1)+2+8))
+                
                 data = [FR_ratio{1}' FR_ratio{2}'];
-                stats{ii,kk} = groupStats(data,[ones(1,length(FR_ratio{1})) ones(1,length(FR_ratio{2}))*2],'doPlot',false); 
-                [stats{ii,kk}.ranksum.p,~,stats{ii,kk}.ranksum.stats] = ranksum(FR_ratio{1},FR_ratio{2});
+                stats{ii,kk} = groupStats(data,[ones(1,length(FR_ratio{1})) ones(1,length(FR_ratio{2}))*2],'plotType','boxplot','repeatedMeasures',true,'inAxis',true,'labelSummary',false); 
+                %[stats{ii,kk}.ranksum.p,~,stats{ii,kk}.ranksum.stats] = signrank(FR_ratio{1},FR_ratio{2});
                 clear FR_ratio data
              end
         end 
@@ -272,13 +279,13 @@ if normalized
     saveas(gcf,strcat(parentDir,'Compiled\Ripples\Ripple PSTH\NormcompiledPSTH',tag,'.fig'),'fig')    
     saveas(gcf,strcat(parentDir,'Compiled\Ripples\Ripple PSTH\NormcompiledPSTH',tag,'.eps'),'epsc') 
     save(strcat(parentDir,'Compiled\Ripples\Ripple PSTH\NormcompiledPSTH',tag,'.mat'),'stats')
-    clear stats
+   % clear stats
 else
     saveas(gcf,strcat(parentDir,'Compiled\Ripples\Ripple PSTH\compiledPSTH',tag,'.png'))
     saveas(gcf,strcat(parentDir,'Compiled\Ripples\Ripple PSTH\compiledPSTH',tag,'.fig'),'fig')    
     saveas(gcf,strcat(parentDir,'Compiled\Ripples\Ripple PSTH\compiledPSTH',tag,'.eps'),'epsc') 
     save(strcat(parentDir,'Compiled\Ripples\Ripple PSTH\compiledPSTH',tag,'.mat'),'stats')
-    clear stats
+    %clear stats
 end
 
 end

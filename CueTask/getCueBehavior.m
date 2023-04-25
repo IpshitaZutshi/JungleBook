@@ -34,11 +34,14 @@ if isempty(digitalIn)
 end
 
 % Start of trial coincides with cue onset - take both left and right
-timestamps = [digitalIn.timestampsOn{7}(1:end); digitalIn.timestampsOn{8}(1:end)];
+a = digitalIn.dur{7}>0.001;
+b = digitalIn.dur{8}>0.001;
+timestamps = [digitalIn.timestampsOn{7}(a); digitalIn.timestampsOn{8}(b)];
 [~,idxTS] = sort(timestamps);
 
 if updatedIntan % base solenoid should have this information
-    timestampsEnd = digitalIn.timestampsOn{10}(1:end);
+    b = digitalIn.dur{10}>0.001;
+    timestampsEnd = digitalIn.timestampsOn{10}(b);
     %end of trial coincides with baseIR
     if length(timestampsEnd) == length(idxTS)
         behavTrials.timestamps(:,1) = timestamps(idxTS);
@@ -73,20 +76,26 @@ else
     solChoice = digitalIn.ints{9}(1,~solBase);
 end
 
-arm = [zeros(length(digitalIn.timestampsOn{7}),1);ones(length(digitalIn.timestampsOn{8}),1)];
-cueDur = [digitalIn.dur{7}(1:end)'; digitalIn.dur{8}(1:end)'];
+a = digitalIn.dur{7}>0.001;
+b = digitalIn.dur{8}>0.001;
+arm = [zeros(sum(a),1);ones(sum(b),1)];
+cueDur = [digitalIn.dur{7}(a)'; digitalIn.dur{8}(b)'];
 
 behavTrials.cue = arm(idxTS);
 behavTrials.cueDur = cueDur(idxTS);
-behavTrials.delayDur = digitalIn.dur{14}'-behavTrials.cueDur;
+durtemp  = digitalIn.dur{14}>0.001;
+behavTrials.delayDur = digitalIn.dur{14}(durtemp)'-behavTrials.cueDur;
 
 behavTrials.cue = behavTrials.cue(1:size(behavTrials.timestamps,1));
 behavTrials.cueDur = behavTrials.cueDur(1:size(behavTrials.timestamps,1));
 behavTrials.delayDur = behavTrials.delayDur(1:size(behavTrials.timestamps,1));
 
 if updatedIntan
-    choiceTS = [digitalIn.timestampsOn{12}; digitalIn.timestampsOn{13}];
-    choice = [zeros(length(digitalIn.timestampsOn{12}),1);ones(length(digitalIn.timestampsOn{13}),1)];
+    a = digitalIn.dur{12}>0.001;
+    b = digitalIn.dur{13}>0.001;
+    choiceTS = [digitalIn.timestampsOn{12}(a); digitalIn.timestampsOn{13}(b)];
+    %choiceTS = choiceTS(2:end);
+    choice = [zeros(sum(a),1);ones(sum(b),1)];
     [~,idxTS] = sort(choiceTS);
     behavTrials.choiceTS = choiceTS(idxTS);
     behavTrials.choice = choice(idxTS);
@@ -189,7 +198,7 @@ if plotfig
 %     plot(behavCue)
 %     title(num2str(numCue))
 %     xlim([0 4])
-% %         
+%         
     mkdir('Behavior');
     saveas(gcf,'Behavior\cueBehavior.png');
 end

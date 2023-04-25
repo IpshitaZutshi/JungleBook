@@ -14,19 +14,40 @@ for i=1:size(pathToSessionsAll,2)
     basePath = cd;
     baseName = bz_BasenameFromBasepath(basePath);
     load([baseName '.sessionInfo.mat'])
-    
+    if ~exist([baseName '.spikes.cellinfo.mat'],'file')
+        disp([baseName '.spikes.cellinfo.mat does not exist'])
+    else
+        load([baseName '.spikes.cellinfo.mat'])
+    end
+        
     % Identify channels
     CTXchans = [];
+    CTXchansAll = [];
     for jj = 1:(size(sessionInfo.AnatGrps,2)-1)
         idx = find(sessionInfo.AnatGrps(jj).Channels==ctxCh{i}{jj});
-        CTXchans = [CTXchans sessionInfo.AnatGrps(jj).Channels(1:idx)];
+        %Subsample 1 in 4 channels
+        CTXchansAll = [CTXchans sessionInfo.AnatGrps(jj).Channels(1:idx)];
+        CTXchans = [CTXchans sessionInfo.AnatGrps(jj).Channels(1:4:idx)];
     end
     
+    % determine if spikes are in the cortex
+    newspikes = [];
+    kk = 1;
+    for jj = 1:spikes.numcells
+        if ~isempty(find(CTXchansAll == spikes.maxWaveformCh(jj)))
+            newspikes.times{kk} = spikes.times{jj};
+            newspikes.UID(kk) = spikes.UID(jj);
+            kk=kk+1;
+        end
+    end
+
+%     
+%     [MUA] = MUAfromDat(basePath,'channels',CTXchans);
 %    badChannels = [sessionInfo.AnatGrps(size(sessionInfo.AnatGrps,2)).Channels];
 %    SleepScoreMaster(basePath,'rejectChannels',badChannels); 
     
-   %  [SlowWaves] = DetectSlowWaves(basePath,'CTXChans',CTXchans,'noPrompts',true);
-     [Ripples] = rippleMasterDetectorIZ('rippleChannel',ripCh(i));
+     [SlowWaves] = DetectSlowWaves(basePath,'spikes',newspikes,'CTXChans',CTXchans,'noPrompts',true,'forceReload',true);
+    % [Ripples] = rippleMasterDetectorIZ('rippleChannel',ripCh(i));
     %[SlowWaves] = DetectSlowWavesMUA(basePath,SWChan,'smoothwin',smoothwin,'startbins',startbins,'refineDipEstimate',refineDipEstimate);
     toc
 end

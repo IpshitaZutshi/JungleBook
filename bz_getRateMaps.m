@@ -110,6 +110,8 @@ for unit = 1:length(spikes.times)
         map{unit}{c}.z = rateMap;
         map{unit}{c}.count = spikeMap;
         map{unit}{c}.time = timeMap;
+        posPDF = timeMap/sum(sum(timeMap));        
+        [map{unit}{c}.information,map{unit}{c}.sparsity,map{unit}{c}.selectivity] = bz_mapstat(rateMap,posPDF);
     end
 end
 
@@ -133,10 +135,20 @@ for unit = 1:length(spikes.times)
             firingMaps.rateMaps{unit,1}{c} = map{unit}{c}.z;
             firingMaps.countMaps{unit,1}{c} = map{unit}{c}.count;
             firingMaps.occupancy{unit,1}{c} = map{unit}{c}.time;
+            firingMaps.information{unit,1}{c} = map{unit}{c}.information;
+            firingMaps.selectivity{unit,1}{c} = map{unit}{c}.selectivity;
+            firingMaps.sparsity{unit,1}{c} = map{unit}{c}.sparsity;            
+            firingMaps.peakRate{unit,1}{c} = nanmax(map{unit}{c}.z); 
+            firingMaps.avgRate{unit,1}{c} = nanmean(map{unit}{c}.z); 
         else
             firingMaps.rateMaps{unit,1}{c} = [];
             firingMaps.countMaps{unit,1}{c} = [];
             firingMaps.occupancy{unit,1}{c} = [];
+            firingMaps.information{unit,1}{c} = nan;
+            firingMaps.selectivity{unit,1}{c} = nan;
+            firingMaps.sparsity{unit,1}{c} = nan;  
+            firingMaps.peakRate{unit,1}{c} = nan; 
+            firingMaps.avgRate{unit,1}{c} = nan;
         end
     end
 end

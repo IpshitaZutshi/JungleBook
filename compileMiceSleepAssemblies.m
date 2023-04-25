@@ -26,10 +26,10 @@ for tag = 1:2
 
     for m = 1:length(mice{tag})       
         cd(strcat(parentDir, mice{tag}{m},'\Summ'));
-        if exist(strcat('Summ\RippleAssemblies.mat'),'file')
-            load(strcat('Summ\RippleAssemblies.mat'));
+        if exist(strcat('Summ\RippleAssembliesPyrAll.mat'),'file')
+            load(strcat('Summ\RippleAssembliesPyrAll.mat'));
         else 
-            disp(['Assembly not computed for mouse' mice{m}])
+            disp(['Assembly not computed for mouse' mice{tag}{m}])
             continue;
         end
 
@@ -106,8 +106,8 @@ stats.bilteralmEC = groupStats(abs(assembly),dataID,'inAxis',true,'color',colMat
 title('bilateral mEC')
 ylim([0 1])
 
-saveas(gcf,strcat(parentDir,'Compiled\Ripples\Assemblies\SleepAssemblies.png'));
-saveas(gcf,strcat(parentDir,'Compiled\Ripples\Assemblies\SleepAssemblies.eps'),'epsc');
-saveas(gcf,strcat(parentDir,'Compiled\Ripples\Assemblies\SleepAssemblies.fig'));
-save(strcat(parentDir,'Compiled\Ripples\Assemblies\SleepAssemblies.mat'),'stats');
+saveas(gcf,strcat(parentDir,'Compiled\Ripples\Revisions\SleepAssembliesPyrAll.png'));
+saveas(gcf,strcat(parentDir,'Compiled\Ripples\Revisions\SleepAssembliesPyrAll.eps'),'epsc');
+saveas(gcf,strcat(parentDir,'Compiled\Ripples\Revisions\SleepAssembliesPyrAll.fig'));
+save(strcat(parentDir,'Compiled\Ripples\Revisions\SleepAssembliesPyrAll.mat'),'stats');
 end

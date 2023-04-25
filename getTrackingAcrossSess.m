@@ -21,9 +21,9 @@ for ii = 1:size(allSess,1)
         fprintf(' ** Examining session %3.i of %3.i... \n',ii, size(allSess,1));
         cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
         
-        autoDSdetectionIZ
+%        autoDSdetectionIZ
 %        getPlaceFieldTemplates;
-%        [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true);
+        [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true);
 %         if exist('badChannels.mat','file')
 %             load('badChannels.mat')            
 %         else 
@@ -41,18 +41,48 @@ for ii = 1:size(allSess,1)
         %getSessionLinearize('forceReload',true);
 %        getPlaceFields;
 %       getPlaceFieldsDownsample('isCA3',isCA3);
-%         file = dir(('*.hippocampalLayers.channelInfo.mat'));
-%         load(file.name);
-%         
-%         load([sessionInfo.FileName '.session.mat']);
-%         if isfield(session.channelTags,'RippleNoise')
-%             noiseCh = session.channelTags.RippleNoise.channels-1;
-%         else
-%             noiseCh = [];
-%         end
-%             
-%         rippleMasterDetectorIZ('rippleChannel',hippocampalLayers.pyramidal,'SWChannel',hippocampalLayers.radiatum,'noiseCh',noiseCh);
-%         close all
+        file = dir(('*.hippocampalLayers.channelInfo.mat'));
+        load(file.name);
+        
+        load([sessionInfo.FileName '.session.mat']);
+        if isfield(session.channelTags,'RippleNoise')
+            noiseCh = session.channelTags.RippleNoise.channels-1;
+        else
+            noiseCh = [];
+        end
+            
+        load([sessionInfo.FileName '.pulses.events.mat']);
+        pulTr = (pulses.stimComb==2);
+        homeCagePulse = pulses.intsPeriods(2,:) - pulses.intsPeriods(1,:);
+        homeCagePulseidx = homeCagePulse < 5.05 & homeCagePulse > 4.95;
+        pulTr = pulTr & homeCagePulseidx;
+        events = pulses.intsPeriods(:,pulTr)';
+       
+        try 
+            rippleMasterDetectorIZ('rippleChannel',hippocampalLayers.pyramidal,'SWChannel',hippocampalLayers.radiatum,'noise',noiseCh)
+        catch 
+        end            
+        ripplesRestrict{1} =  bz_FindRipples(pwd,hippocampalLayers.pyramidal,'noise',noiseCh,'thresholds',[0.5 1],'passband',[120 220],...
+                 'EMGThresh',0.9,'durations',[12 100],'restrict',events-5,'saveMat',false);
+        ripplesRestrict{1} = removeArtifactsFromEvents(ripplesRestrict{1});
+        
+        ripplesRestrict{2} =  bz_FindRipples(pwd,hippocampalLayers.pyramidal,'noise',noiseCh,'thresholds',[0.5 1],'passband',[120 220],...
+                 'EMGThresh',0.9,'durations',[12 100],'restrict',events,'saveMat',false);
+        ripplesRestrict{2} = removeArtifactsFromEvents(ripplesRestrict{2});          
+        
+        save([allSess(ii).name '.ripples_restrict.events.mat'],'ripplesRestrict');
+
+        thres = [0.5 1;1 2;2 5];
+        for rr = 1:3
+            ripplesThresh{rr} = bz_FindRipples(pwd,hippocampalLayers.pyramidal,'noise',noiseCh,'thresholds',thres(rr,:),'passband',[120 220],...
+                'EMGThresh',0.9,'durations',[12 100],'saveMat',false);
+            ripplesThresh{rr} = removeArtifactsFromEvents(ripplesThresh{rr});
+        end
+        save([allSess(ii).name '.ripples_thresh.events.mat'],'ripplesThresh');
+        ripplesLowThresh = ripplesThresh{1};
+        save([allSess(ii).name '.ripplesLowThresh.events.mat'],'ripplesLowThresh');
+
+% %         close all
 % %         getLFPduringtrack('refChannel',[],'pyrChPlus',hippocampalLayers.all,'numtrials',15);
 %        getPhasePrecession
 %         file = dir(('*.region.mat'));
