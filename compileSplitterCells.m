@@ -7,7 +7,7 @@ p = inputParser;
 addParameter(p,'parentDir','Z:\Homes\zutshi01\Recordings\CA1_silencing\',@isfolder);
 addParameter(p,'analogEv',64,@isnumeric);
 addParameter(p,'numAnalog',2,@isnumeric);
-addParameter(p,'downsample',true,@islogical);
+addParameter(p,'downsample',false,@islogical);
 parse(p,varargin{:});
 
 parentDir = p.Results.parentDir;
@@ -51,8 +51,10 @@ for rr = 1:3
             PFStats.size{rr,cc}{zz} = [];
             PFStats.number{rr,cc}{zz} = [];    
             PFStats.mice{rr,cc}{zz} = [];
+            PFStats.sess{rr,cc}{zz} = [];
             PFStats.region{rr,cc}{zz} = [];
             PFStats.putativeClass{rr,cc}{zz} = [];  
+            PFStats.ratemap{rr,cc}{zz} = []; 
         end
         PFStats.splitter{rr,cc} = [];
     end
@@ -60,7 +62,7 @@ end
 
 ret = round((100/175)*80);
 stem = round((100/175)*110);
-
+sessNum = 1;
 %% Loop through the mice
 for m = 1:length(mice)
     
@@ -92,15 +94,16 @@ for m = 1:length(mice)
                 trialMaps = firingMaps.trialMaps{kk,1};
                 for zz = 1:4
                     peakFR{zz} = [];
+                    rm{zz} = [];
                 end
                 for zz = 1:size(placeFieldStats.mapStats{1},2)
                    
                   % Collect other info
-                    [~,idxStem] = max(placeFieldStats.mapStats{kk,1}{1,zz}.x);
-                    PFStats.location{region,target}{zz} = [PFStats.location{region,target}{zz};placeFieldStats.mapStats{kk,1}{1,zz}.x(idxStem)];
+                    [~,idxStem] = max(placeFieldStats.mapStats{kk,1}{1,zz}.x);                    
                     PFStats.peakRate{region,target}{zz} = [PFStats.peakRate{region,target}{zz};placeFieldStats.mapStats{kk,1}{1,zz}.peak(idxStem)];
                     PFStats.avgRate{region,target}{zz} = [PFStats.avgRate{region,target}{zz};placeFieldStats.mapStats{kk,1}{1,zz}.mean(idxStem)];    
                     PFStats.mice{region,target}{zz} = [PFStats.mice{region,target}{zz}; m];
+                    PFStats.sess{region,target}{zz} = [PFStats.sess{region,target}{zz}; sessNum];
                     PFStats.size{region,target}{zz} = [PFStats.size{region,target}{zz};placeFieldStats.mapStats{kk,1}{1,zz}.size(idxStem)];
                     if ~isnan(placeFieldStats.mapStats{kk,1}{1,(zz)}.x(1))
                         PFStats.number{region,target}{zz} = [PFStats.number{region,target}{zz}; 1];
@@ -108,7 +111,48 @@ for m = 1:length(mice)
                         PFStats.number{region,target}{zz} = [PFStats.number{region,target}{zz}; 0];
                     end
                     
-                    loc = placeFieldStats.mapStats{kk,1}{1,zz}.x(idxStem);%fieldX;
+                    if zz == 1 || zz == 3
+                        [~,idxStemL] = max(placeFieldStats.mapStats{kk,1}{1,1}.x);  
+                        locL = placeFieldStats.mapStats{kk,1}{1,1}.x(idxStemL);
+                        [~,idxStemR] = max(placeFieldStats.mapStats{kk,1}{1,3}.x);  
+                        locR = placeFieldStats.mapStats{kk,1}{1,3}.x(idxStemR);                       
+                        if abs(locL-locR)>30 %If the two fields are really far apart, take the field that is closer to the
+                            if locL>=60 && locL < 90
+                               loc = placeFieldStats.mapStats{kk,1}{1,1}.fieldX(idxStemL,:); 
+                               PFStats.location{region,target}{zz} = [PFStats.location{region,target}{zz};placeFieldStats.mapStats{kk,1}{1,1}.x(idxStemL)];
+                            elseif locR>=60 && locR < 90
+                                loc = placeFieldStats.mapStats{kk,1}{1,3}.fieldX(idxStemR,:); 
+                                PFStats.location{region,target}{zz} = [PFStats.location{region,target}{zz};placeFieldStats.mapStats{kk,1}{1,3}.x(idxStemR)];
+                            else
+                                loc = nan;
+                                PFStats.location{region,target}{zz} = [PFStats.location{region,target}{zz};nan];
+                            end
+                        else % Else just stay within the field
+                            loc = placeFieldStats.mapStats{kk,1}{1,zz}.fieldX(idxStem,:);
+                            PFStats.location{region,target}{zz} = [PFStats.location{region,target}{zz};placeFieldStats.mapStats{kk,1}{1,zz}.x(idxStem)];
+                        end                            
+                    elseif zz == 2 || zz == 4
+                        [~,idxStemL] = max(placeFieldStats.mapStats{kk,1}{1,2}.x); 
+                        locL = placeFieldStats.mapStats{kk,1}{1,2}.x(idxStemL);
+                        [~,idxStemR] = max(placeFieldStats.mapStats{kk,1}{1,4}.x);  
+                        locR = placeFieldStats.mapStats{kk,1}{1,4}.x(idxStemR);                       
+                        if abs(locL-locR)>30 %If the two fields are really far apart, take the field that is closer to the
+                            if locL>=60 && locL < 90
+                               loc = placeFieldStats.mapStats{kk,1}{1,2}.fieldX(idxStemL,:); 
+                               PFStats.location{region,target}{zz} = [PFStats.location{region,target}{zz};placeFieldStats.mapStats{kk,1}{1,2}.x(idxStemL)];
+                            elseif locR>=60 && locR < 90
+                                loc = placeFieldStats.mapStats{kk,1}{1,4}.fieldX(idxStemR,:); 
+                                PFStats.location{region,target}{zz} = [PFStats.location{region,target}{zz};placeFieldStats.mapStats{kk,1}{1,4}.x(idxStemR)];
+                            else
+                                loc = nan;
+                                PFStats.location{region,target}{zz} = [PFStats.location{region,target}{zz};nan];
+                            end
+                        else % Else just stay within the field
+                            loc = placeFieldStats.mapStats{kk,1}{1,zz}.fieldX(idxStem,:);
+                            PFStats.location{region,target}{zz} = [PFStats.location{region,target}{zz};placeFieldStats.mapStats{kk,1}{1,zz}.x(idxStem)];
+                        end       
+                    end
+                    
                     numTrials = min([length(firingMaps.stim) length(firingMaps.arm) length(firingMaps.choice)]);
                     if zz == 1
                         idxFR = firingMaps.stim(1:numTrials)'==0 & firingMaps.arm(1:numTrials) == 1 & firingMaps.choice(1:numTrials) == 1; % ARM is opposite to firing maps - why????
@@ -122,15 +166,18 @@ for m = 1:length(mice)
 
                     for pp = 1:length(idxFR)
                         if idxFR(pp) == 1
-                            %if sum(~isnan(loc))==2 && ~isempty(trialMaps{pp})
-                            if ~isnan(loc) && ~isempty(trialMaps{pp})
-                                %peakFR{zz} = [peakFR{zz}; nanmean(trialMaps{pp}(loc(1):loc(2)))];
-                                peakFR{zz} = [peakFR{zz}; trialMaps{pp}(loc)];
+                            if sum(~isnan(loc))==2 && ~isempty(trialMaps{pp})
+                            %if ~isnan(loc) && ~isempty(trialMaps{pp})
+                                peakFR{zz} = [peakFR{zz}; nanmean(trialMaps{pp}(loc(1):loc(2)))];
+                                rm{zz} = [rm{zz}; trialMaps{pp}];
+                                %peakFR{zz} = [peakFR{zz}; trialMaps{pp}(loc)];
                             else
                                 peakFR{zz} = [peakFR{zz};nan];
+                                 rm{zz} = [rm{zz};nan(1,100)];
                             end                           
                         end                        
                     end
+                    PFStats.ratemap{region,target}{zz} = [PFStats.ratemap{region,target}{zz};nanmean(rm{zz},1)];
                     % Assign numerical tag to putative class
                     if strcmp(cell_metrics.putativeCellType{kk},'Narrow Interneuron') == 1
                         PFStats.putativeClass{region,target}{zz} = [PFStats.putativeClass{region,target}{zz}; 1];
@@ -165,6 +212,7 @@ for m = 1:length(mice)
                 end
                 PFStats.splitter{region,target} = [PFStats.splitter{region,target};[pCorrBase pCorrStim]];
             end
+            sessNum = sessNum+1;
         end
     end
 end
@@ -197,7 +245,7 @@ colMat = [0 0 0;... %Black
 %% If plotting CA1
 if strcmp(tag,'CA1') == 1 || strcmp(tag,'mECBilateral') == 1 || strcmp(tag,'mEC') == 1 
     
-    figure(1)
+    figure
     set(gcf,'renderer','painters');
     set(gcf,'Position',[100 100 1200 700])
     
@@ -210,12 +258,14 @@ if strcmp(tag,'CA1') == 1 || strcmp(tag,'mECBilateral') == 1 || strcmp(tag,'mEC'
     datManipID = [];
     datPeakID = [];
     manipNumID = [];
+    datPyr = [];
     
     if strcmp(tag,'mEC') == 1 
         iiRange = 2;
     else
         iiRange = [1 2 3];
     end
+    figure
     for ii = iiRange
         for jj = 1%:length(target)
             
@@ -224,15 +274,18 @@ if strcmp(tag,'CA1') == 1 || strcmp(tag,'mECBilateral') == 1 || strcmp(tag,'mEC'
             idxSelect = PFStats.putativeClass{ii,jj}{1,1} == 2 & PFStats.region{ii,jj}{1,1} == 1 &...
                 (PFStats.number{ii,jj}{1,1} == 1 | PFStats.number{ii,jj}{1,2} == 1 | PFStats.number{ii,jj}{1,3} == 1 | PFStats.number{ii,jj}{1,4} == 1);                
             
-            for zz = 1:2          
+            for zz = 1:2        
          
-                PlaceFieldidx_curr = idxSelect;
+                %PlaceFieldidx_curr = idxSelect;
+                PlaceFieldidx_curr = PFStats.putativeClass{ii,jj}{1,zz} == 2 & PFStats.region{ii,jj}{1,zz} == 1 &...
+                (PFStats.number{ii,jj}{1,zz} == 1 | PFStats.number{ii,jj}{1,zz+2} == 1);               
                 PyrCellidx = PFStats.putativeClass{ii,jj}{1,zz} == 2 & PFStats.region{ii,jj}{1,zz} == 1; 
                 
                 locationA = PFStats.location{ii,jj}{zz};
                 locationB = PFStats.location{ii,jj}{zz+2};
+                locMean = round(nanmean([locationA locationB],2));
                 difflocAB = abs(locationA-locationB);
-                idxSplitter = (locationA+locationB)./2>=stem & (locationA+locationB)./2 <=95 & difflocAB <=10;
+                idxSplitter = locMean >=stem & locMean <=90;% & difflocAB <= 30;
 
                 location1 = PFStats.location{ii,jj}{1};
                 location2 = PFStats.location{ii,jj}{2};
@@ -242,15 +295,19 @@ if strcmp(tag,'CA1') == 1 || strcmp(tag,'mECBilateral') == 1 || strcmp(tag,'mEC'
                 MinLoc = min([location1 location2 location3 location4],[],2);
                 diffloc1234 = MaxLoc-MinLoc;
                 idxSplitterID = location1>=stem & location2>=stem & location3>=stem & location4>=stem &...
-                    location1<=95 & location2<=95 & location3<=95 & location4<=95 & diffloc1234 <=10;
+                    location1<=90 & location2<=90 & location3<=90 & location4<=90 & diffloc1234 <=10;
                 
                 tempPeak = [PFStats.peakRate{ii,jj}{zz}(PlaceFieldidx_curr & idxSplitter) PFStats.peakRate{ii,jj}{zz+2}(PlaceFieldidx_curr & idxSplitter)];
                 datPeak =[datPeak; tempPeak];
+                
+                numStem(ii,zz) = sum(PlaceFieldidx_curr & idxSplitter);
+                numPyr(ii,zz) = sum(PyrCellidx);
+                numStem./numPyr
                 tempMean = [PFStats.avgRate{ii,jj}{zz}(PlaceFieldidx_curr & idxSplitter) PFStats.avgRate{ii,jj}{zz+2}(PlaceFieldidx_curr & idxSplitter)];
                 datMean =[datMean; tempMean];
                 tempSplitter = PFStats.splitter{ii,jj}(PlaceFieldidx_curr & idxSplitter,zz);
                 datSplitter =[datSplitter; tempSplitter];               
-                tempLoc = ((location1+location2)./2);
+                tempLoc = locMean;
                 datLoc = [datLoc; tempLoc(PlaceFieldidx_curr & idxSplitter)];
                 if zz == 1 
                     datManip = [datManip;ones(sum(PlaceFieldidx_curr & idxSplitter),1)*1];
@@ -267,6 +324,11 @@ if strcmp(tag,'CA1') == 1 || strcmp(tag,'mECBilateral') == 1 || strcmp(tag,'mEC'
                     datManipID = [datManipID;ones(sum(PlaceFieldidx_curr & idxSplitterID),1)*(ii+1)];
                 end
                 manipNumID = [manipNumID;ones(sum(PlaceFieldidx_curr & idxSplitterID),1)*ii];
+                
+                subplot(3,4,4*(ii-1)+(2*(zz-1))+1)
+                imagesc(zscore(PFStats.ratemap{ii,1}{zz}(PlaceFieldidx_curr & idxSplitter,:),[],2));
+                subplot(3,4,4*(ii-1)+(2*(zz-1))+2)
+                imagesc(zscore(PFStats.ratemap{ii,1}{zz+2}(PlaceFieldidx_curr & idxSplitter,:),[],2));
              end            
         end
     end  
@@ -361,13 +423,13 @@ if strcmp(tag,'CA1') == 1 || strcmp(tag,'mECBilateral') == 1 || strcmp(tag,'mEC'
     end
     
     if ~downsample
-        saveas(figure(1),strcat(parentDir,'Compiled\Place Fields\SplitterCells',tag,'.png'));
-        saveas(figure(1),strcat(parentDir,'Compiled\Place Fields\SplitterCells',tag,'.eps'),'epsc');
-        saveas(figure(1),strcat(parentDir,'Compiled\Place Fields\SplitterCells',tag,'.fig'));
+        saveas(gcf,strcat(parentDir,'Compiled\Place Fields\SplitterCells',tag,'.png'));
+        saveas(gcf,strcat(parentDir,'Compiled\Place Fields\SplitterCells',tag,'.eps'),'epsc');
+        saveas(gcf,strcat(parentDir,'Compiled\Place Fields\SplitterCells',tag,'.fig'));
     else
-        saveas(figure(1),strcat(parentDir,'Compiled\Place Fields\SplitterCellsDS',tag,'.png'));
-        saveas(figure(1),strcat(parentDir,'Compiled\Place Fields\SplitterCellsDS',tag,'.eps'),'epsc');
-        saveas(figure(1),strcat(parentDir,'Compiled\Place Fields\SplitterCellsDS',tag,'.fig'));
+        saveas(gcf,strcat(parentDir,'Compiled\Place Fields\SplitterCellsDS',tag,'.png'));
+        saveas(gcf,strcat(parentDir,'Compiled\Place Fields\SplitterCellsDS',tag,'.eps'),'epsc');
+        saveas(gcf,strcat(parentDir,'Compiled\Place Fields\SplitterCellsDS',tag,'.fig'));
     end
 
 % %% If plotting mEC    
@@ -405,7 +467,7 @@ elseif strcmp(tag,'CA3') == 1 || strcmp(tag,'CA3Saline') == 1
                 locationA = PFStats.location{ii,jj}{zz};
                 locationB = PFStats.location{ii,jj}{zz+2};
                 difflocAB = abs(locationA-locationB);
-                idxSplitter = (locationA+locationB)./2>=stem & (locationA+locationB)./2 <=95 & difflocAB <=10;
+                idxSplitter = (locationA+locationB)./2>=stem & (locationA+locationB)./2 <=90 & difflocAB <=10;
 
                 location1 = PFStats.location{2,1}{1};
                 location2 = PFStats.location{2,jj}{2};
@@ -421,8 +483,8 @@ elseif strcmp(tag,'CA3') == 1 || strcmp(tag,'CA3Saline') == 1
                 diffloc1234 = MaxLoc-MinLoc;
                 idxSplitterID = location1>=stem & location2>=stem & location3>=stem & location4>=stem &...
                     location5>=stem & location6>=stem & location7>=stem & location8>=stem &...
-                    location1<=95 & location2<=95 & location3<=95 & location4<=95 & diffloc1234 <=10 & ...
-                    location5<=95 & location6<=95 & location7<=95 & location8<=95 & diffloc1234 <=10;
+                    location1<=90 & location2<=90 & location3<=90 & location4<=90 & diffloc1234 <=10 & ...
+                    location5<=90 & location6<=90 & location7<=90 & location8<=90 & diffloc1234 <=10;
                 
                 tempPeak = [PFStats.peakRate{ii,jj}{zz}(PlaceFieldidx_curr & idxSplitter) PFStats.peakRate{ii,jj}{zz+2}(PlaceFieldidx_curr & idxSplitter)];
                 datPeak =[datPeak; tempPeak];

@@ -4,18 +4,21 @@ function examinePokePSTHs
 %   1) Return run, in any of the middle ports while facing forward
 %   2) Return run, in any of the middle ports while facing backwards
 
-sess= {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220629_sess12',...
-    'IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220714_sess18',...
-    'IZ39\Final\IZ39_220702_sess14',...
-    'IZ40\Final\IZ40_220707_sess16','IZ40\Final\IZ40_220714_sess18'...
-    'IZ43\Final\IZ43_220828_sess4','IZ43\Final\IZ43_220919_sess14',...
-    'IZ43\Final\IZ43_220826_sess2','IZ43\Final\IZ43_220901_sess8',...
-    'IZ43\Final\IZ43_220911_sess9','IZ43\Final\IZ43_220913_sess11',...
-    'IZ44\Final\IZ44_220827_sess4','IZ44\Final\IZ44_220830_sess7',...
-    'IZ39\Final\IZ39_220705_sess16','IZ39\Final\IZ39_220707_sess17',...   
-    'IZ43\Final\IZ43_220915_sess13','IZ43\Final\IZ43_220920_sess15',...
-    'IZ44\Final\IZ44_220915_sess13','IZ44\Final\IZ44_220920_sess15',...
-    'IZ40\Final\IZ40_220705_sess15'}; 
+sess= {'IZ43\Final\IZ43_220828_sess4'};
+% {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
+%     'IZ39\Final\IZ39_220702_sess14','IZ39\Final\IZ39_220714_sess18',...
+%     'IZ39\Final\IZ39_220705_sess16','IZ39\Final\IZ39_220707_sess17',...   
+%     'IZ40\Final\IZ40_220705_sess15','IZ40\Final\IZ40_220707_sess16',...
+%     'IZ40\Final\IZ40_220708_sess17','IZ40\Final\IZ40_220714_sess18',...
+%     'IZ43\Final\IZ43_220826_sess2','IZ43\Final\IZ43_220828_sess4',...
+%     'IZ43\Final\IZ43_220830_sess6','IZ43\Final\IZ43_220901_sess8',...
+%     'IZ43\Final\IZ43_220911_sess9','IZ43\Final\IZ43_220913_sess11','IZ43\Final\IZ43_220919_sess14',...
+%     'IZ43\Final\IZ43_220915_sess13','IZ43\Final\IZ43_220920_sess15',...    
+%     'IZ44\Final\IZ44_220827_sess4', 'IZ44\Final\IZ44_220828_sess5',...
+%     'IZ44\Final\IZ44_220829_sess6','IZ44\Final\IZ44_220830_sess7',...
+%     'IZ44\Final\IZ44_220912_sess10','IZ44\Final\IZ44_220913_sess11','IZ44\Final\IZ44_220919_sess14',...
+%     'IZ44\Final\IZ44_220915_sess13','IZ44\Final\IZ44_220920_sess15',...
+%     }; 
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
 
@@ -45,24 +48,23 @@ for ii = 1:length(sess)
     file = dir(['*.DigitalIn.Events.mat']);
     load(file(1).name);
     
-    if size(digitalIn.ints{4},1)==2
-        d = [digitalIn.ints{4} digitalIn.ints{5} digitalIn.ints{6} ...
-            digitalIn.ints{7} digitalIn.ints{8}];        
-    else
-        d = [digitalIn.ints{4}' digitalIn.ints{5}' digitalIn.ints{6}'...
-            digitalIn.ints{7}' digitalIn.ints{8}'];        
-    end
+    toneCellIdx(1:length(cell_metrics.UID)) = 0;
     
-    intsPeriods =[];
-    intsPeriods(1,1) = d(1,1); % find stimulation intervals
-    intPeaks =find(abs(diff(d(1,:)))>0.75);
-    for jj = 1:length(intPeaks)
-        intsPeriods(jj,2) = d(2,intPeaks(jj));
-        intsPeriods(jj+1,1) = d(1,intPeaks(jj)+1);
-    end
-    intsPeriods(end,2) = d(2,end); 
-    tsLick2 = intsPeriods;    
-        
+    licktimes = [];
+    lickport1 = [];
+    lickport = [2 3 4 5 6];
+    for ll = 1:5
+        licktimes = [licktimes; digitalIn.timestampsOn{lickport(ll)+2}]; 
+        lickport1 = [lickport1; ones(length(digitalIn.timestampsOn{lickport(ll)+2}),1)*lickport(ll)];
+    end    
+    
+    %Sort licktimes
+    [licktimesSorted,lickIdx] = sort(licktimes,'ascend');
+    lickportSorted = lickport1(lickIdx);
+    idxNew = [1;find(diff(lickportSorted)~=0)+1];
+    
+    tsLick2 = licktimesSorted(idxNew);
+
     for kk=1:length(cell_metrics.UID)
     %% Extract pyramidal cells and calculate rate map correlations and information 
         
@@ -96,20 +98,20 @@ for ii = 1:length(sess)
             toneField = 1;
         end                
         
+        if (toneField == 1)
+            toneCellIdx(kk) = 1;
+        end
         % If its a trajectory cell, calculate its PSTH in response to each
         % trial type, correct, incorrect, return
         [~,idxMax] = max(toneMap);
-        if cellType == 1 && (toneField == 1) && (toneCorr > 0.1) %&& idxMax>40
+        if cellType == 1 && (toneField == 1) && (toneCorr > 0.1) && idxMax>40
             sumLicks = [sumLicks; size(tsLick2,1)];
-            if size(tsLick2,1)>140
-                disp('wut')
-            end
             for tt = 1:3
 
                 if tt ==1 
-                    st = behavTrials.timestamps(behavTrials.linTrial==0,2);
+                    st = (behavTrials.timestamps(behavTrials.linTrial==0,2)-0.03);
                 elseif tt == 2 %Middle ports, linear trials
-                    intPer = InIntervals(tsLick2(:,1),behavTrials.timestamps(behavTrials.linTrial==1,:));
+                    intPer = InIntervals(tsLick2,behavTrials.timestamps(behavTrials.linTrial==1,:));
                     st = tsLick2(intPer,1);   
                     if isempty(st)
                         sumPoke1 = [sumPoke1;0];
@@ -122,16 +124,29 @@ for ii = 1:length(sess)
                     tsRet = behavTrials.timestamps(idxLin,2);
                     ints = [tsRet(1:(end-1)) tsFwd(2:end)];
                     intPer = InIntervals(tsLick2(:,1),ints);  
-                    st = tsLick2(intPer,1);    
+                    st = tsLick2(intPer,1);                      
+                    %only take the ones where licks are in the forward
+                    %direction
+                    idx = [];
+                    v = [];
+                    for ss = 1:length(st)
+                        [~,idx(ss)] = min(abs(tracking.timestamps-st(ss)));
+                        v(ss) = tracking.position.vy(idx(ss));
+                    end                                    
                     if isempty(st)
                         sumPoke2 = [sumPoke2;0];
                     else
-                        sumPoke2 = [sumPoke2;length(st)];
+                        st = st(v<0);  
+                        if isempty(st)
+                            sumPoke2 = [sumPoke2;0];
+                        else
+                            sumPoke2 = [sumPoke2;length(st)];
+                        end
                     end                       
                 end
                     
                 if ~isempty(st)
-                    [stccg, tPSTH] = CCG({spikes.times{kk} st},[],'binSize',0.01,'duration',1,'norm','rate');
+                    [stccg, tPSTH] = CCG({spikes.times{kk} st},[],'binSize',0.1,'duration',2,'norm','rate');
                     psthReward{tt} = [psthReward{tt}; stccg(:,2,1)'];               
                 else
                     fillArr(1,1:21) = nan;
@@ -189,7 +204,7 @@ saveas(gcf,strcat(expPath,'Compiled\portPokePSTHs.fig'));
 end
 
 function Field_Info = detectFields(SmoothedFiringRate)
-    minFieldSize = 5;
+    minFieldSize = 10;
     maxFieldSize = 40;
     % Pad on each end with zeros for edge effects
     SmoothedFiringRate = [0 0 SmoothedFiringRate 0 0];

@@ -51,8 +51,8 @@ else
         load(file.name);  
         file = dir(('*.region.mat'));
         load(file.name);          
-        %pyrCh = hippocampalLayers.pyramidal;
-        pyrCh = 27;%region.CA1so; 
+        pyrCh = hippocampalLayers.pyramidal;
+        %pyrCh = 27;%region.CA1so; 
 
         ripples = bz_FindRipples(pwd,pyrCh,'saveMat',false);
 %         ripples = removeArtifactsFromEvents(ripples);

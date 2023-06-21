@@ -53,7 +53,7 @@ addParameter(p,'smooth',2,@isnumeric);
 addParameter(p,'speedThresh',0.1,@isnumeric);
 addParameter(p,'nBins',55,@isnumeric);
 addParameter(p,'maxGap',0.1,@isnumeric);
-addParameter(p,'minTime',0.1,@isnumeric);
+addParameter(p,'minTime',0,@isnumeric);
 addParameter(p,'saveMat',false,@islogical);
 addParameter(p,'CellInspector',false,@islogical);
 addParameter(p,'mode','discard',@isstr);

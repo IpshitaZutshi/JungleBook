@@ -1,4 +1,4 @@
-function sessionRemappingTrajectorynoTone
+function sessionRemappingTrajectoryPVCorr
 
 sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
     'IZ39\Final\IZ39_220702_sess14','IZ39\Final\IZ39_220714_sess18',...
@@ -24,6 +24,10 @@ AllCellsCorr = [];
 AllCellsSimPre = [];
 AllCellsSim = [];
 
+AllCellsRateMapLin1 = [];
+AllCellsRateMapLin2 = [];
+AllCellsRateMapTone = [];
+
 for ii = 1:length(sess)
     
     %% Load files
@@ -39,6 +43,20 @@ for ii = 1:length(sess)
     [sessionInfo] = bz_getSessionInfo(pwd,'noPrompts', true);
     file = dir(['*cell_metrics.cellinfo.mat']);
     load(file(1).name);    
+    
+    %Skip sessions if less than 5 post trials
+    linIdx = find(behavTrials.linTrial==1);
+    jumpLin = find(diff(linIdx)>1);  
+
+    if isempty(jumpLin)
+        lin_end = [];
+    else
+        lin_end = linIdx(jumpLin+1:end);
+    end
+
+    if isempty(lin_end)||length(lin_end)<=5
+        continue
+    end
     
     % Cluster trajectories and extract similar trials
     [trialNum, trialLabel, trajectLabel] = clusterTrajectories;
@@ -84,19 +102,22 @@ for ii = 1:length(sess)
         corrMap = [];
         simil  = [];
         similPre = [];
-        corr = corrcoef(linMapInit',linMapEnd','rows','complete');
-        corrMap(1) = corr(1,2); %
-        corr = corrcoef(linMapInit',toneMap','rows','complete');
-        corrMap(2) = corr(1,2); %        
-        corr = corrcoef(toneMap',linMapEnd','rows','complete');
-        corrMap(3) = corr(1,2); %        
-
+        corr1 = corrcoef(linMapInit',linMapEnd','rows','complete');
+        corrMap(1) = corr1(1,2); %
+        corr1 = corrcoef(linMapInit',toneMap','rows','complete');
+        corrMap(2) = corr1(1,2); %        
+        corr1 = corrcoef(toneMap',linMapEnd','rows','complete');
+        corrMap(3) = corr1(1,2); %        
+            
         % Skip sessions that have less than 5 post-tone trial linear trials of
         % a particular type
         if sum(trialLabel==3 & trajectLabel==typePost)<5
             AllCellsCorr = [AllCellsCorr; corrMap nan nan nan];
             AllCellsSim = [AllCellsSim;sim];
             AllCellsSimPre = [AllCellsSimPre;simPre];
+            AllCellsRateMapLin1 = [AllCellsRateMapLin1;linMapInit];
+            AllCellsRateMapLin2 = [AllCellsRateMapLin2;linMapEnd];
+            AllCellsRateMapTone = [AllCellsRateMapTone;toneMap];
             continue;
         end
             
@@ -123,9 +144,13 @@ for ii = 1:length(sess)
             else
                 avgMaps(zz,:) = nanmean(Maps{zz},1);
             end
-            
-        end
-        
+
+        end   
+           
+        AllCellsRateMapLin1 = [AllCellsRateMapLin1;avgMaps(1,:)];
+        AllCellsRateMapLin2 = [AllCellsRateMapLin2;avgMaps(2,:)];
+        AllCellsRateMapTone = [AllCellsRateMapTone;avgMaps(3,:)];
+                    
         corrMatrix = corrcoef(avgMaps','Rows','pairwise');
         C = tril(corrMatrix,-1);
         C = C(isnan(C) | C~=0);
@@ -190,14 +215,92 @@ for ii = 4:6
 end
 
 figure
-subplot(1,4,1)
+set(gcf,'Renderer','painters')
+subplot(3,4,1)
 stats{1} = groupStats(data1,{},'inAxis',true,'repeatedMeasures',true);
-subplot(1,4,2)
+subplot(3,4,2)
 stats{2} = groupStats(data2,{},'inAxis',true,'repeatedMeasures',true);
-subplot(1,4,3)
+subplot(3,4,3)
 stats{3} = groupStats(data3,{},'inAxis',true,'repeatedMeasures',true);
-subplot(1,4,4)
-stats{3} = groupStats(data4,{},'inAxis',true);
+subplot(3,4,4)
+stats{4} = groupStats(data4,{},'inAxis',true);
+
+
+YlGnBu=cbrewer('seq', 'YlGnBu', 11);
+for kk = 1:2
+    if kk == 1
+        idx = (AllCellsSim == 1 & AllCellsSimPre==0);
+    else
+        idx = (AllCellsSim == 0 & AllCellsSimPre==0);
+    end
+    selectedlinMap = AllCellsRateMapLin1(idx,:);
+    selectedlinMapEnd = AllCellsRateMapLin2(idx,:);
+    selectedtoneMap = AllCellsRateMapTone(idx,:);
+
+    %Deal with nans
+    selectedlinMap = selectedlinMap(:,1:48);
+    selectedlinMapEnd = selectedlinMapEnd(:,1:48);
+    selectedtoneMap = selectedtoneMap(:,1:48);
+    
+    avglinMap = nanmean(selectedlinMap,2);
+    avglinMapEnd = nanmean(selectedlinMapEnd,2);
+    avgtoneMap = nanmean(selectedtoneMap,2);
+    
+    idxtoUseforcorr = ~isnan(avglinMap)&~isnan(avglinMapEnd)&~isnan(avgtoneMap) & avglinMap>0 &avglinMapEnd>0 &avgtoneMap>0;
+    selectedlinMap = selectedlinMap(idxtoUseforcorr,:);
+    selectedlinMapEnd = selectedlinMapEnd(idxtoUseforcorr,:);
+    selectedtoneMap = selectedtoneMap(idxtoUseforcorr,:);   
+    
+    [maxLin,~] = max(selectedlinMap,[],2);
+    [maxLinEnd,idxLin] = max(selectedlinMapEnd,[],2);            
+    [maxTone,idxTone] = max(selectedtoneMap,[],2);
+    %Z score normalize
+    normlinMap = (selectedlinMap);%-nanmean(selectedlinMap,2))./nanstd(selectedlinMap,[],2);
+    normlinMapEnd = (selectedlinMapEnd);%-nanmean(selectedlinMapEnd,2))./nanstd(selectedlinMapEnd,[],2);
+    normtoneMap = (selectedtoneMap);%-nanmean(selectedtoneMap,2))./nanstd(selectedtoneMap,[],2);   
+    
+    [~,sortidx] = sort(idxLin,'ascend');
+
+    linPos = linspace(1,122,50);
+    
+    colormap(YlGnBu)
+    
+    subplot(3,4,4*(kk-1)+4+1)
+    imagesc(linPos, 1:length(sortidx),normlinMap(sortidx,:))
+    ylabel('Cell ID')
+    xlabel('Position')
+    caxis([0 20])
+
+    subplot(3,4,4*(kk-1)+4+2)
+    imagesc(linPos, 1:length(sortidx),normtoneMap(sortidx,:))
+    ylabel('Cell ID')
+    xlabel('Position')
+    caxis([-1 4])
+
+    subplot(3,4,4*(kk-1)+4+3)
+    imagesc(linPos, 1:length(sortidx),normlinMapEnd(sortidx,:))
+    ylabel('Cell ID')
+    xlabel('Position')
+    caxis([-1 4])
+   
+    subplot(3,4,4*(kk-1)+4+4)
+    a = corr(selectedlinMap,selectedlinMapEnd);
+    Rvec= diag(a);
+    plot(linPos(1:48),Rvec,'Color',[0.5 0.5 0.5],'LineWidth',1.5)
+    
+    hold on
+    a = corr(selectedtoneMap,selectedlinMapEnd);
+    Rvec= diag(a);
+    plot(linPos(1:48),Rvec,'Color','b','LineWidth',1.5)
+    
+    a = corr(selectedtoneMap,selectedlinMap);
+    Rvec= diag(a);
+    plot(linPos(1:48),Rvec,'Color','r','LineWidth',1.5)
+    ylim([0 1])
+    
+end
+
+
 
 saveas(gcf,strcat(expPath,'Compiled\TrajectoryRemappingMaps.png'));
 saveas(gcf,strcat(expPath,'Compiled\TrajectoryRemappingMaps.eps'),'epsc');

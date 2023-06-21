@@ -24,6 +24,7 @@ parentDir = 'Z:\Homes\zutshi01\Recordings\CA1_silencing\';
 kk = 1; tt =1;
 
 unitPSTH = [];
+unitPSTHint = [];
 distRipPulses = [];
 region = [];
 putativeClass = [];
@@ -93,23 +94,39 @@ for m = 1:length(mice)
 %             lfpAvgeventDU(:,:,kk) = lfpAvg.data;        
 %             kk = kk+1;
             
-            [stccg, tPul] = CCG({ripples.peaks eventsUD},[],'binSize',0.1,'duration',20,'norm','rate');
+            [stccg, tPul] = CCG({ripples.peaks eventsUD},[],'binSize',0.05,'duration',1,'norm','rate');
             distRipPulses = [distRipPulses; stccg(:,2,1)'];
 
              MUA = [];
              numMUA = 0;
+             
+             MUAint = [];
+             numMUAint = 0;
              for jj = 1:size(spikes.UID,2)
                 if strcmp(cell_metrics.brainRegion{jj},'CA1') == 1 && strcmp(cell_metrics.putativeCellType{jj},'Pyramidal Cell') == 1
-                    MUA = [MUA; spikes.times{jj}];
-                    numMUA = numMUA+1;
+                    [stccg, psthtimes] = CCG({spikes.times{jj} eventsUD},[],'binSize',0.05,'duration',1,'norm','rate');
+                    unitPSTH = [unitPSTH; stccg(:,2,1)'];  
+%                     MUA = [MUA; spikes.times{jj}];
+%                     numMUA = numMUA+1;
+                elseif strcmp(cell_metrics.brainRegion{jj},'CA1') == 1 && strcmp(cell_metrics.putativeCellType{jj},'Pyramidal Cell') ~= 1
+                    [stccg, psthtimes] = CCG({spikes.times{jj} eventsUD},[],'binSize',0.05,'duration',1,'norm','rate');
+                    unitPSTHint = [unitPSTHint; stccg(:,2,1)'];                      
+%                     MUAint = [MUAint; spikes.times{jj}];
+%                     numMUAint = numMUAint+1;
                 end
              end
             
-            if ~isempty(MUA)
-                [stccg, psthtimes] = CCG({MUA eventsUD},[],'binSize',0.05,'duration',20,'norm','rate');
-                temp = stccg(:,2,1)./numMUA;
-                unitPSTH = [unitPSTH; temp'];   
-            end
+%             if ~isempty(MUA)
+%                 [stccg, psthtimes] = CCG({MUA eventsUD},[],'binSize',0.005,'duration',1,'norm','rate');
+%                 temp = stccg(:,2,1)./numMUA;
+%                 unitPSTH = [unitPSTH; temp'];   
+%             end
+% 
+%             if ~isempty(MUAint)
+%                 [stccg, psthtimes] = CCG({MUAint eventsUD},[],'binSize',0.005,'duration',1,'norm','rate');
+%                 temp = stccg(:,2,1)./numMUAint;
+%                 unitPSTHint = [unitPSTHint; temp'];   
+%             end            
 %                 % Get psth
 %                 [stccg, t] = CCG({spikes.times{jj} eventsUD},[],'binSize',0.1,'duration',20,'norm','rate');
 %                 psthtimes = t;
@@ -171,13 +188,13 @@ set(gcf,'Renderer','painters')
 % colorbar    
 % caxis([-2 2])
 
-subplot(3,2,3)
+subplot(2,3,1)
 imagesc(tPul,1:1:size(distRipPulses,1),distRipPulses)
 colormap(YlGnBu)
 colorbar    
 caxis([-1 1])
 
-subplot(3,2,5)
+subplot(2,3,4)
 meanpsth = nanmean(distRipPulses,1);
 stdpsth = nanstd(distRipPulses,1)./sqrt(size(distRipPulses,1));   
 % meanpsth = nanmean(zscore(distRipPulses,[],2),1);
@@ -186,31 +203,40 @@ hold on
 fill([tPul; flipud(tPul)],[meanpsth'-stdpsth'; flipud(meanpsth'+stdpsth')],[0.5 0.5 0.5],'linestyle','none','FaceAlpha',0.5);                    
 hi = line(tPul,meanpsth,'LineWidth',1.5,'Color',[0.5 0.5 0.5]);
 title('Ripple dist')
-xlim([-2 7])
+%xlim([-2 7])
 
 unitPSTH = unitPSTH./2;
 cellIdx(1:size(unitPSTH,1)) = 1;
 cellIdx = logical(cellIdx);
 
-subplot(3,2,4)
+subplot(2,3,2)
 
 imagesc(psthtimes,1:1:size(unitPSTH(cellIdx,:),1),unitPSTH(cellIdx,:))
 colormap(YlGnBu)
 colorbar    
 caxis([-2 2])
 
-subplot(3,2,6)
-meanpsth = nanmean(unitPSTH(cellIdx,:),1);
-stdpsth = nanstd(unitPSTH(cellIdx,:),1)./sqrt(size(unitPSTH(cellIdx,:),1));   
+subplot(2,3,5)
+meanpsth = nanmean(unitPSTH,1);
+stdpsth = nanstd(unitPSTH,1)./sqrt(size(unitPSTH,1));   
 % meanpsth = nanmean(zscore(unitPSTH,[],2),1);
 % stdpsth = nanstd(zscore(unitPSTH,[],2),1)./sqrt(size(unitPSTH,1));                  
 hold on
 fill([psthtimes; flipud(psthtimes)],[meanpsth'-stdpsth'; flipud(meanpsth'+stdpsth')],[0.5 0.5 0.5],'linestyle','none','FaceAlpha',0.5);                    
 hi = line(psthtimes,meanpsth,'LineWidth',1.5,'Color',[0.5 0.5 0.5]);
-xlim([-2 7])
-title('Ripple dist')
 
-saveas(gcf,strcat(parentDir,'Compiled\Ripples\CortexCA1Comparison\PSTH2s',tag,'.png'));
-saveas(gcf,strcat(parentDir,'Compiled\Ripples\CortexCA1Comparison\PSTH2s',tag,'.eps'),'epsc');
-saveas(gcf,strcat(parentDir,'Compiled\Ripples\CortexCA1Comparison\PSTH2s',tag,'.fig'));
+subplot(2,3,6)
+meanpsth = nanmean(unitPSTHint,1);
+stdpsth = nanstd(unitPSTHint,1)./sqrt(size(unitPSTHint,1));   
+% meanpsth = nanmean(zscore(unitPSTH,[],2),1);
+% stdpsth = nanstd(zscore(unitPSTH,[],2),1)./sqrt(size(unitPSTH,1));                  
+hold on
+fill([psthtimes; flipud(psthtimes)],[meanpsth'-stdpsth'; flipud(meanpsth'+stdpsth')],[0 0 0],'linestyle','none','FaceAlpha',0.5);                    
+hi = line(psthtimes,meanpsth,'LineWidth',1.5,'Color',[0 0 0]);
+%xlim([-2 7])
+title('Unit rate')
+
+saveas(gcf,strcat(parentDir,'Compiled\Ripples\Revisions\InitPSTH2s',tag,'.png'));
+saveas(gcf,strcat(parentDir,'Compiled\Ripples\Revisions\InitPSTH2s',tag,'.eps'),'epsc');
+saveas(gcf,strcat(parentDir,'Compiled\Ripples\Revisions\InitPSTH2s',tag,'.fig'));
 end

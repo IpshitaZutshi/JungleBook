@@ -33,6 +33,7 @@ else
                 mazeRipples.frequency{rr,cc}{zz} = [];
                 mazeRipples.peakPower{rr,cc}{zz}  = [];
                 mazeRipples.timestamps{rr,cc}{zz} = [];                
+                mazeRipples.lfp{rr,cc}{zz} = [];   
             end
         end
     end
@@ -47,6 +48,10 @@ else
         file = dir(('*.ripples.events.mat'));
         load(file.name);    
 
+        ripChan = ripples.detectorinfo.detectionchannel;
+        lfp = bz_GetLFP(ripChan);
+        signal = bz_Filter(double(lfp.data),'filter','butter','passband',ripples.detectorinfo.detectionparms.passband,'order', 3);
+        
         efields = fieldnames(sessionPulses);    
 
         for jj = 1:length(efields)
@@ -94,11 +99,21 @@ else
                 else
                     keepIdx = InIntervals(ripples.peaks,events');    
                 end
-                mazeRipples.number{region,target}{zz} = catpad(3,mazeRipples.number{region,target}{zz},sum(keepIdx));    
-                mazeRipples.duration{region,target}{zz} = catpad(3,mazeRipples.duration{region,target}{zz},ripples.data.duration(keepIdx,:)); 
-                mazeRipples.peakPower{region,target}{zz} = catpad(3,mazeRipples.peakPower{region,target}{zz},ripples.data.peakAmplitude(keepIdx,:)); 
-                mazeRipples.frequency{region,target}{zz} = catpad(3,mazeRipples.frequency{region,target}{zz},ripples.data.peakFrequency(keepIdx,:)); 
-                mazeRipples.timestamps{region,target}{zz} = catpad(3,mazeRipples.timestamps{region,target}{zz},ripples.timestamps(keepIdx,:)); 
+                sumnum = 0;
+                idx = find(keepIdx);
+                for ki = 1:length(idx)                                        
+                    cur_ts = round(ripples.peaks(idx(ki))*1250);
+                    sig_cur = lfp.data(cur_ts-125:cur_ts+125);
+                    if max(abs(sig_cur)*0.195)<1000                                   
+                        sumnum = sumnum+1;
+                        mazeRipples.lfp{region,target}{zz} = catpad(3,mazeRipples.lfp{region,target}{zz},lfp.data(cur_ts-125:cur_ts+125));                                                                
+                        mazeRipples.duration{region,target}{zz} = catpad(3,mazeRipples.duration{region,target}{zz},ripples.data.duration(idx(ki),:)); 
+                        mazeRipples.peakPower{region,target}{zz} = catpad(3,mazeRipples.peakPower{region,target}{zz},ripples.data.peakAmplitude(idx(ki),:)); 
+                        mazeRipples.frequency{region,target}{zz} = catpad(3,mazeRipples.frequency{region,target}{zz},ripples.data.peakFrequency(idx(ki),:)); 
+                        mazeRipples.timestamps{region,target}{zz} = catpad(3,mazeRipples.timestamps{region,target}{zz},ripples.timestamps(idx(ki),:));         
+                    end
+                end
+                mazeRipples.number{region,target}{zz} = catpad(3,mazeRipples.number{region,target}{zz},sumnum);    
             end        
             clear rewardTS startDelay events
         end

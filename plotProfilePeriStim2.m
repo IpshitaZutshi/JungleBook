@@ -2,8 +2,8 @@ function plotProfilePeriStim2
 
 analogEv = 64;
 numAnalog = 2;
-pre = 1.4;
-post = 1.4;
+pre = 1;
+post = 3;
 fixChannels = 1;
 %[colormap] = cbrewer('seq','PuBuGn',90);
 %[colormap] = copper(32);
@@ -30,7 +30,7 @@ for jj = 1 %1:(size(sessionInfo.AnatGrps,2)-1)
 %         [Lia] = ismember(sessionInfo.AnatGrps(ii).Channels, channels);
 %         nC = 1:length(sessionInfo.AnatGrps(ii).Channels);
 %         nC = nC(Lia)';
-    for i = 1%:(numAnalog+1)
+    for i = 2%:(numAnalog+1)
         if i<=numAnalog
             pulTr = (pulses.stimComb==i);
         else
@@ -45,7 +45,7 @@ for jj = 1 %1:(size(sessionInfo.AnatGrps,2)-1)
             set(gcf,'renderer','Painters')
             hold on
             for kk = 1:((length(sessionInfo.AnatGrps(jj).Channels)))
-                plot(timestamps((events(1,pp)-(1250*pre)):(events(1,pp)+(1250*post))),0.75*(data((events(1,pp)-(1250*pre)):(events(1,pp)+(1250*post)),kk))-(kk-1)*400,'Color',colormap(kk+22,:))
+                plot(timestamps((events(1,pp)-(1250*pre)):(events(1,pp)+(1250*post))),0.75*(data((events(1,pp)-(1250*pre)):(events(1,pp)+(1250*post)),kk))-(kk-1)*900,'Color',colormap(kk+22,:))
             end
             title(strcat('AnalogCh = ',num2str(i)))
             xlim([timestamps((events(1,pp)-(1250*pre))) timestamps((events(1,pp)+(1250*post)))])

@@ -15,7 +15,7 @@ analogEv = p.Results.analogEv;
 numAnalog = p.Results.numAnalog;
 downsample = p.Results.downsample;
 
-tag = 'CA3'; % or mEC
+tag = 'mECBilateral'; % or mEC
 
 if strcmp(tag,'CA1') == 1
     mice = {'IZ15\Final','IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};%'IZ21\Final'
@@ -192,7 +192,7 @@ end
 %                              ^ 80 (~45th bin)         
 
 ret = round((100/175)*80);
-stem = round((100/175)*110);
+stem = round((100/175)*100);
 
 target = {'STEM', 'RETURN'};
 zone = {'LeftOFF','LeftON','RightOFF','RightON'};
@@ -320,7 +320,7 @@ if strcmp(tag,'CA1') == 1 || strcmp(tag,'mECBilateral') == 1
                 
                 location = PFStats.location{ii,jj}{zz};
                 fieldLocation = zeros(length(location),1);
-                fieldLocation(location >= stem) = 2;
+                fieldLocation(location >= stem) = 2;% & location <= 85
                 fieldLocation(location < stem) = 1;
                                                 
                 for loc = 1:length(locName)
@@ -637,8 +637,8 @@ colMat = [85/243 85/243 85/243;... %Gray
                 
                 location = PFStats.location{ii,jj}{zz};
                 fieldLocation = zeros(length(location),1);
-                fieldLocation(location >= stem) = 2;
-                fieldLocation(location < stem) = 1;
+                fieldLocation(location >= stem & location <= 85) = 2;
+                fieldLocation(location < ret) = 1;
                                                 
                 for loc = 1:length(locName)
                      

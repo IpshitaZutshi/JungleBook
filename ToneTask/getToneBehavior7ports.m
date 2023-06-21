@@ -72,6 +72,7 @@ behavTrials.numLicks = zeros(size(behavTrials.timestamps,1),7);
 behavTrials.correct = zeros(size(behavTrials.timestamps,1),1);
 behavTrials.lickLoc = zeros(size(behavTrials.timestamps,1),1);
 behavTrials.stim = zeros(size(behavTrials.timestamps,1),1);
+behavTrials.probe = zeros(size(behavTrials.timestamps,1),1);
 
 
 [~,idx] = unique(behavTS(:,2));
@@ -87,6 +88,11 @@ end
 if size(behavTS,2)>=9
     behavTrials.stim =behavTS(idx(2:(numTrials+1))+10,9);
 end
+
+if size(behavTS,2)>=11
+    behavTrials.probe =behavTS(idx(2:(numTrials+1))+10,11);
+end
+
 for ii = 1:size(behavTrials.timestamps,1)
     
     trialWin = behavTrials.timestamps(ii,:)*1250;

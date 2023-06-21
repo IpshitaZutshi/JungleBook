@@ -87,7 +87,7 @@ else
                spkMat = [];
                %spikes
                for unit = 1:length(spikes.times)
-                   if strcmp(cell_metrics.brainRegion(unit),'CA1')~=1
+                   if (strcmp(cell_metrics.brainRegion(unit),'CA1')~=1) || (strcmp(cell_metrics.putativeCellType(unit),'Pyramidal Cell')~=1)
                        continue
                    else
                        spkData = bz_SpktToSpkmat(spikes.times(unit),'dt', .025, 'win',events(trials,:));

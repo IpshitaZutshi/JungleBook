@@ -84,14 +84,12 @@ for pf = 1:(size(behavTrials.timestamps,1)-1)
     positions.reverse{pf} = [tracking.timestamps(idx) tracking.position.x(idx) tracking.position.y(idx)];
 end
 
-firingMaps.forward = bz_getRateMaps(positions.forward,spikes,'saveMat',false);
-%firingMaps.forward = bz_firingMapAvg_IZ(positions.forward,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
+firingMaps.forward = bz_getRateMaps(positions.forward,spikes,'xRange',[0 6],'yRange',[0 125], 'binSize',2.5,'saveMat',false);
 if toneMap
-    firingMaps.tone = bz_getRateMaps(positions.tone,spikes,'xRange',[0 6],'yRange',[0 22500], 'binSize',362,'minOccupancy',0,'saveMat',false);
-    %firingMaps.tone = bz_firingMapAvg_IZ(positions.tone,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
+    firingMaps.tone = bz_getRateMaps(positions.tone,spikes,'xRange',[0 6],'yRange',[2000 22000], 'binSize',400,'minOccupancy',0,'saveMat',false);
 end
-firingMaps.reverse = bz_getRateMaps(positions.reverse,spikes,'saveMat',false);
-%firingMaps.reverse = bz_firingMapAvg_IZ(positions.reverse,spikes,'minTime',0.0001,'plotFig',false,'saveMat',false);
+firingMaps.reverse = bz_getRateMaps(positions.reverse,spikes,'xRange',[0 6],'yRange',[0 125], 'binSize',2.5,'saveMat',false);
+
 
 firingMaps.linTrial = behavTrials.linTrial(1:(end-1));
 firingMaps.toneTrial = behavTrials.toneTrial(1:(end-1));

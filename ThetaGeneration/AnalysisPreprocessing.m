@@ -191,7 +191,7 @@ for ii = 1:size(allSess,1)
     cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
     if  ~isempty(dir('analogin.dat'))
         try
-            [pulses] = getAnalogPulses('analogChannelsList',analogChannelsList);
+            [pulses] = bz_getAnalogPulsesSine;%getAnalogPulses('analogChannelsList',analogChannelsList);
         catch
             warning('No analog pulses detected');
         end

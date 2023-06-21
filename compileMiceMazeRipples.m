@@ -1,15 +1,18 @@
 function compiledMiceRipples = compileMiceMazeRipples
 
-tag = 'mEC';% mEC, CA3, Bilateral mEC
+tag = 'CA1';% mEC, CA3, Bilateral mEC
+lowThresh = 0;
 
 if strcmp(tag,'CA1') == 1
-    mice = {'IZ15\Final','IZ18\Final','IZ20\Final','IZ30\Final','IZ31\Final'};
+    mice = {'IZ15\Final','IZ18\Final','IZ30\Final','IZ31\Final'};%'IZ20\Final',
+    anTag = 1;
     reg = {'CA1','mEC','CA1Both'};
 elseif strcmp(tag,'mEC') == 1
     mice = {'IZ12\Final','IZ13\Final','IZ15\Final','IZ17\Final',...
-         'IZ18\Final','IZ20\Final','IZ21\Final','IZ24\Final','IZ25\Final','IZ26\Final','IZ27\Saline','IZ28\Saline','IZ29\Saline',...
-         'IZ30\Final','IZ31\Final','IZ32\Saline','IZ33\Saline','IZ34\Saline'}; % To add, IZ16, IZ23
+         'IZ18\Final','IZ21\Final','IZ24\Final','IZ25\Final','IZ26\Final','IZ27\Saline','IZ28\Saline','IZ29\Saline',...
+         'IZ30\Final','IZ31\Final','IZ32\Saline','IZ33\Saline','IZ34\Saline'}; % To add, IZ16, IZ23'IZ20\Final',
     reg = {'CA1','mEC','Both'};
+    anTag = 2;
 elseif strcmp(tag,'CA3') == 1
     mice = {'IZ29\Final','IZ32\Final','IZ33\Final','IZ34\Final','IZ27\Final','IZ28\Final'};
     reg = {'CA3','mEC','Both'};
@@ -37,6 +40,7 @@ for ii = 1:(numAnalog+1)
             compiledMiceRipples.duration{ii,jj}{kk} = [];
             compiledMiceRipples.frequency{ii,jj}{kk} = [];
             compiledMiceRipples.peakPower{ii,jj}{kk} = [];
+            compiledMiceRipples.lfp{ii,jj}{kk} = [];
         end
     end
 end
@@ -45,7 +49,11 @@ for m = 1:length(mice)
     cd(strcat(parentDir, mice{m},'\Summ'));  
     if exist('mazeRipples.mat','file') 
         disp(['Loading ripples for mouse' mice{m}])
-        load('mazeRipples.mat');
+        if lowThresh == 0
+            load('mazeRipples.mat');
+        else
+            load('mazeRipplesLowThresh.mat');
+        end
     else 
         continue
     end
@@ -53,12 +61,14 @@ for m = 1:length(mice)
     for ii = 1:(numAnalog+1)
         for jj = 1:2
             for kk = 1:6 
-                for p = 1:size(mazeRipples.frequency{ii,jj}{kk},3)
-                    compiledMiceRipples.number{ii,jj}{kk} = [compiledMiceRipples.number{ii,jj}{kk};mazeRipples.number{ii,jj}{kk}(:,:,p)];
+                for p = 1:size(mazeRipples.frequency{ii,jj}{kk},3)                    
                     compiledMiceRipples.duration{ii,jj}{kk} = [compiledMiceRipples.duration{ii,jj}{kk};mazeRipples.duration{ii,jj}{kk}(:,:,p)];
                     compiledMiceRipples.frequency{ii,jj}{kk} = [compiledMiceRipples.frequency{ii,jj}{kk};mazeRipples.frequency{ii,jj}{kk}(:,:,p)];
-                    compiledMiceRipples.peakPower{ii,jj}{kk} = [compiledMiceRipples.peakPower{ii,jj}{kk};mazeRipples.peakPower{ii,jj}{kk}(:,:,p)*0.195];
+                    compiledMiceRipples.peakPower{ii,jj}{kk} = [compiledMiceRipples.peakPower{ii,jj}{kk};mazeRipples.peakPower{ii,jj}{kk}(:,:,p)*0.195];                    
                 end                    
+                mat = reshape(mazeRipples.lfp{ii,jj}{kk},size(mazeRipples.lfp{ii,jj}{kk},1),size(mazeRipples.lfp{ii,jj}{kk},3));
+                compiledMiceRipples.lfp{ii,jj}{kk} = [compiledMiceRipples.lfp{ii,jj}{kk} mat];
+                compiledMiceRipples.number{ii,jj}{kk} = [compiledMiceRipples.number{ii,jj}{kk};reshape(mazeRipples.number{ii,jj}{kk}(:,:,:),size(mazeRipples.number{ii,jj}{kk}(:,:,:),3),[])];
             end          
         end
     end
@@ -137,7 +147,7 @@ if strcmp(tag,'CA3') == 1 || strcmp(tag,'CA3Saline') == 1
     title('Side arm mEC, delay ripples')
     
 else
-    for ii = 2 
+    for ii = anTag 
         figure    
         set(gcf,'Renderer','painters')
         set(gcf,'Color','w')
@@ -155,7 +165,7 @@ else
                 [stats.number{ii,jj}{kk}.signrank.p,~,stats.number{ii,jj}{kk}.signrank.stats] = signrank(dataRipB,dataRipS); 
                 stats.number{ii,jj}{kk}.n = [sum(~isnan(dataRipB)) sum(~isnan(dataRipS))];
                 ylabel('Number of ripples')
-                ylim([0 15])
+                %ylim([0 15])
                 title(strcat(target{jj},' zone:',zone{kk}))           
                 
                 subplot(4,6,3*(jj-1)+kk+6)
@@ -198,9 +208,9 @@ else
     end
 end
 
-saveas(gca,strcat(parentDir,'Compiled\Ripples\compiledRipplesMaze',tag,'.png'));
-saveas(gca,strcat(parentDir,'Compiled\Ripples\compiledRipplesMaze',tag,'.fig'));
-saveas(gca,strcat(parentDir,'Compiled\Ripples\compiledRipplesMaze',tag,'.eps'),'epsc');
-save(strcat(parentDir,'Compiled\Ripples\compiledRipplesMaze',tag,'.mat'),'stats')   
+saveas(gca,strcat(parentDir,'Compiled\Ripples\compiledRipplesMaze',tag,num2str(lowThresh),'.png'));
+saveas(gca,strcat(parentDir,'Compiled\Ripples\compiledRipplesMaze',tag,num2str(lowThresh),'.fig'));
+saveas(gca,strcat(parentDir,'Compiled\Ripples\compiledRipplesMaze',tag,num2str(lowThresh),'.eps'),'epsc');
+save(strcat(parentDir,'Compiled\Ripples\compiledRipplesMaze',tag,num2str(lowThresh),'.mat'),'stats')   
 
 end

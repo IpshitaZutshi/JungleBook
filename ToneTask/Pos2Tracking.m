@@ -292,7 +292,35 @@ tracking.framesDropped = length(bazlerTtl) - length(x);
 % match basler frames con ttl pulses
 if length(bazlerTtl) == length(x)
     disp('Number of frames match!!');
-elseif length(bazlerTtl) > length(x) && length(bazlerTtl) <= length(x) + 36 * 1 
+elseif length(bazlerTtl) > length(x) && length(bazlerTtl) > length(x) + 5 && ~isempty(dir([basepath filesep 'test*csv'])) %% if a csv file exists
+    
+    txtFile = dir([basepath filesep 'test*csv']);
+    fid = fopen(txtFile.name, 'r');
+    behavInfo = textscan(fid,'%s','delimiter','\n');
+    TS = cellfun(@(x)strsplit(x,'_'),behavInfo{1},'UniformOutput',false);       
+    TS = vertcat(TS{:});
+    TS = str2double(TS);
+    TS = round(TS-TS(1));
+    if length(TS) ~= length(x)
+        disp('Yikes!! CSV file does not match');
+    end
+    %Determine how the dropped frames align
+    tsBas = round((bazlerTtl-bazlerTtl(1))*1000);    
+    Xcorr(1:length(tsBas)) = nan;
+    Ycorr(1:length(tsBas)) = nan;
+    
+    for tt = 1:length(TS)
+        [~, idx] = min(abs(tsBas-TS(tt)));
+        Xcorr(idx) = x(tt);
+        Ycorr(idx) = y(tt);
+    end
+    
+    fprintf('%3.i frames were dropped, fixed using csv file \n',...
+        length(bazlerTtl) - length(x));
+    x = Xcorr;
+    y = Ycorr;
+    
+elseif length(bazlerTtl) > length(x) && length(bazlerTtl) <= length(x) + 30 * 1 
     fprintf('%3.i frames were dropped, probably at the end of the recording. Skipping... \n',...
         length(bazlerTtl) - length(x));
     bazlerTtl = bazlerTtl(1:length(x));

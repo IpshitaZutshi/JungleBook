@@ -303,8 +303,9 @@ subplot(3,5,6:10)
 
 subplot(3,5,11:15)
 %[stats.Expression] = groupStats([mecManip(1) contraManip(1) biManip(1) ca1Manip(1) mecca1Manip(1) ca3Manip(1) mecca3Manip(1) ca3salManip(1)],[],'doPlot',true,'inAxis',true,'plotType','boxplot');
-[stats.ExpressionCA1] = groupStats([mecManip(2) mecManip(1) ca1Manip(2) ca1Manip(1)],[],'doPlot',true,'inAxis',true,'plotType','boxplot');
-% 
+%[stats.ExpressionCA1] = groupStats([mecManip(2) mecManip(1) ca1Manip(2) ca1Manip(1)],[],'doPlot',true,'inAxis',true,'plotType','boxplot');
+[stats.ExpressionCA1] = groupStats([mecManip(2) mecManip(1) ca1baseManip(1) ca1Manip(1)],[],'doPlot',true,'inAxis',true,'plotType','boxplot');
+
 % saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyExpression.png'))
 % saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyExpression.fig'),'fig')    
 % saveas(gcf,strcat(parentDir,'Compiled\Assemblies\AssemblyExpression.eps'),'epsc') 

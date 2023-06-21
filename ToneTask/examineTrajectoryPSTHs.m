@@ -1,17 +1,19 @@
 function examineTrajectoryPSTHs
 
-sess= {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220629_sess12',...
-    'IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220714_sess18',...
-    'IZ39\Final\IZ39_220702_sess14',...
-    'IZ40\Final\IZ40_220707_sess16','IZ40\Final\IZ40_220714_sess18'...
-    'IZ43\Final\IZ43_220828_sess4','IZ43\Final\IZ43_220919_sess14',...
-    'IZ43\Final\IZ43_220826_sess2','IZ43\Final\IZ43_220901_sess8',...
-    'IZ43\Final\IZ43_220911_sess9','IZ43\Final\IZ43_220913_sess11',...
-    'IZ44\Final\IZ44_220827_sess4','IZ44\Final\IZ44_220830_sess7',...
+sess= {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
+    'IZ39\Final\IZ39_220702_sess14','IZ39\Final\IZ39_220714_sess18',...
     'IZ39\Final\IZ39_220705_sess16','IZ39\Final\IZ39_220707_sess17',...   
-    'IZ43\Final\IZ43_220915_sess13','IZ43\Final\IZ43_220920_sess15',...
+    'IZ40\Final\IZ40_220705_sess15','IZ40\Final\IZ40_220707_sess16',...
+    'IZ40\Final\IZ40_220708_sess17','IZ40\Final\IZ40_220714_sess18',...
+    'IZ43\Final\IZ43_220826_sess2','IZ43\Final\IZ43_220828_sess4',...
+    'IZ43\Final\IZ43_220830_sess6','IZ43\Final\IZ43_220901_sess8',...
+    'IZ43\Final\IZ43_220911_sess9','IZ43\Final\IZ43_220913_sess11','IZ43\Final\IZ43_220919_sess14',...
+    'IZ43\Final\IZ43_220915_sess13','IZ43\Final\IZ43_220920_sess15',...    
+    'IZ44\Final\IZ44_220827_sess4', 'IZ44\Final\IZ44_220828_sess5',...
+    'IZ44\Final\IZ44_220829_sess6','IZ44\Final\IZ44_220830_sess7',...
+    'IZ44\Final\IZ44_220912_sess10','IZ44\Final\IZ44_220913_sess11','IZ44\Final\IZ44_220919_sess14',...
     'IZ44\Final\IZ44_220915_sess13','IZ44\Final\IZ44_220920_sess15',...
-    'IZ40\Final\IZ40_220705_sess15'}; 
+    }; 
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
 
@@ -113,20 +115,24 @@ set(gcf,'Color','w')
 YlGnBu=cbrewer('seq', 'YlGnBu', 11);
 colormap(YlGnBu)
 
-idxT = tPSTH<0 & tPSTH>=-0.2;
-avgRate = nanmean(psthReward{2}(:,idxT),2);
-for tt = 1:14
-    newpsth{tt} = psthReward{tt}(avgRate>0.5,:);
-end
+numProp = [];
+avgRate = [];
 idxT = tPSTH<0 & tPSTH>=-0.5;
-[~,idxMax2] = max(newpsth{6}(:,idxT),[],2);
-[~,idxMax] = sort(idxMax2);
+for tt = 1:14
+    avgRate{tt} = nanmean(psthReward{tt}(:,idxT),2);
+    numProp(tt) = sum(avgRate{tt}>2)./length(avgRate{tt});
+    newpsth{tt} = psthReward{tt}(avgRate{tt}>0.5,:);
+end
+
+idxT = tPSTH<0 & tPSTH>=-0.5;
 for tt = 1:14
     if tt <13
         subplot(4,6,tt)
     else
         subplot(4,6,18+(tt-12))
     end
+    [~,idxMax2] = max(newpsth{tt}(:,idxT),[],2);
+    [~,idxMax] = sort(idxMax2);
     temp = zscore(newpsth{tt},[],2);
     h = imagesc(tPSTH, 1:size(newpsth{tt},1),temp(idxMax,:));
     set(h, 'AlphaData', ~isnan(temp))
@@ -160,11 +166,17 @@ saveas(gcf,strcat(expPath,'Compiled\portPSTHs.png'));
 saveas(gcf,strcat(expPath,'Compiled\portPSTHs.eps'),'epsc');
 saveas(gcf,strcat(expPath,'Compiled\portPSTHs.fig'));
 
+figure
+set(gcf,'Renderer','painters')
+bar(numProp)
+saveas(gcf,strcat(expPath,'Compiled\proportionportPSTHs.png'));
+saveas(gcf,strcat(expPath,'Compiled\proportionportPSTHs.eps'),'epsc');
+saveas(gcf,strcat(expPath,'Compiled\proportionportPSTHs.fig'));
 end
 
 function Field_Info = detectFields(SmoothedFiringRate)
-    minFieldSize = 5;
-    maxFieldSize = 40;
+    minFieldSize = 10;
+    maxFieldSize = 50;
     % Pad on each end with zeros for edge effects
     SmoothedFiringRate = [0 0 SmoothedFiringRate 0 0];
     [peakValues, peakLocations] = findpeaks(SmoothedFiringRate, 'minpeakheight',5, 'minpeakdistance', 10);

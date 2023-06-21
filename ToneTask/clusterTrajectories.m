@@ -29,8 +29,8 @@ end
 
 % Port locations
 
-%portLoc = [1 12 32 55 80 103 120];
-portLoc = [1:10:120];
+portLoc = [1 12 20 32 40 55 80 103 120];
+%portLoc = [1:10:120];
 
 % Initial lin trials
 linIdx = find(behavTrials.linTrial==1);
@@ -124,7 +124,7 @@ posY = [posLinY;posTone6Y;posLinEndY];
 posXLabel = [ones(size(posLinX,1),1)*1;ones(size(posTone6X,1),1)*2;ones(size(posLinEndX,1),1)*3];
 posXtrial = [lin_begin; tone6; lin_end(1:(end-1))];
 
-Z =linkage(posX,'average');
+Z =linkage(posX,'weighted');
 T = cluster(Z,'Maxclust',2);
 
 if plotfig

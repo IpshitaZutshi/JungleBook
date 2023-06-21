@@ -50,37 +50,41 @@ for ii = 1:size(allSess,1)
         else
             noiseCh = [];
         end
-            
-        load([sessionInfo.FileName '.pulses.events.mat']);
-        pulTr = (pulses.stimComb==2);
-        homeCagePulse = pulses.intsPeriods(2,:) - pulses.intsPeriods(1,:);
-        homeCagePulseidx = homeCagePulse < 5.05 & homeCagePulse > 4.95;
-        pulTr = pulTr & homeCagePulseidx;
-        events = pulses.intsPeriods(:,pulTr)';
+%             
+%         load([sessionInfo.FileName '.pulses.events.mat']);
+%         pulTr = (pulses.stimComb==2);
+%         homeCagePulse = pulses.intsPeriods(2,:) - pulses.intsPeriods(1,:);
+%         homeCagePulseidx = homeCagePulse < 5.05 & homeCagePulse > 4.95;
+%         pulTr = pulTr & homeCagePulseidx;
+%         events = pulses.intsPeriods(:,pulTr)';
        
-        try 
-            rippleMasterDetectorIZ('rippleChannel',hippocampalLayers.pyramidal,'SWChannel',hippocampalLayers.radiatum,'noise',noiseCh)
-        catch 
-        end            
-        ripplesRestrict{1} =  bz_FindRipples(pwd,hippocampalLayers.pyramidal,'noise',noiseCh,'thresholds',[0.5 1],'passband',[120 220],...
-                 'EMGThresh',0.9,'durations',[12 100],'restrict',events-5,'saveMat',false);
-        ripplesRestrict{1} = removeArtifactsFromEvents(ripplesRestrict{1});
+        rippleMasterDetectorIZ('rippleChannel',hippocampalLayers.pyramidal,'SWChannel',hippocampalLayers.radiatum,'noise',noiseCh)       
         
-        ripplesRestrict{2} =  bz_FindRipples(pwd,hippocampalLayers.pyramidal,'noise',noiseCh,'thresholds',[0.5 1],'passband',[120 220],...
-                 'EMGThresh',0.9,'durations',[12 100],'restrict',events,'saveMat',false);
-        ripplesRestrict{2} = removeArtifactsFromEvents(ripplesRestrict{2});          
-        
-        save([allSess(ii).name '.ripples_restrict.events.mat'],'ripplesRestrict');
-
-        thres = [0.5 1;1 2;2 5];
-        for rr = 1:3
-            ripplesThresh{rr} = bz_FindRipples(pwd,hippocampalLayers.pyramidal,'noise',noiseCh,'thresholds',thres(rr,:),'passband',[120 220],...
-                'EMGThresh',0.9,'durations',[12 100],'saveMat',false);
-            ripplesThresh{rr} = removeArtifactsFromEvents(ripplesThresh{rr});
-        end
-        save([allSess(ii).name '.ripples_thresh.events.mat'],'ripplesThresh');
-        ripplesLowThresh = ripplesThresh{1};
-        save([allSess(ii).name '.ripplesLowThresh.events.mat'],'ripplesLowThresh');
+%         ripplesRestrict{1} =  bz_FindRipples(pwd,hippocampalLayers.pyramidal,'noise',noiseCh,'thresholds',[0.5 1],'passband',[120 220],...
+%                  'EMGThresh',0.9,'durations',[12 100],'restrict',events-5,'saveMat',false);
+%         ripplesRestrict{1} = removeArtifactsFromEvents(ripplesRestrict{1});
+%         
+%         ripplesRestrict{2} =  bz_FindRipples(pwd,hippocampalLayers.pyramidal,'noise',noiseCh,'thresholds',[0.5 1],'passband',[120 220],...
+%                  'EMGThresh',0.9,'durations',[12 100],'restrict',events,'saveMat',false);
+%         ripplesRestrict{2} = removeArtifactsFromEvents(ripplesRestrict{2});          
+%         
+%         save([allSess(ii).name '.ripples_restrict.events.mat'],'ripplesRestrict');
+% 
+%         thres = [0.5 1];%;1 2;2 5];
+%         for rr = 1%:3
+%             ripplesThresh{rr} = bz_FindRipples(pwd,hippocampalLayers.pyramidal,'noise',noiseCh,'thresholds',thres(rr,:),'passband',[120 220],...
+%                 'EMGThresh',0.9,'durations',[12 100],'saveMat',false);
+%             ripplesThresh{rr} = removeArtifactsFromEvents(ripplesThresh{rr});
+%         end
+% %         save([allSess(ii).name '.ripples_thresh.events.mat'],'ripplesThresh');
+%         ripplesLowThresh = ripplesThresh{1};
+%         lfp = bz_GetLFP('all');
+%         filtered = bz_Filter(lfp,'channels',hippocampalLayers.pyramidal,'filter','butter','passband',[120 220],'order',3);
+%         [maps,data,stats] = bz_RippleStats(filtered.data,filtered.timestamps,ripplesLowThresh);
+%         ripplesLowThresh.maps = maps;
+%         ripplesLowThresh.data = data;
+%         ripplesLowThresh.stats = stats;
+%         save([allSess(ii).name '.ripplesLowThresh.events.mat'],'ripplesLowThresh');
 
 % %         close all
 % %         getLFPduringtrack('refChannel',[],'pyrChPlus',hippocampalLayers.all,'numtrials',15);

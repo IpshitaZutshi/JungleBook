@@ -84,7 +84,7 @@ addParameter(p,'basepath',pwd,@isdir);
 addParameter(p,'rippleChannel',[],@isnumeric);
 addParameter(p,'SWChannel',[],@isnumeric);
 addParameter(p,'noiseCh',[],@isnumeric);
-addParameter(p,'thresholds',[0.5 1],@isnumeric);
+addParameter(p,'thresholds',[2 5],@isnumeric);
 addParameter(p,'SWthresholds',[-0.5 -2], @isnumeric);
 addParameter(p,'durations',[30 100],@isnumeric);
 addParameter(p,'restrict',[],@isnumeric);
@@ -92,11 +92,11 @@ addParameter(p,'frequency',1250,@isnumeric);
 addParameter(p,'stdev',[],@isnumeric);
 addParameter(p,'show','off',@isstr);
 addParameter(p,'noise',[],@ismatrix);
-addParameter(p,'passband',[120 220],@isnumeric);
+addParameter(p,'passband',[130 200],@isnumeric);
 addParameter(p,'SWpassband',[2 10],@isnumeric);
 addParameter(p,'EMGThresh',0.9,@isnumeric);
 addParameter(p,'saveMat',true,@islogical);
-addParameter(p,'minDuration',12,@isnumeric);
+addParameter(p,'minDuration',20,@isnumeric);
 addParameter(p,'plotType',2,@isnumeric);
 addParameter(p,'srLfp',1250,@isnumeric);
 addParameter(p,'rippleStats',true,@islogical);
@@ -196,9 +196,15 @@ if size(ripples.timestamps,1)>2
     eliminatedSW = false;
     for i = 1:size(ripples.timestamps,1)
         dur = 0.01;
-        signalSW = zSW(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
-        signalR = zRipple(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
-        t1SW = ts(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
+        if round((ripples.timestamps(i,2)+dur)*srLfp)>length(zSW)
+            signalSW = zSW(round((ripples.timestamps(i,1)-dur)*srLfp):end);
+            signalR = zRipple(round((ripples.timestamps(i,1)-dur)*srLfp):end);
+            t1SW = ts(round((ripples.timestamps(i,1)-dur)*srLfp):end);  
+        else       
+            signalSW = zSW(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
+            signalR = zRipple(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
+            t1SW = ts(round((ripples.timestamps(i,1)-dur)*srLfp):round((ripples.timestamps(i,2)+dur)*srLfp));
+        end
         negPeak = find(signalSW < SWthresholds(2));
 
         if ~isempty(negPeak)

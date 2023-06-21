@@ -1,22 +1,23 @@
-function sessionRemappingTrajectorynoTone
+function sessionRemappingTrajectorynoToneVer2
 
-sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
-    'IZ39\Final\IZ39_220702_sess14','IZ39\Final\IZ39_220714_sess18',...
-    'IZ39\Final\IZ39_220705_sess16','IZ39\Final\IZ39_220707_sess17',...   
-    'IZ40\Final\IZ40_220705_sess15','IZ40\Final\IZ40_220707_sess16',...
-    'IZ40\Final\IZ40_220708_sess17','IZ40\Final\IZ40_220714_sess18',...
-    'IZ43\Final\IZ43_220826_sess2','IZ43\Final\IZ43_220828_sess4',...
-    'IZ43\Final\IZ43_220830_sess6','IZ43\Final\IZ43_220901_sess8',...
-    'IZ43\Final\IZ43_220911_sess9','IZ43\Final\IZ43_220913_sess11','IZ43\Final\IZ43_220919_sess14',...
-    'IZ43\Final\IZ43_220915_sess13','IZ43\Final\IZ43_220920_sess15',...    
-    'IZ44\Final\IZ44_220827_sess4', 'IZ44\Final\IZ44_220828_sess5',...
-    'IZ44\Final\IZ44_220829_sess6','IZ44\Final\IZ44_220830_sess7',...
-    'IZ44\Final\IZ44_220912_sess10','IZ44\Final\IZ44_220913_sess11','IZ44\Final\IZ44_220919_sess14',...
-    'IZ44\Final\IZ44_220915_sess13','IZ44\Final\IZ44_220920_sess15',...
-    }; 
+ sess = {'IZ43\Final\IZ43_220919_sess14'};
+% sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
+%     'IZ39\Final\IZ39_220702_sess14','IZ39\Final\IZ39_220714_sess18',...
+%     'IZ39\Final\IZ39_220705_sess16','IZ39\Final\IZ39_220707_sess17',...   
+%     'IZ40\Final\IZ40_220705_sess15','IZ40\Final\IZ40_220707_sess16',...
+%     'IZ40\Final\IZ40_220708_sess17','IZ40\Final\IZ40_220714_sess18',...
+%     'IZ43\Final\IZ43_220826_sess2','IZ43\Final\IZ43_220828_sess4',...
+%     'IZ43\Final\IZ43_220830_sess6','IZ43\Final\IZ43_220901_sess8',...
+%     'IZ43\Final\IZ43_220911_sess9','IZ43\Final\IZ43_220913_sess11','IZ43\Final\IZ43_220919_sess14',...
+%     'IZ43\Final\IZ43_220915_sess13','IZ43\Final\IZ43_220920_sess15',...    
+%     'IZ44\Final\IZ44_220827_sess4', 'IZ44\Final\IZ44_220828_sess5',...
+%     'IZ44\Final\IZ44_220829_sess6','IZ44\Final\IZ44_220830_sess7',...
+%     'IZ44\Final\IZ44_220912_sess10','IZ44\Final\IZ44_220913_sess11','IZ44\Final\IZ44_220919_sess14',...
+%     'IZ44\Final\IZ44_220915_sess13','IZ44\Final\IZ44_220920_sess15',...
+%     }; 
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
-plotfig = 0;
+plotfig = 1;
 
 YlGnBu=cbrewer('seq', 'YlGnBu', 11);
 
@@ -102,14 +103,20 @@ for ii = 1:length(sess)
             
         %% Now extract firing map of each category according to trajectories
         
-        for zz = 1:3
+        for zz = 1:6
             switch zz
                 case 1
                     idx = trialLabel == 1 & trajectLabel == typePre;
                 case 2
-                    idx = trialLabel == 3 & trajectLabel == typePost;                     
+                    idx = trialLabel == 1 & trajectLabel == typeTone;                     
                 case 3
+                    idx = trialLabel == 2 & trajectLabel == typePre;
+                case 4
                     idx = trialLabel == 2 & trajectLabel == typeTone;
+                case 5
+                    idx = trialLabel == 3 & trajectLabel == typePre;                     
+                case 6
+                    idx = trialLabel == 3 & trajectLabel == typeTone;                    
                                  
             end
             
@@ -191,24 +198,22 @@ end
 
 figure
 subplot(1,4,1)
-stats{1} = groupStats(data1,{},'inAxis',true,'repeatedMeasures',true);
+stats1 = groupStats(data1,{},'inAxis',true,'repeatedMeasures',true);
 subplot(1,4,2)
-stats{2} = groupStats(data2,{},'inAxis',true,'repeatedMeasures',true);
+stats2 = groupStats(data2,{},'inAxis',true,'repeatedMeasures',true);
 subplot(1,4,3)
-stats{3} = groupStats(data3,{},'inAxis',true,'repeatedMeasures',true);
+stats3 = groupStats(data3,{},'inAxis',true,'repeatedMeasures',true);
 subplot(1,4,4)
-stats{3} = groupStats(data4,{},'inAxis',true);
+stats3 = groupStats(data4,{},'inAxis',true);
 
-saveas(gcf,strcat(expPath,'Compiled\TrajectoryRemappingMaps.png'));
-saveas(gcf,strcat(expPath,'Compiled\TrajectoryRemappingMaps.eps'),'epsc');
-saveas(gcf,strcat(expPath,'Compiled\TrajectoryRemappingMaps.fig'));
-save(strcat(expPath,'Compiled\TrajectoryRemappingMaps.mat'),'stats')   
-
+    saveas(gcf,strcat(expPath,'Compiled\TrajectoryRemappingMaps.png'));
+    saveas(gcf,strcat(expPath,'Compiled\TrajectoryRemappingMaps.eps'),'epsc');
+    saveas(gcf,strcat(expPath,'Compiled\TrajectoryRemappingMaps.fig'));
 end
 
 function Field_Info = detectFields(SmoothedFiringRate)
     minFieldSize = 10;
-    maxFieldSize = 50;
+    maxFieldSize = 40;
     % Pad on each end with zeros for edge effects
     SmoothedFiringRate = [0 0 SmoothedFiringRate 0 0];
     [peakValues, peakLocations] = findpeaks(SmoothedFiringRate, 'minpeakheight',5, 'minpeakdistance', 10);
@@ -216,7 +221,7 @@ function Field_Info = detectFields(SmoothedFiringRate)
     for j = 1:length(peakLocations)
         FieldPeak = peakLocations(j);
         % FieldPeak must be 8 Hz or more
-        if peakValues(j) < 10, continue, end
+        if peakValues(j) < 8, continue, end
         LookForward = FieldPeak+1:length(SmoothedFiringRate);
         LookBack = 1:FieldPeak-1;
         PercentPeakRate_Forward = SmoothedFiringRate(LookForward)./peakValues(j);
