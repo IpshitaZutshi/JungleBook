@@ -144,17 +144,17 @@ end
 subplot(numrows,numcol,[numcol*9+1 numcol*9+2 numcol*9+3 numcol*9+4 numcol*10+1 ...
     numcol*10+2 numcol*10+3 numcol*10+4  numcol*11+1 numcol*11+2 numcol*11+3 numcol*11+4])
 col = [52/243 52/243 52/243;...
+    180/243 180/243 180/243;...
     56/243 61/243 150/243;...
-    80/243 91/243 166/243;...       
-    180/243 180/243 180/243];
+    80/243 91/243 166/243];
 
 % Control
 idxSess = Summary.AllsessType==0 & Summary.AllcellType == 1 & ...
     (Summary.AlllinField == 1 | Summary.AllspaceField == 1| Summary.AlllinEndField == 1);
 data{1} = Summary.AlllinCorr(idxSess);
-data{2} = Summary.AlltoneNoToneCorr(idxSess);
-data{3} = Summary.AlltonelinEndCorr(idxSess);
-data{4} = Summary.AlllinlinEndCorr(idxSess);
+data{3} = Summary.AlltoneNoToneCorr(idxSess);
+data{4} = Summary.AlltonelinEndCorr(idxSess);
+data{2} = Summary.AlllinlinEndCorr(idxSess);
 
 % Set up a one way ANOVA
 datacombined = [data{1};data{2};data{3};data{4}];
@@ -167,9 +167,9 @@ SupFig5Stats.FwdCorr = groupStats(datacombined,group1,'inAxis',true,'color',col,
 idxSess = Summary.AllsessType==0 & Summary.AllcellType == 1 & ...
     (Summary.AllretFieldlin == 1 | Summary.AllretFieldCorrect == 1| Summary.AllretFieldlinEnd == 1);
 data{1} = Summary.AllretlinlinCorr(idxSess);
-data{2} = Summary.AllretlinToneCorr(idxSess);
-data{3} = Summary.AllretlinEndToneCorr(idxSess);
-data{4} = Summary.AllretlinlinEndCorr(idxSess);
+data{3} = Summary.AllretlinToneCorr(idxSess);
+data{4} = Summary.AllretlinEndToneCorr(idxSess);
+data{2} = Summary.AllretlinlinEndCorr(idxSess);
 
 % Set up a one way ANOVA
 datacombined = [data{1};data{2};data{3};data{4}];
@@ -187,23 +187,23 @@ idxSess1 = Summary.AllsessType==1 & Summary.AllcellType == 1 & ...
     (Summary.AlllinField == 1 | Summary.AllspaceField == 1| Summary.AlllinEndField == 1);
 
 data{1} = Summary.AlllinCorr(idxSess0);
-data{2} = Summary.AlltoneNoToneCorr(idxSess0);
-data{3} = Summary.AlltonelinEndCorr(idxSess0);
-data{4} = Summary.AlllinlinEndCorr(idxSess0);
+data{3} = Summary.AlltoneNoToneCorr(idxSess0);
+data{4} = Summary.AlltonelinEndCorr(idxSess0);
+data{2} = Summary.AlllinlinEndCorr(idxSess0);
 
 data{5} = Summary.AlllinCorr(idxSess1);
-data{6} = Summary.AlltoneNoToneCorr(idxSess1);
-data{7} = Summary.AlltonelinEndCorr(idxSess1);
-data{8} = Summary.AlllinlinEndCorr(idxSess1);
+data{7} = Summary.AlltoneNoToneCorr(idxSess1);
+data{8} = Summary.AlltonelinEndCorr(idxSess1);
+data{6} = Summary.AlllinlinEndCorr(idxSess1);
 
 col = [52/243 52/243 52/243;...
     52/243 52/243 52/243;...
+    180/243 180/243 180/243;...
+    180/243 180/243 180/243;...    
     56/243 61/243 150/243;...
     56/243 61/243 150/243;...
     80/243 91/243 166/243;...       
-    80/243 91/243 166/243;...
-    180/243 180/243 180/243;...
-    180/243 180/243 180/243];
+    80/243 91/243 166/243];
     
 % Set up a two way ANOVA
 datacombined = [data{1};data{2};data{3};data{4};data{5};data{6};data{7};data{8}];

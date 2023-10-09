@@ -105,9 +105,9 @@ end
 subplot(numrows,numcol,[numcol*15+1 numcol*15+2 numcol*15+3 numcol*15+4 numcol*16+1 ...
     numcol*16+2 numcol*16+3 numcol*16+4  numcol*17+1 numcol*17+2 numcol*17+3 numcol*17+4])
 col = [52/243 52/243 52/243;...
+    180/243 180/243 180/243;...
     56/243 61/243 150/243;...
-    80/243 91/243 166/243;...       
-    180/243 180/243 180/243];
+    80/243 91/243 166/243];
 
 % Task
 idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 ...
@@ -116,13 +116,13 @@ idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 ...
 data{1} = Summary.AlllinCorr(idxSess);
 
 %idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 & (Summary.AlllinField == 1 | Summary.AllspaceField == 1);
-data{2} = Summary.AlltoneNoToneCorr(idxSess);
+data{3} = Summary.AlltoneNoToneCorr(idxSess);
 
 %idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 & (Summary.AlllinEndField == 1 | Summary.AllspaceField == 1);
-data{3} = Summary.AlltonelinEndCorr(idxSess);
+data{4} = Summary.AlltonelinEndCorr(idxSess);
 
 %idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 & (Summary.AlllinEndField == 1 | Summary.AlllinField == 1);
-data{4} = Summary.AlllinlinEndCorr(idxSess);
+data{2} = Summary.AlllinlinEndCorr(idxSess);
 
 % Set up a one way ANOVA
 datacombined = [data{1};data{2};data{3};data{4}];
@@ -137,9 +137,10 @@ idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 ...
     & (Summary.AllretFieldlin | Summary.AllretFieldCorrect | Summary.AllretFieldlinEnd);
 
 data{1} = Summary.AllretlinlinCorr(idxSess);
-data{2} = Summary.AllretlinToneCorr(idxSess);
-data{3} = Summary.AllretlinEndToneCorr(idxSess);
-data{4} = Summary.AllretlinlinEndCorr(idxSess);
+data{2} = Summary.AllretlinlinEndCorr(idxSess);
+data{3} = Summary.AllretlinToneCorr(idxSess);
+data{4} = Summary.AllretlinEndToneCorr(idxSess);
+%
 
 % Set up a one way ANOVA
 datacombined = [data{1};data{2};data{3};data{4}];

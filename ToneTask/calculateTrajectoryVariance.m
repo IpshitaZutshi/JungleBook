@@ -69,8 +69,9 @@ for ii = 1:length(sess)
         lin_end = linIdx(jumpLin+1:end);
     end
 
-    tone6 = find(behavTrials.linTrial(1:(end-1))==0 & behavTrials.correct(1:(end-1)) ==1 & ...
-                behavTrials.toneGain(1:(end-1)) == 5);
+%     tone6 = find(behavTrials.linTrial(1:(end-1))==0 & behavTrials.correct(1:(end-1)) ==1 & ...
+%                 behavTrials.toneGain(1:(end-1)) == 5);
+    tone6 = find(behavTrials.linTrial(1:(end-1))==0 & behavTrials.lickLoc(1:(end-1)) == 5);            
 
     Summary.stdLin(ii,:) = std(position(lin_begin,:),[],1);
     Summary.stdTone6(ii,:) = std(position(tone6,:),[],1);

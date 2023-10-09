@@ -37,6 +37,7 @@ set(h, 'AlphaData', ~isnan(firingMaps.forward.rateMaps{cellNum}{5}))
 caxis([0 maxRate-5])
 set(gca,'YDir','normal')
 axis off
+colorbar
 
 subplot(numrows,numcol,[1+2*numcol 2+2*numcol])
 h = imagesc(firingMaps.forward.rateMaps{cellNum}{4});
@@ -125,12 +126,13 @@ title(num2str(corrLin(1,2)))
 %% Correlation of 2D maps
 Summary = compileMice2DPlaceFields;
 col = [52/243 52/243 52/243;...
+    180/243 180/243 180/243;...
     56/243 61/243 150/243;...
     80/243 91/243 166/243;...
-    180/243 180/243 180/243];
+    ];
     
 subplot(numrows,numcol,[7 8 7+1*numcol 8+1*numcol 7+2*numcol 8+2*numcol])
-SupFig6Stats.Maps2D = groupStats({Summary.linCorr,Summary.toneNoToneCorr,Summary.tonelinEndCorr,Summary.linlinEndCorr},[],...
+SupFig6Stats.Maps2D = groupStats({Summary.linCorr,Summary.linlinEndCorr,Summary.toneNoToneCorr,Summary.tonelinEndCorr},[],...
     'inAxis',true,'plotType','boxplot','color',col,'labelSummary',false);
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task';

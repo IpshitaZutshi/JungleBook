@@ -38,6 +38,8 @@ AllCellsRateMapLinFirstHalf = [];
 AllCellsRateMapLinSecondHalf = [];      
 AllCellsRateMapToneFirstHalf = [];
 AllCellsRateMapToneSecondHalf = [];
+AllCellsRateMapLinEndFirstHalf = [];
+AllCellsRateMapLinEndSecondHalf = []; 
 
 for ii = 1:length(sess)
     
@@ -77,7 +79,7 @@ for ii = 1:length(sess)
     end
     
     for kk=1:length(cell_metrics.UID)
-        for zz = 1:10
+        for zz = 1:12
             Maps{zz} = [];
         end
         avgMaps = [];
@@ -96,7 +98,7 @@ for ii = 1:length(sess)
         simil  = [];
         similPre = [];
         
-        if isempty(Field1) && isempty(Field2)% && isempty(Field3)
+        if isempty(Field1) && isempty(Field2) && isempty(Field3)
             continue
         end
 
@@ -104,9 +106,9 @@ for ii = 1:length(sess)
         for zz = 1:6
             switch zz
                 case 1
-                    idx = (trialLabel == 1) & trajectLabel == 1;
+                    idx = trialLabel == 1 & trajectLabel == 1;
                 case 2
-                    idx = (trialLabel == 1) & trajectLabel == 2;                     
+                    idx = trialLabel == 1 & trajectLabel == 2;                     
                 case 3
                     idx = trialLabel == 2 & trajectLabel == 1;
                 case 4
@@ -171,14 +173,38 @@ for ii = 1:length(sess)
             avgMaps(10,:) = nanmean(Maps{10},1);
         end
         
+        % Also take subsets of within no tone2 stability
+        idx = find(trialLabel == 3 & trajectLabel == typePost);
+        trialIdx1 = trialNum(idx(1:floor(length(idx)/2)));
+        trialIdx2 = trialNum(idx(floor(length(idx)/2)+1:end));
+        
+        for tt = 1:length(trialIdx1)
+            Maps{11} = [Maps{11};firingMapsTrial.firingMaps.forward.rateMaps{kk}{trialIdx1(tt)}];
+        end
+        for tt = 1:length(trialIdx2)
+            Maps{12} = [Maps{12};firingMapsTrial.firingMaps.forward.rateMaps{kk}{trialIdx2(tt)}];
+        end
+            
+        if isempty(Field3) || length(idx)<5
+            avgMaps(11,1:50) = nan;
+            avgMaps(12,1:50) = nan;
+        else
+            avgMaps(11,:) = nanmean(Maps{11},1);
+            avgMaps(12,:) = nanmean(Maps{12},1);
+        end
+        
         AllCellsRateMapLin1 = [AllCellsRateMapLin1;avgMaps(1,:)];
         AllCellsRateMapLin2 = [AllCellsRateMapLin2;avgMaps(2,:)];
         AllCellsRateMapTone1 = [AllCellsRateMapTone1;avgMaps(3,:)];
         AllCellsRateMapTone2 = [AllCellsRateMapTone2;avgMaps(4,:)];
+        AllCellsRateMapLinEnd1 = [AllCellsRateMapLinEnd1;avgMaps(5,:)];
+        AllCellsRateMapLinEnd2 = [AllCellsRateMapLinEnd2;avgMaps(6,:)];        
         AllCellsRateMapLinFirstHalf = [AllCellsRateMapLinFirstHalf;avgMaps(7,:)];
         AllCellsRateMapLinSecondHalf = [AllCellsRateMapLinSecondHalf;avgMaps(8,:)];
         AllCellsRateMapToneFirstHalf = [AllCellsRateMapToneFirstHalf;avgMaps(9,:)];
         AllCellsRateMapToneSecondHalf = [AllCellsRateMapToneSecondHalf;avgMaps(10,:)];
+        AllCellsRateMapLinEndFirstHalf = [AllCellsRateMapLinEndFirstHalf;avgMaps(11,:)];
+        AllCellsRateMapLinEndSecondHalf = [AllCellsRateMapLinEndSecondHalf;avgMaps(12,:)];        
         
         corrMatrix = corrcoef(avgMaps','Rows','pairwise');
         C = tril(corrMatrix,-1);
@@ -229,34 +255,53 @@ for ii = 1:length(sess)
     end
 end
 
-a = corr(AllCellsRateMapLinFirstHalf',AllCellsRateMapLinSecondHalf','rows','pairwise');
-b = diag(a);
+% Same condition, same trajectory
+a1 = corr(AllCellsRateMapLinFirstHalf',AllCellsRateMapLinSecondHalf','rows','pairwise');
+b1 = diag(a1);
+a2 = corr(AllCellsRateMapToneFirstHalf',AllCellsRateMapToneSecondHalf','rows','pairwise');
+b2 = diag(a2);
+a3 = corr(AllCellsRateMapLinEndFirstHalf',AllCellsRateMapLinSecondHalf','rows','pairwise');
+b3 = diag(a3);
+Summary.comp1 = [b1;b2;b3];
 
+% Same condition, different trajectory
 a1 = corr(AllCellsRateMapLin1',AllCellsRateMapLin2','rows','pairwise');
 b1 = diag(a1);
-
-a2 = corr(AllCellsRateMapLin1',AllCellsRateMapTone1','rows','pairwise');
+a2 = corr(AllCellsRateMapTone1',AllCellsRateMapTone2','rows','pairwise');
 b2 = diag(a2);
-
-a3 = corr(AllCellsRateMapLin1',AllCellsRateMapTone2','rows','pairwise');
+a3 = corr(AllCellsRateMapLinEnd1',AllCellsRateMapLinEnd2','rows','pairwise');
 b3 = diag(a3);
+Summary.comp2 = [b1;b2;b3];
 
-a4 = corr(AllCellsRateMapLin2',AllCellsRateMapTone2','rows','pairwise');
+% Different conditions, same trajectory
+a1 = corr(AllCellsRateMapLin1',AllCellsRateMapTone1','rows','pairwise');
+b1 = diag(a1);
+a2 = corr(AllCellsRateMapLin2',AllCellsRateMapTone2','rows','pairwise');
+b2 = diag(a2);
+a3 = corr(AllCellsRateMapLin1',AllCellsRateMapLinEnd1','rows','pairwise');
+b3 = diag(a3);
+a4 = corr(AllCellsRateMapLin2',AllCellsRateMapLinEnd2','rows','pairwise');
 b4 = diag(a4);
-
-a5 = corr(AllCellsRateMapLin2',AllCellsRateMapTone1','rows','pairwise');
+a5 = corr(AllCellsRateMapLinEnd1',AllCellsRateMapTone1','rows','pairwise');
 b5 = diag(a5);
-
-a6 = corr(AllCellsRateMapTone1',AllCellsRateMapTone2','rows','pairwise');
+a6 = corr(AllCellsRateMapLinEnd2',AllCellsRateMapTone2','rows','pairwise');
 b6 = diag(a6);
+Summary.comp3 = [b1; b2; b3; b4;b5;b6];
 
-a7 = corr(AllCellsRateMapToneFirstHalf',AllCellsRateMapToneSecondHalf','rows','pairwise');
+% Different conditions, different trajectory
+a7 = corr(AllCellsRateMapLin1',AllCellsRateMapTone2','rows','pairwise');
 b7 = diag(a7);
-
-Summary.comp1 = [b;b7];
-Summary.comp2 = [b1; b6];
-Summary.comp3 = [b2; b4];
-Summary.comp4 = [b3; b5];
+a8 = corr(AllCellsRateMapLin2',AllCellsRateMapTone1','rows','pairwise');
+b8 = diag(a8);
+a9 = corr(AllCellsRateMapLin1',AllCellsRateMapLinEnd2','rows','pairwise');
+b9 = diag(a9);
+a10 = corr(AllCellsRateMapLin2',AllCellsRateMapLinEnd1','rows','pairwise');
+b10 = diag(a10);
+a11 = corr(AllCellsRateMapLinEnd1',AllCellsRateMapTone2','rows','pairwise');
+b11 = diag(a11);
+a12 = corr(AllCellsRateMapLinEnd2',AllCellsRateMapTone1','rows','pairwise');
+b12 = diag(a12);
+Summary.comp4 = [b7; b8; b9; b10;b11;b12];
 
 end
 
