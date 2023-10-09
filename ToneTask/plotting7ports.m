@@ -4,10 +4,13 @@ function plotting7ports(varargin)
 p = inputParser;
 addParameter(p,'basepath',pwd,@isstr);
 addParameter(p,'saveLoc',[],@isstr);
+addParameter(p,'var','probe',@isstring);
 
 parse(p,varargin{:});
 basepath = p.Results.basepath;
 saveLoc = p.Results.saveLoc;
+var = p.Results.var;
+
 
 if isempty(saveLoc)
     saveLoc = strcat(basepath,'\Maps');
@@ -99,7 +102,7 @@ for cellNum = 1:length(spikeData.pos)
     for ss = 1:2
         for kk = 1:6
             idx = find(behavTrials.linTrial(1:(end-1))==0 & behavTrials.correct(1:(end-1)) ==1 & ...
-                behavTrials.toneGain(1:(end-1)) ==(kk-1) & behavTrials.stim(1:(end-1))==(ss-1));
+                behavTrials.toneGain(1:(end-1)) ==(kk-1) & behavTrials.(var)(1:(end-1))==(ss-1));
             subplot(8,5,11+(5*(kk-1))+(2*(ss-1)))
             for ii = 1:length(idx)
                 plot(positions.forward{idx(ii)}(:,2),positions.forward{idx(ii)}(:,1),'Color',[0.5 0.5 0.5])
@@ -121,7 +124,7 @@ for cellNum = 1:length(spikeData.pos)
 
         for kk = 1:6
             idx = find(behavTrials.linTrial(1:(end-1))==0 & behavTrials.correct(1:(end-1)) ==0 &...
-                behavTrials.toneGain(1:(end-1)) ==(kk-1) & behavTrials.stim(1:(end-1))==(ss-1));
+                behavTrials.toneGain(1:(end-1)) ==(kk-1) & behavTrials.(var)(1:(end-1))==(ss-1));
             subplot(8,5,12+(5*(kk-1))+(2*(ss-1)))
             for ii = 1:length(idx)
                 plot(positions.forward{idx(ii)}(:,2),positions.forward{idx(ii)}(:,1),'Color',[0.5 0.5 0.5])
@@ -163,7 +166,7 @@ for cellNum = 1:length(spikeData.pos)
     scatter(behavTrials.timestamps((behavTrials.lickLoc==4),2),ones(1,sum(behavTrials.lickLoc==4))*130,25,[16/243 52/243 166/243],'filled')
     scatter(behavTrials.timestamps((behavTrials.lickLoc==5),2),ones(1,sum(behavTrials.lickLoc==5))*130,25,[0/243 0/243 128/243],'filled')   
     scatter(behavTrials.timestamps((behavTrials.correct==1),2),ones(1,sum(behavTrials.correct==1))*140,25,[70/243 148/243 73/243],'filled')
-    scatter(behavTrials.timestamps((behavTrials.stim==1),2),ones(1,sum(behavTrials.stim==1))*150,25,'m','filled')
+    scatter(behavTrials.timestamps((behavTrials.(var)==1),2),ones(1,sum(behavTrials.(var)==1))*150,25,'m','filled')
     scatter(behavTrials.timestamps((behavTrials.correct==0 & behavTrials.linTrial==0),2),ones(1,sum(behavTrials.correct==0 & behavTrials.linTrial==0))*140,25,[187/243 86/243 149/243],'filled')
     %xlim([8250 10650])
     ylim([0 150])

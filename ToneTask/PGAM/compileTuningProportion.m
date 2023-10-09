@@ -19,10 +19,9 @@ sess= {'IZ39_220622_sess8','IZ39_220624_sess10','IZ39_220629_sess12',...
     'IZ44_220829_sess6','IZ44_220830_sess7',...
     'IZ44_220912_sess10','IZ44_220913_sess11','IZ44_220919_sess14',...
     'IZ44_220915_sess13','IZ44_220920_sess15',...
-    'IZ47_230707_sess24','IZ47_230710_sess25',...
-    'IZ47_230712_sess27','IZ48_230628_sess17',...
-    'IZ48_230703_sess21','IZ48_230705_sess22',...
-    'IZ48_230714_sess28',...
+    'IZ47_230707_sess24','IZ47_230710_sess25','IZ47_230712_sess27',...
+    'IZ48_230628_sess17','IZ48_230703_sess21',...
+    'IZ48_230705_sess22','IZ48_230714_sess28',...
     }; 
 
 basepath = 'C:\Data\PGAMAnalysis\processedData\';
@@ -49,7 +48,7 @@ for ss = 1:length(sess)
         neuronID(aa) = results(aa).neuron+1;
     end
 
-    numCells = length(cell_metrics.UID);
+    numCells = max(neuronID);
 
     sigMat = zeros(numCells,10);
     mutInfo = nan(numCells,10);
@@ -80,14 +79,12 @@ for ss = 1:length(sess)
     for aa = 1:numCells
         if ~strcmp(cell_metrics.putativeCellType(aa),'Pyramidal Cell')
             continue
-        end        
-        idx = find(neuronID == aa);
-        if isempty(idx)
-            continue
         end
         pyrID(aa) = 1;
+        idx = find(neuronID == aa);
+
         for id = 1:length(idx)     
-            if (results(idx(id)).pval < (10^-5) && ~isnan(results(idx(id)).mutual_info))
+            if (results(idx(id)).pval < 0.001 && ~isnan(results(idx(id)).mutual_info))
                 if id == 10 % If licks, take only thosse with a positive kernel
                     if results(idx(id)).signed_kernel_strength>=0
                         sigMat(aa,id) = 1;
@@ -173,14 +170,16 @@ if plotfig
         0.6980    0.8196    0.5412; ... 
         0.4667    0.6745    0.1882; ... 
         0.5216    0.6824    0.7882; ... 
-        0    0.4471    0.7412];
+        0    0.4471    0.7412; ...
+        0.5 0.5 0.5;...
+        0 0 0];
 
     c = 1;
 
     % Extract tuning proportions per mouse and sessions
     names = {'IZ39','IZ40','IZ43','IZ44','IZ47','IZ48'};
 
-    for mm = 1:5
+    for mm = 1:6
         x = 0.25;
         propSigMouse = Summary.propSigAll(Summary.mouseIDProp==mm,:);
         propSigAvg = nanmean(propSigMouse);
@@ -226,7 +225,7 @@ if plotfig
     c = 1;
     subplot(3,5,5)
     hold on
-    for mm = 1:5
+    for mm = 1:6
         x = 0.25;
         propSigMouse = Summary.propSigBoth(Summary.mouseIDProp==mm,:);
         propSigAvg = nanmean(propSigMouse);

@@ -65,23 +65,29 @@ freqExp = log10(22000/1000);
 
 for pf = 1:(size(behavTrials.timestamps,1)-1)    
     [idx] = InIntervals(tracking.timestamps,behavTrials.timestamps(pf,:));
-    positions.forward{pf} = [tracking.timestamps(idx) tracking.position.x(idx) tracking.position.y(idx)];
-    if toneMap
-        if behavTrials.linTrial(pf)==1
-            positions.tone{pf} = [tracking.timestamps(idx) tracking.position.x(idx)*nan tracking.position.y(idx)*nan];
-        else
-            y = tracking.position.y(idx);
-            tonepos = [];
-            for ii = 1:length(y)
-                freq = (y(ii)*gain(behavTrials.toneGain(pf)+1))/122;
-                tonepos(ii) = 1000*(10.^(freqExp*freq));
+    if sum(idx)>0
+        positions.forward{pf} = [tracking.timestamps(idx) tracking.position.x(idx) tracking.position.y(idx)];
+        if toneMap
+            if behavTrials.linTrial(pf)==1
+                positions.tone{pf} = [tracking.timestamps(idx) tracking.position.x(idx)*nan tracking.position.y(idx)*nan];
+            else
+                y = tracking.position.y(idx);
+                tonepos = [];
+                for ii = 1:length(y)
+                    freq = (y(ii)*gain(behavTrials.toneGain(pf)+1))/122;
+                    tonepos(ii) = 1000*(10.^(freqExp*freq));
+                end
+                tonepos(tonepos>25000) = nan;
+                positions.tone{pf} = [tracking.timestamps(idx) tracking.position.x(idx) tonepos'];
             end
-            tonepos(tonepos>25000) = nan;
-            positions.tone{pf} = [tracking.timestamps(idx) tracking.position.x(idx) tonepos'];
-        end
-    end    
-    [idx] = InIntervals(tracking.timestamps,[behavTrials.timestamps(pf,2) behavTrials.timestamps(pf+1,1)]);    
-    positions.reverse{pf} = [tracking.timestamps(idx) tracking.position.x(idx) tracking.position.y(idx)];
+        end    
+        [idx] = InIntervals(tracking.timestamps,[behavTrials.timestamps(pf,2) behavTrials.timestamps(pf+1,1)]);   
+        positions.reverse{pf} = [tracking.timestamps(idx) tracking.position.x(idx) tracking.position.y(idx)];
+    else
+        position.forward{pf} = [];
+        positions.reverse{pf} = [];
+    end
+    
 end
 
 firingMaps.forward = bz_getRateMaps(positions.forward,spikes,'xRange',[0 6],'yRange',[0 125], 'binSize',2.5,'saveMat',false);

@@ -34,12 +34,14 @@ for kk = 1%:2
 
     end    
     subplot(1,2,kk)
-    data{1} = rate(:,1);
-    data{2} = rate(:,2);
-    data{3} = rate(:,3);
-    data{4} = rate(:,4);
-
-    stats = groupStats(data,[],'repeatedMeasures',true,'plotType','boxLinesSEM','inAxis',true);
+    data = [rate(:,1); rate(:,2); rate(:,3);rate(:,4)];
+    cond1 = [ones(size(rate,1),1);ones(size(rate,1),1)*2;ones(size(rate,1),1)*3;ones(size(rate,1),1)*4];
+    a = [1; 1; 1; 1;2; 2; 2; 2];
+    b  = [1;2;3;4;5;6;7;8];
+    cond2 = [a;a;a;a];
+    cond3 = [b;b;b;b];
+    
+    stats = groupStats(data,[cond1 cond2],'plotType','boxplot','inAxis',true);
     ylim([0 0.3])
 end
 end

@@ -1,4 +1,4 @@
-function getToneMapsAvg7Ports(varargin)
+function getToneMapsAvg7PortsError(varargin)
 
 %% Defaults and Parms
 p = inputParser;
@@ -68,33 +68,33 @@ for zz = [1 30 31 32]
     idx{zz} = logical(idx{zz});
 end
 
-%No stim strials/mp probe trials
+%No (var) strials
 idx{2} = behavTrials.toneGain ==0 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
 idx{3} = behavTrials.toneGain ==1 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
 idx{4} = behavTrials.toneGain ==2 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
 idx{5} = behavTrials.toneGain ==3 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
 idx{6} = behavTrials.toneGain ==4 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
 idx{7} = behavTrials.toneGain ==5 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{8} = behavTrials.toneGain ==0 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{9} = behavTrials.toneGain ==1 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{10} = behavTrials.toneGain ==2 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{11} = behavTrials.toneGain ==3 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{12} = behavTrials.toneGain ==4 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{13} = behavTrials.toneGain ==5 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;    
+idx{8} = behavTrials.lickLoc ==0 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
+idx{9} = behavTrials.lickLoc ==1 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
+idx{10} = behavTrials.lickLoc ==2 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
+idx{11} = behavTrials.lickLoc ==3 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
+idx{12} = behavTrials.lickLoc ==4 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
+idx{13} = behavTrials.lickLoc ==5 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;    
 
-% Stim trials/probe trials
+% (var) trials
 idx{14} = behavTrials.toneGain ==0 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
 idx{15} = behavTrials.toneGain ==1 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
 idx{16} = behavTrials.toneGain ==2 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
 idx{17} = behavTrials.toneGain ==3 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
 idx{18} = behavTrials.toneGain ==4 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
 idx{19} = behavTrials.toneGain ==5 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{20} = behavTrials.toneGain ==0 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{21} = behavTrials.toneGain ==1 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{22} = behavTrials.toneGain ==2 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{23} = behavTrials.toneGain ==3 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{24} = behavTrials.toneGain ==4 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{25} = behavTrials.toneGain ==5 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;  
+idx{20} = behavTrials.lickLoc ==0 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
+idx{21} = behavTrials.lickLoc ==1 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
+idx{22} = behavTrials.lickLoc ==2 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
+idx{23} = behavTrials.lickLoc ==3 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
+idx{24} = behavTrials.lickLoc ==4 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
+idx{25} = behavTrials.lickLoc ==5 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;  
 
 %correct vs incorrect
 idx{26} = behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
@@ -183,7 +183,7 @@ firingMaps.toneGain = behavTrials.toneGain(1:(end-1));
 firingMaps.correct = behavTrials.correct(1:(end-1));
 firingMaps.numLicks = behavTrials.numLicks(1:(end-1),:);
 
-save([sessionInfo.FileName '.rateMapsAvg.cellinfo.mat'],'firingMaps'); 
+save([sessionInfo.FileName '.rateMapsAvgError.cellinfo.mat'],'firingMaps'); 
 
 labels = {'forward','tone','reverse'};
 col = [176/243 223/243 229/243; 149/243 200/243 216/243; 137/243 207/243 240/243;
@@ -285,12 +285,12 @@ if plotfig
        subplot(4,6,14)
        h = imagesc(b,size(dataMat,2),dataMat);
        set(h, 'AlphaData', ~isnan(dataMat))
-       title('Stim Space, correct')
+       title('(var) Space, correct')
        
        subplot(4,6,15)
        h = imagesc(a,size(dataMatTone,2),dataMatTone);
        set(h, 'AlphaData', ~isnan(dataMatTone))
-       title('Stim Tone, correct')
+       title('(var) Tone, correct')
        
        dataMat = [];
        dataMatTone = [];
@@ -308,12 +308,12 @@ if plotfig
        subplot(4,6,16)
        h = imagesc(b,size(dataMat,2),dataMat);
        set(h, 'AlphaData', ~isnan(dataMat))
-       title('Stim Space, incorrect')
+       title('(var) Space, incorrect')
        
        subplot(4,6,17)
        h = imagesc(a,size(dataMatTone,2),dataMatTone);
        set(h, 'AlphaData', ~isnan(dataMatTone))
-       title('Stim Tone, incorrect')        
+       title('(var) Tone, incorrect')        
        
        saveas(gcf,['FiringMapAvg',filesep ,'cell_' num2str(pf) '.png'],'png');
        saveas(gcf,['FiringMapAvg',filesep ,'cell_' num2str(pf) '.eps'],'epsc');

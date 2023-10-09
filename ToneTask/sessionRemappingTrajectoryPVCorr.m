@@ -103,11 +103,11 @@ for ii = 1:length(sess)
         simil  = [];
         similPre = [];
         corr1 = corrcoef(linMapInit',linMapEnd','rows','complete');
-        corrMap(1) = corr1(1,2); %
+        corrMap(3) = corr1(1,2); %
         corr1 = corrcoef(linMapInit',toneMap','rows','complete');
-        corrMap(2) = corr1(1,2); %        
+        corrMap(1) = corr1(1,2); %        
         corr1 = corrcoef(toneMap',linMapEnd','rows','complete');
-        corrMap(3) = corr1(1,2); %        
+        corrMap(2) = corr1(1,2); %        
             
         % Skip sessions that have less than 5 post-tone trial linear trials of
         % a particular type

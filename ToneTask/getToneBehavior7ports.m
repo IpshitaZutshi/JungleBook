@@ -3,7 +3,7 @@ function [behavTrials] = getToneBehavior7ports(varargin)
 p = inputParser;
 addParameter(p,'saveMat',true,@islogical);
 addParameter(p,'plotfig',true,@islogical)
-addParameter(p,'forceRun',true,@islogical)
+addParameter(p,'forceRun',false,@islogical)
 
 parse(p,varargin{:});
 saveMat = p.Results.saveMat;
@@ -149,7 +149,7 @@ if plotfig
     scatter(ones(1,sum(behavTrials.toneGain==3))*7.1,find(behavTrials.toneGain==3),25,colMap(11,:),'filled');
     scatter(ones(1,sum(behavTrials.toneGain==4))*7.1,find(behavTrials.toneGain==4),25,colMap(14,:),'filled');
     scatter(ones(1,sum(behavTrials.toneGain==5))*7.1,find(behavTrials.toneGain==5),25,colMap(17,:),'filled');
-    scatter(ones(1,sum(behavTrials.stim==1))*7.3,find(behavTrials.stim==1),25,[1 0 0.5],'filled');
+    scatter(ones(1,sum(behavTrials.probe==1))*7.3,find(behavTrials.probe==1),25,[1 0 0.5],'filled');
 
     % For incorrect trials, where does the lick happen
     subplot(2,3,2)

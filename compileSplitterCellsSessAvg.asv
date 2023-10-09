@@ -385,7 +385,7 @@ if strcmp(tag,'CA1') == 1 || strcmp(tag,'mECBilateral') == 1 || strcmp(tag,'mEC'
             end
         end
         a = [numIntB{2} numPyrB{2} numPlaceB{2} numCenterB{2} numSplitB{2} numIntS{2} numPyrS{2} numPlaceS{2} numCenterS{2} numSplitS{2}];
-    end  
+    Yeend  
     
     if strcmp(tag,'mEC') == 1 
         finalDist = [splitPercB{2}(:,1) splitPercS{2}(:,1)];

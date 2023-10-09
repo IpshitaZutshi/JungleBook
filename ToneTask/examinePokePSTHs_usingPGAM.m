@@ -1,4 +1,4 @@
-function Summary = examinePokePSTHs(varargin)
+function Summary = examinePokePSTHs_usingPGAM(varargin)
 
 p = inputParser;
 addParameter(p,'plotfig',false,@islogical);
@@ -19,22 +19,21 @@ plotfig = p.Results.plotfig;
 
 sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
     'IZ39\Final\IZ39_220702_sess14','IZ39\Final\IZ39_220714_sess18',...
-    'IZ39\Final\IZ39_220705_sess16','IZ39\Final\IZ39_220707_sess17',...   23
+    'IZ39\Final\IZ39_220705_sess16','IZ39\Final\IZ39_220707_sess17',...   
     'IZ40\Final\IZ40_220705_sess15','IZ40\Final\IZ40_220707_sess16',...
-    'IZ40\Final\IZ40_220708_sess17','IZ40\Final\IZ40_220714_sess18',...27
+    'IZ40\Final\IZ40_220708_sess17','IZ40\Final\IZ40_220714_sess18',...
     'IZ43\Final\IZ43_220826_sess2','IZ43\Final\IZ43_220828_sess4',...
     'IZ43\Final\IZ43_220830_sess6','IZ43\Final\IZ43_220901_sess8',...
     'IZ43\Final\IZ43_220911_sess9','IZ43\Final\IZ43_220913_sess11','IZ43\Final\IZ43_220919_sess14',...
-    'IZ43\Final\IZ43_220915_sess13','IZ43\Final\IZ43_220920_sess15',...    36
+    'IZ43\Final\IZ43_220915_sess13','IZ43\Final\IZ43_220920_sess15',...    
     'IZ44\Final\IZ44_220827_sess4', 'IZ44\Final\IZ44_220828_sess5',...
     'IZ44\Final\IZ44_220829_sess6','IZ44\Final\IZ44_220830_sess7',...
     'IZ44\Final\IZ44_220912_sess10','IZ44\Final\IZ44_220913_sess11','IZ44\Final\IZ44_220919_sess14',...
-    'IZ44\Final\IZ44_220915_sess13','IZ44\Final\IZ44_220920_sess15',... 45
-    'IZ47\Final\IZ47_230626_sess15','IZ47\Final\IZ47_230707_sess24',...
-    'IZ47\Final\IZ47_230710_sess25','IZ47\Final\IZ47_230712_sess27',...49
-    'IZ48\Final\IZ48_230628_sess17','IZ48\Final\IZ48_230703_sess21',...
-    'IZ48\Final\IZ48_230705_sess22','IZ48\Final\IZ48_230714_sess28'};  
-  
+    'IZ44\Final\IZ44_220915_sess13','IZ44\Final\IZ44_220920_sess15',...
+    'IZ47\Final\IZ47_230626_sess15','IZ47\Final\IZ47_230707_sess24','IZ47\Final\IZ47_230710_sess25',...
+    'IZ47\Final\IZ47_230712_sess27'};  
+
+PGAMpath = 'Z:\Buzsakilabspace\LabShare\AthinaApostolelli\PGAM\postprocess';
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
 
 for tt = 1:15
@@ -44,10 +43,6 @@ end
 for ii = 1:length(sess)
     %% Load files
     cd(strcat(expPath,sess{ii}))    
-    file = dir(['*.rateMapsAvg.cellinfo.mat']);
-    load(file(1).name);
-    file = dir(['*.rateMapsTrial.cellinfo.mat']);
-    trialMaps = load(file(1).name);    
     file = dir(['*.Tracking.Behavior.mat']);
     load(file(1).name);
     file = dir(['*TrialBehavior.Behavior.mat']);
@@ -55,10 +50,13 @@ for ii = 1:length(sess)
     file = dir(['*spikes.cellinfo.mat']);
     load(file(1).name);       
     [sessionInfo] = bz_getSessionInfo(pwd,'noPrompts', true);
-    file = dir(['*cell_metrics.cellinfo.mat']);
-    load(file(1).name);
     file = dir(['*.DigitalIn.Events.mat']);
     load(file(1).name);
+    
+    fileloc = strcat(PGAMpath,'\',sess{ii}(1:4),'\',sess{ii}(12:end),'\',sess{ii}(12:end),'.postprocessPGAM.mat');
+    load(fileloc)
+     
+    lickCellIDs = resultsPGAM.tuned_licksP;
     
     licktimes = [];
     lickport1 = [];
@@ -110,7 +108,9 @@ for ii = 1:length(sess)
                 v(ss) = tracking.position.vy(idx(ss));
             end                       
 
-            if ~isempty(st)               
+            if isempty(st)
+                continue
+            else
                 st = st(v>1);  
             end           
 
@@ -164,58 +164,20 @@ for ii = 1:length(sess)
             idx = behavTrials.lickLoc==(tt-10) & behavTrials.linTrial ==0;
             st = behavTrials.timestamps(idx,2)-0.03;
         end
-
-        for kk=1:length(cell_metrics.UID)
-        %% Extract pyramidal cells and calculate rate map correlations and information         
-            if strcmp(cell_metrics.putativeCellType{kk},'Pyramidal Cell') == 1 
-                cellType = 1;
-            else
-                cellType = 0;
-            end
             
-            dataMatTone = [];
-            for jj = 2:7    
-                a = fillmissing(firingMaps.tone.rateMaps{kk}{jj},'linear');
-                dataMatTone = [dataMatTone;a];
-            end                 
-            toneMap = nanmean(dataMatTone,1);        
-
-            corrTone = []; 
-            for pp = 1:6
-               for jj = (pp+1):6           
-                   a = corrcoef(dataMatTone(pp,:),dataMatTone(jj,:),'rows','complete');         
-                   corrTone = [corrTone a(1,2)];
-               end
-            end     
-            toneCorr = nanmean(corrTone);  
-
-            %% Detect fields
-            Field_Info = detectFields(toneMap);
-            if isempty(Field_Info)
-                toneField = 0;
-            else 
-                toneField = 1;
-            end                
-            % If its a lick cell, calculate its PSTH in response to each
-                    % trial type, correct, incorrect, return
-            [~,idxMax] = max(toneMap);
-            if cellType == 1 && (toneField == 1) && (toneCorr > 0.1) && idxMax>40
-                if ~isempty(st)
-                    [stccg, tPSTH] = CCG({spikes.times{kk} st},[],'binSize',0.1,'duration',2,'norm','rate');                
-                    Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; stccg(:,2,1)'];               
-                else
-                    fillArr(1,1:21) = nan;
-                    Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; fillArr];       
-                    if tt == 3
-                        disp('Here')
-                    end
-                end
+        for kk=1:length(lickCellIDs)        
+            if ~isempty(st)
+                [stccg, tPSTH] = CCG({spikes.times{lickCellIDs(kk)} st},[],'binSize',0.1,'duration',4,'norm','rate');                
+                Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; stccg(:,2,1)'];               
+            else
+                fillArr(1,1:41) = nan;
+                Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; fillArr];               
             end
         end
     end
 end
 
-save('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\LickPSTHSummary.mat', 'Summary'); 
+save('C:\Users\ipshi\Desktop\Summary.mat', 'Summary'); 
 
 if plotfig
 

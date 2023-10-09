@@ -1,4 +1,4 @@
-function getToneMapsAvg7Ports(varargin)
+function getToneMapsAvg7Ports2D(varargin)
 
 %% Defaults and Parms
 p = inputParser;
@@ -12,6 +12,7 @@ basepath = p.Results.basepath;
 toneMap = p.Results.toneMap;
 plotfig = p.Results.plotfig;
 var = p.Results.var;
+
 
 %% Deal with inputse
 if ~isempty(dir([basepath filesep '*.Tracking.Behavior.mat'])) 
@@ -36,146 +37,47 @@ end
 
 fprintf('Computing place fields\n');
 
-% Compute three sets of maps. Forward mapped to space, forward, mapped to
-% tone, and reverse. 
-%Get the index for different conditions
+%Compute 2-D ratemaps for No Tone, NoTone first half, NoTone Second half,
+%Tone 6, and No Tone second block
+
 linIdx = find(behavTrials.linTrial==1);
 jumpLin = find(diff(linIdx)>1);
 
 if isempty(jumpLin)
     idx{1}= behavTrials.linTrial==1; % Idx of initial runs  
-    idx{30}(1:length(behavTrials.linTrial)) = 0;
-    idx{30}(linIdx(1:round(length(linIdx)/2))) = 1; % Idx of first half of initial runs
+    idx{2}(1:length(behavTrials.linTrial)) = 0;
+    idx{2}(linIdx(1:round(length(linIdx)/2))) = 1; % Idx of first half of initial runs
     
-    idx{31}(1:length(behavTrials.linTrial)) = 0;
-    idx{31}(linIdx(round(length(linIdx)/2)+1:end)) = 1; % Idx of second half of initial runs
+    idx{3}(1:length(behavTrials.linTrial)) = 0;
+    idx{3}(linIdx(round(length(linIdx)/2)+1:end)) = 1; % Idx of second half of initial runs
     
-    idx{32} = []; % Idx of later runs         
+    idx{4} = []; % Idx of later runs         
 else
     idx{1}(1:length(behavTrials.linTrial)) = 0;
     idx{1}(linIdx(1:jumpLin)) = 1; % Idx of initial runs
     
-    idx{30}(1:length(behavTrials.linTrial)) = 0;
-    idx{30}(linIdx(1:round(jumpLin/2))) = 1; % Idx of first half of initial runs
+    idx{2}(1:length(behavTrials.linTrial)) = 0;
+    idx{2}(linIdx(1:round(jumpLin/2))) = 1; % Idx of first half of initial runs
     
-    idx{31}(1:length(behavTrials.linTrial)) = 0;
-    idx{31}(linIdx(round(jumpLin/2)+1:jumpLin)) = 1; % Idx of second half of initial runs
+    idx{3}(1:length(behavTrials.linTrial)) = 0;
+    idx{3}(linIdx(round(jumpLin/2)+1:jumpLin)) = 1; % Idx of second half of initial runs
     
-    idx{32}(1:length(behavTrials.linTrial)) = 0;
-    idx{32}(linIdx(jumpLin+1:end)) = 1; % Idx of later runs      
+    idx{4}(1:length(behavTrials.linTrial)) = 0;
+    idx{4}(linIdx(jumpLin+1:end)) = 1; % Idx of later runs      
 end
-for zz = [1 30 31 32]
+for zz = 1:4
     idx{zz} = logical(idx{zz});
 end
 
-%No stim strials/mp probe trials
-idx{2} = behavTrials.toneGain ==0 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{3} = behavTrials.toneGain ==1 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{4} = behavTrials.toneGain ==2 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{5} = behavTrials.toneGain ==3 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{6} = behavTrials.toneGain ==4 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{7} = behavTrials.toneGain ==5 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{8} = behavTrials.toneGain ==0 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{9} = behavTrials.toneGain ==1 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{10} = behavTrials.toneGain ==2 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{11} = behavTrials.toneGain ==3 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{12} = behavTrials.toneGain ==4 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{13} = behavTrials.toneGain ==5 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;    
-
-% Stim trials/probe trials
-idx{14} = behavTrials.toneGain ==0 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{15} = behavTrials.toneGain ==1 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{16} = behavTrials.toneGain ==2 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{17} = behavTrials.toneGain ==3 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{18} = behavTrials.toneGain ==4 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{19} = behavTrials.toneGain ==5 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{20} = behavTrials.toneGain ==0 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{21} = behavTrials.toneGain ==1 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{22} = behavTrials.toneGain ==2 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{23} = behavTrials.toneGain ==3 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{24} = behavTrials.toneGain ==4 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{25} = behavTrials.toneGain ==5 & behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;  
-
-%correct vs incorrect
-idx{26} = behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
-idx{27} = behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;  
-idx{28} = behavTrials.correct==0 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;
-idx{29} = behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==1;  
-
-gain = [120/11.6, 120/32.27 120/55.53 120/79.62 120/102.79 120/120];
-freqExp = log10(22000/1000);
+%No stim strials
+idx{5} = behavTrials.toneGain ==5 & behavTrials.correct==1 & behavTrials.linTrial ==0 & behavTrials.(var) ==0;
 
 for ii = 1:length(idx)    
-    if ii<26
-        [idxPos] = InIntervals(tracking.timestamps,behavTrials.timestamps(idx{ii}(1:(end-1)),:));   
-        positions.forward{ii} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)];
-        if ii==1
-            positions.tone{ii} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)*nan];
-            kk = 0;
-        elseif ii<=7
-            kk = ii-1;
-        elseif ii<=13
-            kk = ii-7;
-        elseif ii<=19
-            kk = ii-13;
-        elseif ii<=25
-            kk = ii-19;            
-        end
-
-        if kk >0
-            y = tracking.position.y(idxPos); 
-            tonepos = [];
-            for jj = 1:length(y)
-                freq = (y(jj)*gain(kk))/122;
-                tonepos(jj) = (1000*(10.^(freqExp*freq)));
-            end
-            tonepos(tonepos>25000) = nan;        
-            if isempty(tracking.timestamps(idxPos))
-                positions.tone{ii} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)];    
-            else
-                positions.tone{ii} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tonepos'];    
-            end
-                
-        end  
-        if ii == 1 || ii == 7
-            idPos = find(idx{ii}(1:(end-1)));
-            % Only take moments when vy is negative
-            [~,~,~,vx,vy,~,~] = KalmanVel(tracking.position.x,tracking.position.y,tracking.timestamps,2);
-            x_temp = tracking.position.x;
-            x_temp(vy>=-2) = nan;
-            
-            y_temp = tracking.position.y;
-            y_temp(vy>=-2) = nan;
-            
-            [idxPos] = InIntervals(tracking.timestamps,[behavTrials.timestamps(idPos,2) behavTrials.timestamps(idPos+1,1)]);
-            if ii== 1
-                positions.reverse{ii}= [tracking.timestamps(idxPos) x_temp(idxPos) y_temp(idxPos)];             
-            elseif ii == 7
-                positions.reverse{2}= [tracking.timestamps(idxPos) x_temp(idxPos) y_temp(idxPos)];    
-            end
-        end
-    elseif ii<30
-        idPos = find(idx{ii}(1:(end-1)));
-        [idxPos] = InIntervals(tracking.timestamps,[behavTrials.timestamps(idPos,2) behavTrials.timestamps(idPos+1,1)]);  
-        positions.reverse{ii-23}= [tracking.timestamps(idxPos) x_temp(idxPos) y_temp(idxPos)]; 
-    else
-        [idxPos] = InIntervals(tracking.timestamps,behavTrials.timestamps(idx{ii}(1:(end-1)),:));
-        if ~isempty(idxPos)
-            positions.forward{ii-4} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)];
-        end
-        
-        idPos = find(idx{ii}(1:(end-1)));
-        [idxPos] = InIntervals(tracking.timestamps,[behavTrials.timestamps(idPos,2) behavTrials.timestamps(idPos+1,1)]);  
-        positions.reverse{ii-23}= [tracking.timestamps(idxPos) x_temp(idxPos) y_temp(idxPos)];        
-    end
-    
+    [idxPos] = InIntervals(tracking.timestamps,behavTrials.timestamps(idx{ii}(1:(end-1)),:));   
+    positions.forward{ii} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)];        
 end
 
-firingMaps.forward = bz_getRateMaps(positions.forward,spikes,'xRange',[0 6],'yRange',[0 125], 'binSize',2.5,'saveMat',false);
-if toneMap
-   firingMaps.tone = bz_getRateMaps(positions.tone,spikes,'xRange',[0 6],'yRange',[2000 22000], 'binSize',400,'minOccupancy',0,'saveMat',false);    
-end
-firingMaps.reverse = bz_getRateMaps(positions.reverse,spikes,'xRange',[0 6],'yRange',[0 125], 'binSize',2.5,'saveMat',false);
+firingMaps.forward = bz_getRateMaps(positions.forward,spikes,'lin',false,'xRange',[0 6],'yRange',[0 124],'minOccupancy',0.02,'binSize',1,'saveMat',false);
 
 firingMaps.linTrial = behavTrials.linTrial(1:(end-1));
 firingMaps.toneTrial = behavTrials.toneTrial(1:(end-1));
@@ -183,7 +85,7 @@ firingMaps.toneGain = behavTrials.toneGain(1:(end-1));
 firingMaps.correct = behavTrials.correct(1:(end-1));
 firingMaps.numLicks = behavTrials.numLicks(1:(end-1),:);
 
-save([sessionInfo.FileName '.rateMapsAvg.cellinfo.mat'],'firingMaps'); 
+save([sessionInfo.FileName '.rateMapsAvg2D.cellinfo.mat'],'firingMaps'); 
 
 labels = {'forward','tone','reverse'};
 col = [176/243 223/243 229/243; 149/243 200/243 216/243; 137/243 207/243 240/243;

@@ -244,11 +244,13 @@ end
 
 % %% BatchAnalysis
 % for ii = 1:size(allSess,1)
-%     fprintf(' ** Summary %3.i of %3.i... \n',ii, size(allSess,1));
 %     cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
-%     if forceSum || (~isempty(dir('*Kilosort*')) && isempty(dir('summ'))) % is kilosorted but no summ
-%       %  AnalysisBatchTheta;         
-%     end
+%     getToneTracking
+% %     fprintf(' ** Summary %3.i of %3.i... \n',ii, size(allSess,1));
+% %     cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
+% %     if forceSum || (~isempty(dir('*Kilosort*')) && isempty(dir('summ'))) % is kilosorted but no summ
+% %       %  AnalysisBatchTheta;         
+% %     end
 % end
 
 end

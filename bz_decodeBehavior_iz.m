@@ -42,7 +42,7 @@ addParameter(p,'dim_bins',[]);
 addParameter(p,'frequency',1,@isnumeric);
 addParameter(p,'Ncrossval',10,@isnumeric);
 addParameter(p,'UIDs',[],@isnumeric);
-addParameter(p,'minspeed',5,@isnumeric); % minimum speed / second (default 5 m/s)
+addParameter(p,'minspeed',2,@isnumeric); % minimum speed / second (default 5 m/s)
 addParameter(p,'templ_filters',{},@iscell); % nfilters x 2 cell with filter - dimension pairs of 1D filters.
 addParameter(p,'time_smooth',0.5,@isnumeric); % Temporal smoothing / binning (seconds);
 addParameter(p,'min_occup',0,@isnumeric);
@@ -156,7 +156,7 @@ for d = length(dim_names):-1:1
     v(d,:) = conv(v(d,:),fspecial('gauss',[1 round(3*behavior.samplingRate)],behavior.samplingRate),'same'); % Filter at 1Hz standard
 end
 v = sqrt(nansum(v.^2,1)); % Euclidean distance
-moving = v>minspeed & (behavior.position.lin(tidcs)>lbound)';
+moving = v>minspeed & (behavior.position.(dim_names{d})(tidcs)>lbound)';
 
 % Sub-sample timestamps for increased performance
 % smp_idcs = round(tidcs(1) : behavior.samplingRate / frequency : tidcs(end));
@@ -293,11 +293,12 @@ for d = 1:size(results_dec.pPostM,1)
     end
 end     
 %%
-if ~exist('BayesDecoding', 'dir')
+if ~exist(strcat(basepath,'\BayesDecoding'), 'dir')
    mkdir('BayesDecoding')
 end
 %% Plot results_dec
 if plot_results
+    
     % Get regular timestamps and linear behavior
     ts_plot = (0:length(results_dec.timestamps)-1)/results_dec.frequency;
     

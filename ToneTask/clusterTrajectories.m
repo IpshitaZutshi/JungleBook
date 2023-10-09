@@ -1,9 +1,9 @@
-function [posXtrial posXLabel T] = clusterTrajectories(varargin);
+function [posXtrial,posXLabel,T,positions,lin_begin,lin_end,tone6,posX,posY] = clusterTrajectories(varargin)
 
 %% Defaults and Parms
 p = inputParser;
 addParameter(p,'basepath',pwd,@isstr);
-addParameter(p,'plotfig',pwd,@islogical);
+addParameter(p,'plotfig',false,@islogical);
 
 parse(p,varargin{:});
 basepath = p.Results.basepath;
@@ -29,7 +29,7 @@ end
 
 % Port locations
 
-portLoc = [1 12 20 32 40 55 80 103 120];
+portLoc = [1 5 12 20 32 40 55 80 103 120];
 %portLoc = [1:10:120];
 
 % Initial lin trials

@@ -1,29 +1,43 @@
-function sessionRemappingTrajectorynoToneVer2
+function Summary = sessionRemappingTrajectorynoToneVer2
 
- sess = {'IZ43\Final\IZ43_220919_sess14'};
-% sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
-%     'IZ39\Final\IZ39_220702_sess14','IZ39\Final\IZ39_220714_sess18',...
-%     'IZ39\Final\IZ39_220705_sess16','IZ39\Final\IZ39_220707_sess17',...   
-%     'IZ40\Final\IZ40_220705_sess15','IZ40\Final\IZ40_220707_sess16',...
-%     'IZ40\Final\IZ40_220708_sess17','IZ40\Final\IZ40_220714_sess18',...
-%     'IZ43\Final\IZ43_220826_sess2','IZ43\Final\IZ43_220828_sess4',...
-%     'IZ43\Final\IZ43_220830_sess6','IZ43\Final\IZ43_220901_sess8',...
-%     'IZ43\Final\IZ43_220911_sess9','IZ43\Final\IZ43_220913_sess11','IZ43\Final\IZ43_220919_sess14',...
-%     'IZ43\Final\IZ43_220915_sess13','IZ43\Final\IZ43_220920_sess15',...    
-%     'IZ44\Final\IZ44_220827_sess4', 'IZ44\Final\IZ44_220828_sess5',...
-%     'IZ44\Final\IZ44_220829_sess6','IZ44\Final\IZ44_220830_sess7',...
-%     'IZ44\Final\IZ44_220912_sess10','IZ44\Final\IZ44_220913_sess11','IZ44\Final\IZ44_220919_sess14',...
-%     'IZ44\Final\IZ44_220915_sess13','IZ44\Final\IZ44_220920_sess15',...
-%     }; 
+ sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
+    'IZ39\Final\IZ39_220702_sess14','IZ39\Final\IZ39_220714_sess18',...
+    'IZ39\Final\IZ39_220705_sess16','IZ39\Final\IZ39_220707_sess17',...   23
+    'IZ40\Final\IZ40_220705_sess15','IZ40\Final\IZ40_220707_sess16',...
+    'IZ40\Final\IZ40_220708_sess17','IZ40\Final\IZ40_220714_sess18',...27
+    'IZ43\Final\IZ43_220826_sess2','IZ43\Final\IZ43_220828_sess4',...
+    'IZ43\Final\IZ43_220830_sess6','IZ43\Final\IZ43_220901_sess8',...
+    'IZ43\Final\IZ43_220911_sess9','IZ43\Final\IZ43_220913_sess11','IZ43\Final\IZ43_220919_sess14',...
+    'IZ43\Final\IZ43_220915_sess13','IZ43\Final\IZ43_220920_sess15',...    36
+    'IZ44\Final\IZ44_220827_sess4', 'IZ44\Final\IZ44_220828_sess5',...
+    'IZ44\Final\IZ44_220829_sess6','IZ44\Final\IZ44_220830_sess7',...
+    'IZ44\Final\IZ44_220912_sess10','IZ44\Final\IZ44_220913_sess11','IZ44\Final\IZ44_220919_sess14',...
+    'IZ44\Final\IZ44_220915_sess13','IZ44\Final\IZ44_220920_sess15',... 45
+    'IZ47\Final\IZ47_230707_sess24',...
+    'IZ47\Final\IZ47_230710_sess25','IZ47\Final\IZ47_230712_sess27',...49
+    'IZ48\Final\IZ48_230628_sess17','IZ48\Final\IZ48_230703_sess21',...
+    'IZ48\Final\IZ48_230705_sess22','IZ48\Final\IZ48_230714_sess28'};  
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
-plotfig = 1;
+plotfig = 0;
 
 YlGnBu=cbrewer('seq', 'YlGnBu', 11);
 
 AllCellsCorr = [];
 AllCellsSimPre = [];
 AllCellsSim = [];
+
+AllCellsRateMapLin1 = [];
+AllCellsRateMapLin2 = [];
+AllCellsRateMapTone1 = [];
+AllCellsRateMapTone2 = [];
+AllCellsRateMapLinEnd1 = [];
+AllCellsRateMapLinEnd2 = [];
+
+AllCellsRateMapLinFirstHalf = [];
+AllCellsRateMapLinSecondHalf = [];      
+AllCellsRateMapToneFirstHalf = [];
+AllCellsRateMapToneSecondHalf = [];
 
 for ii = 1:length(sess)
     
@@ -42,7 +56,7 @@ for ii = 1:length(sess)
     load(file(1).name);    
     
     % Cluster trajectories and extract similar trials
-    [trialNum, trialLabel, trajectLabel] = clusterTrajectories;
+    [trialNum, trialLabel, trajectLabel] = clusterTrajectories('plotfig',false);
     
     % Check if the post-tone trials have more similarity to the no tone or
     % tone    
@@ -63,9 +77,11 @@ for ii = 1:length(sess)
     end
     
     for kk=1:length(cell_metrics.UID)
-        for zz = 1:6
+        for zz = 1:10
             Maps{zz} = [];
         end
+        avgMaps = [];
+        
         %% First, only extract cells with a field in either of the three
         %trial types
         linMapInit = firingMaps.forward.rateMaps{kk}{1};
@@ -76,47 +92,29 @@ for ii = 1:length(sess)
         Field1 = detectFields(linMapInit);
         Field2 = detectFields(toneMap);
         Field3 = detectFields(linMapEnd);
-        
-        if isempty(Field1) && isempty(Field2) && isempty(Field3)
-            continue
-        end
-        
 
-        corrMap = [];
         simil  = [];
         similPre = [];
-        corr = corrcoef(linMapInit',linMapEnd','rows','complete');
-        corrMap(1) = corr(1,2); %
-        corr = corrcoef(linMapInit',toneMap','rows','complete');
-        corrMap(2) = corr(1,2); %        
-        corr = corrcoef(toneMap',linMapEnd','rows','complete');
-        corrMap(3) = corr(1,2); %        
-
-        % Skip sessions that have less than 5 post-tone trial linear trials of
-        % a particular type
-        if sum(trialLabel==3 & trajectLabel==typePost)<5
-            AllCellsCorr = [AllCellsCorr; corrMap nan nan nan];
-            AllCellsSim = [AllCellsSim;sim];
-            AllCellsSimPre = [AllCellsSimPre;simPre];
-            continue;
-        end
-            
-        %% Now extract firing map of each category according to trajectories
         
+        if isempty(Field1) && isempty(Field2)% && isempty(Field3)
+            continue
+        end
+
+        %% Now extract firing map of each category according to trajectories        
         for zz = 1:6
             switch zz
                 case 1
-                    idx = trialLabel == 1 & trajectLabel == typePre;
+                    idx = (trialLabel == 1) & trajectLabel == 1;
                 case 2
-                    idx = trialLabel == 1 & trajectLabel == typeTone;                     
+                    idx = (trialLabel == 1) & trajectLabel == 2;                     
                 case 3
-                    idx = trialLabel == 2 & trajectLabel == typePre;
+                    idx = trialLabel == 2 & trajectLabel == 1;
                 case 4
-                    idx = trialLabel == 2 & trajectLabel == typeTone;
+                    idx = trialLabel == 2 & trajectLabel == 2;
                 case 5
-                    idx = trialLabel == 3 & trajectLabel == typePre;                     
+                    idx = trialLabel == 3 & trajectLabel == 1;                     
                 case 6
-                    idx = trialLabel == 3 & trajectLabel == typeTone;                    
+                    idx = trialLabel == 3 & trajectLabel == 2;                    
                                  
             end
             
@@ -133,11 +131,59 @@ for ii = 1:length(sess)
             
         end
         
+        % Also take subsets of within stability
+        idx = find(trialLabel == 1 & trajectLabel == typePre);
+        trialIdx1 = trialNum(idx(1:floor(length(idx)/2)));
+        trialIdx2 = trialNum(idx(floor(length(idx)/2)+1:end));
+        
+        for tt = 1:length(trialIdx1)
+            Maps{7} = [Maps{7};firingMapsTrial.firingMaps.forward.rateMaps{kk}{trialIdx1(tt)}];
+        end
+        for tt = 1:length(trialIdx2)
+            Maps{8} = [Maps{8};firingMapsTrial.firingMaps.forward.rateMaps{kk}{trialIdx2(tt)}];
+        end
+            
+        if isempty(Field1)
+            avgMaps(7,1:50) = nan;
+            avgMaps(8,1:50) = nan;
+        else
+            avgMaps(7,:) = nanmean(Maps{7},1);
+            avgMaps(8,:) = nanmean(Maps{8},1);
+        end
+        
+        % Also take subsets of within tone stability
+        idx = find(trialLabel == 2 & trajectLabel == typeTone);
+        trialIdx1 = trialNum(idx(1:floor(length(idx)/2)));
+        trialIdx2 = trialNum(idx(floor(length(idx)/2)+1:end));
+        
+        for tt = 1:length(trialIdx1)
+            Maps{9} = [Maps{9};firingMapsTrial.firingMaps.forward.rateMaps{kk}{trialIdx1(tt)}];
+        end
+        for tt = 1:length(trialIdx2)
+            Maps{10} = [Maps{10};firingMapsTrial.firingMaps.forward.rateMaps{kk}{trialIdx2(tt)}];
+        end
+            
+        if isempty(Field2)
+            avgMaps(9,1:50) = nan;
+            avgMaps(10,1:50) = nan;
+        else
+            avgMaps(9,:) = nanmean(Maps{9},1);
+            avgMaps(10,:) = nanmean(Maps{10},1);
+        end
+        
+        AllCellsRateMapLin1 = [AllCellsRateMapLin1;avgMaps(1,:)];
+        AllCellsRateMapLin2 = [AllCellsRateMapLin2;avgMaps(2,:)];
+        AllCellsRateMapTone1 = [AllCellsRateMapTone1;avgMaps(3,:)];
+        AllCellsRateMapTone2 = [AllCellsRateMapTone2;avgMaps(4,:)];
+        AllCellsRateMapLinFirstHalf = [AllCellsRateMapLinFirstHalf;avgMaps(7,:)];
+        AllCellsRateMapLinSecondHalf = [AllCellsRateMapLinSecondHalf;avgMaps(8,:)];
+        AllCellsRateMapToneFirstHalf = [AllCellsRateMapToneFirstHalf;avgMaps(9,:)];
+        AllCellsRateMapToneSecondHalf = [AllCellsRateMapToneSecondHalf;avgMaps(10,:)];
+        
         corrMatrix = corrcoef(avgMaps','Rows','pairwise');
         C = tril(corrMatrix,-1);
         C = C(isnan(C) | C~=0);
-        
-        corrMap = [corrMap C'];
+
         simil = [simil sim];
         similPre = [similPre simPre];
         
@@ -177,78 +223,40 @@ for ii = 1:length(sess)
             close all
         end
             
-        AllCellsCorr = [AllCellsCorr;corrMap];
+        AllCellsCorr = [AllCellsCorr;C'];
         AllCellsSim = [AllCellsSim;simil];
         AllCellsSimPre = [AllCellsSimPre;similPre];
     end
 end
 
-for ii = 1:3
-    data1{ii} = AllCellsCorr(:,ii); 
-end
-dat = AllCellsCorr(:,2);
-data4{1} = dat(AllCellsSimPre==0);
-data4{2} = dat(AllCellsSimPre==1);
+a = corr(AllCellsRateMapLinFirstHalf',AllCellsRateMapLinSecondHalf','rows','pairwise');
+b = diag(a);
 
-for ii = 4:6
-    dat = AllCellsCorr(:,ii);
-    data2{ii-3} = dat(AllCellsSim == 1 & AllCellsSimPre==0);
-    data3{ii-3} = dat(AllCellsSim == 0 & AllCellsSimPre==0);
-end
+a1 = corr(AllCellsRateMapLin1',AllCellsRateMapLin2','rows','pairwise');
+b1 = diag(a1);
 
-figure
-subplot(1,4,1)
-stats1 = groupStats(data1,{},'inAxis',true,'repeatedMeasures',true);
-subplot(1,4,2)
-stats2 = groupStats(data2,{},'inAxis',true,'repeatedMeasures',true);
-subplot(1,4,3)
-stats3 = groupStats(data3,{},'inAxis',true,'repeatedMeasures',true);
-subplot(1,4,4)
-stats3 = groupStats(data4,{},'inAxis',true);
+a2 = corr(AllCellsRateMapLin1',AllCellsRateMapTone1','rows','pairwise');
+b2 = diag(a2);
 
-    saveas(gcf,strcat(expPath,'Compiled\TrajectoryRemappingMaps.png'));
-    saveas(gcf,strcat(expPath,'Compiled\TrajectoryRemappingMaps.eps'),'epsc');
-    saveas(gcf,strcat(expPath,'Compiled\TrajectoryRemappingMaps.fig'));
-end
+a3 = corr(AllCellsRateMapLin1',AllCellsRateMapTone2','rows','pairwise');
+b3 = diag(a3);
 
-function Field_Info = detectFields(SmoothedFiringRate)
-    minFieldSize = 10;
-    maxFieldSize = 40;
-    % Pad on each end with zeros for edge effects
-    SmoothedFiringRate = [0 0 SmoothedFiringRate 0 0];
-    [peakValues, peakLocations] = findpeaks(SmoothedFiringRate, 'minpeakheight',5, 'minpeakdistance', 10);
-    Field_Info = [];
-    for j = 1:length(peakLocations)
-        FieldPeak = peakLocations(j);
-        % FieldPeak must be 8 Hz or more
-        if peakValues(j) < 8, continue, end
-        LookForward = FieldPeak+1:length(SmoothedFiringRate);
-        LookBack = 1:FieldPeak-1;
-        PercentPeakRate_Forward = SmoothedFiringRate(LookForward)./peakValues(j);
-        PercentPeakRate_Back = SmoothedFiringRate(LookBack)./peakValues(j);
-        tempInd1 = find(PercentPeakRate_Forward < .2);
-        if isempty(tempInd1), continue, end
-        FieldEnd = FieldPeak+tempInd1(1); % this is the first bin forward of the animal that has a FR less than 20% of the peak rate
-        tempInd2 = find(PercentPeakRate_Back < .2);
-        if isempty(tempInd2)
-            FieldStart = 1;
-        else
-            FieldStart = tempInd2(end); % this is the first bin forward of the animal that has a FR less than 20% of the peak rate
-        end
-        % Field must be more than 10 cm and less than 80cm
-        if FieldEnd>FieldStart && FieldEnd-FieldStart < minFieldSize, continue, end
-        if FieldEnd>FieldStart && FieldEnd-FieldStart > maxFieldSize, continue, end        
-        if FieldEnd>50
-            FieldEnd = 50;
-        else
-            FieldEnd = FieldEnd-2;
-        end
-        if FieldStart<3
-            FieldStart = 1;
-        else
-            FieldStart = FieldStart-2;
-        end
-        Field_Info = [Field_Info;FieldStart, FieldEnd, FieldPeak];
-    end
+a4 = corr(AllCellsRateMapLin2',AllCellsRateMapTone2','rows','pairwise');
+b4 = diag(a4);
+
+a5 = corr(AllCellsRateMapLin2',AllCellsRateMapTone1','rows','pairwise');
+b5 = diag(a5);
+
+a6 = corr(AllCellsRateMapTone1',AllCellsRateMapTone2','rows','pairwise');
+b6 = diag(a6);
+
+a7 = corr(AllCellsRateMapToneFirstHalf',AllCellsRateMapToneSecondHalf','rows','pairwise');
+b7 = diag(a7);
+
+Summary.comp1 = [b;b7];
+Summary.comp2 = [b1; b6];
+Summary.comp3 = [b2; b4];
+Summary.comp4 = [b3; b5];
 
 end
+

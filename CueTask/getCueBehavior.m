@@ -198,7 +198,7 @@ if plotfig
 %     plot(behavCue)
 %     title(num2str(numCue))
 %     xlim([0 4])
-%         
+        
     mkdir('Behavior');
     saveas(gcf,'Behavior\cueBehavior.png');
 end
