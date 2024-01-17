@@ -5,7 +5,7 @@ set(fig2,'Renderer','painters')
 set(fig2,'Color','w')
 set(fig2,'Position',[680 42 975 962]);
 
-numrows = 30;
+numrows = 33;
 numcol = 8;
 
 sessID = [29 47 40 31];
@@ -115,6 +115,10 @@ colormap(ax1, YlGnBu)
 ylabel(strcat('Cell ID ',num2str(length(sortidx))))
 caxis([-1 3])
 title('No tone I')
+ax1 = subplot(numrows,numcol,[(numcol*21)+1 (numcol*21)+2 (numcol*22)+1 (numcol*22)+2 (numcol*23)+1 (numcol*23)+2]);
+plot(linPos, nanmean(normlinMap,1));
+ylim([-0.5 1])
+box off
 
 ax1 = subplot(numrows,numcol,[(numcol*16)+3 (numcol*16)+4 (numcol*17)+3 (numcol*17)+4 (numcol*18)+3 (numcol*18)+4 (numcol*19)+3 (numcol*19)+4]);
 imagesc(linPos, 1:length(sortidx),normspaceMap(sortidx,:))
@@ -122,6 +126,10 @@ colormap(ax1, YlGnBu)
 caxis([-1 3])
 axis off
 title('Tone - space')
+ax1 = subplot(numrows,numcol,[(numcol*21)+3 (numcol*21)+4 (numcol*22)+3 (numcol*22)+4 (numcol*23)+3 (numcol*23)+4]);
+plot(linPos, nanmean(normspaceMap,1));
+ylim([-0.5 1])
+box off
 
 ax1 = subplot(numrows,numcol,[(numcol*16)+5 (numcol*16)+6 (numcol*17)+5 (numcol*17)+6 (numcol*18)+5 (numcol*18)+6 (numcol*19)+5 (numcol*19)+6]);
 imagesc(linTone, 1:length(sortidx),normtoneMap(sortidx,:))
@@ -137,6 +145,10 @@ colormap(ax1, YlGnBu)
 caxis([-1 3])
 axis off
 title('No tone II')
+ax1 = subplot(numrows,numcol,[(numcol*21)+7 (numcol*21)+8 (numcol*22)+7 (numcol*22)+8 (numcol*23)+7 (numcol*23)+8]);
+plot(linPos, nanmean(normlinMapEnd,1));
+ylim([-0.5 1])
+box off
 
 % Identify example cells on the heatmaps
 sortsessID = selectedsessID(sortidx);
@@ -154,7 +166,7 @@ end
 
 
 %% Fraction of tone tuned cells
-subplot(numrows,numcol,[(numcol*26)+7 (numcol*26)+8 (numcol*27)+7 (numcol*27)+8 (numcol*28)+7 (numcol*28)+8 (numcol*29)+7 (numcol*29)+8]);
+subplot(numrows,numcol,[(numcol*29)+7 (numcol*29)+8 (numcol*30)+7 (numcol*30)+8 (numcol*31)+7 (numcol*31)+8 (numcol*32)+7 (numcol*32)+8]);
 ss=2;
 sessIndices = unique(Summary.AllsessID(Summary.AllsessType==(ss-1)));
 for ll = 1:length(sessIndices)
@@ -185,45 +197,45 @@ normtoneMap = (Summary.AllrateMaptone-nanmean(Summary.AllrateMaptone,2))./nanstd
 BuPu=cbrewer('seq', 'BuPu', 11);
 YlGnBu=cbrewer('seq', 'YlGnBu', 11);
 
-ax1 = subplot(numrows,numcol,[(numcol*21)+1 (numcol*21)+2 (numcol*22)+1 (numcol*22)+2 (numcol*23)+1 (numcol*23)+2 (numcol*24)+1 (numcol*24)+2]);
+ax1 = subplot(numrows,numcol,[(numcol*24)+1 (numcol*24)+2 (numcol*25)+1 (numcol*25)+2 (numcol*26)+1 (numcol*26)+2 (numcol*27)+1 (numcol*27)+2]);
 imagesc(linPos, 1:length(sortidx),normlinMap(sortidx,:))
 colormap(ax1, YlGnBu)
 ylabel(strcat('Cell ID ',num2str(length(sortidx))))
 caxis([-1 3])
 title('No tone I')
 
-ax1 = subplot(numrows,numcol,[(numcol*21)+3 (numcol*21)+4 (numcol*22)+3 (numcol*22)+4 (numcol*23)+3 (numcol*23)+4 (numcol*24)+3 (numcol*24)+4]);
+ax1 = subplot(numrows,numcol,[(numcol*24)+3 (numcol*24)+4 (numcol*25)+3 (numcol*25)+4 (numcol*26)+3 (numcol*26)+4 (numcol*27)+3 (numcol*27)+4]);
 imagesc(linPos, 1:length(sortidx),normlinMap1(sortidx,:))
 colormap(ax1, YlGnBu)
 caxis([-1 3])
 title('No tone I first half')
 
-ax1 = subplot(numrows,numcol,[(numcol*21)+5 (numcol*21)+6 (numcol*22)+5 (numcol*22)+6 (numcol*23)+5 (numcol*23)+6 (numcol*24)+5 (numcol*24)+6]);
+ax1 = subplot(numrows,numcol,[(numcol*24)+5 (numcol*24)+6 (numcol*25)+5 (numcol*25)+6 (numcol*26)+5 (numcol*26)+6 (numcol*27)+5 (numcol*27)+6]);
 imagesc(linPos, 1:length(sortidx),normlinMap2(sortidx,:))
 colormap(ax1, YlGnBu)
 caxis([-1 3])
 title('No tone I second half')
 
-ax1 = subplot(numrows,numcol,[(numcol*21)+7 (numcol*21)+8 (numcol*22)+7 (numcol*22)+8 (numcol*23)+7 (numcol*23)+8 (numcol*24)+7 (numcol*24)+8]);
+ax1 = subplot(numrows,numcol,[(numcol*24)+7 (numcol*24)+8 (numcol*25)+7 (numcol*25)+8 (numcol*26)+7 (numcol*26)+8 (numcol*27)+7 (numcol*27)+8]);
 imagesc(linPos, 1:length(sortidx),normlinMapEnd(sortidx,:))
 colormap(ax1, YlGnBu)
 caxis([-1 3])
 title('No tone II')
 
-ax1 = subplot(numrows,numcol,[(numcol*26)+1 (numcol*26)+2 (numcol*27)+1 (numcol*27)+2 (numcol*28)+1 (numcol*28)+2 (numcol*29)+1 (numcol*29)+2]);
+ax1 = subplot(numrows,numcol,[(numcol*29)+1 (numcol*29)+2 (numcol*30)+1 (numcol*30)+2 (numcol*31)+1 (numcol*31)+2 (numcol*32)+1 (numcol*32)+2]);
 imagesc(linPos, 1:length(sortidx),normspaceMap(sortidx,:))
 colormap(ax1, YlGnBu)
 ylabel(strcat('Cell ID ',num2str(length(sortidx))))
 caxis([-1 3])
 title('Space')
 
-ax1 = subplot(numrows,numcol,[(numcol*26)+3 (numcol*26)+4 (numcol*27)+3 (numcol*27)+4 (numcol*28)+3 (numcol*28)+4 (numcol*29)+3 (numcol*29)+4]);
+ax1 = subplot(numrows,numcol,[(numcol*29)+3 (numcol*29)+4 (numcol*30)+3 (numcol*30)+4 (numcol*31)+3 (numcol*31)+4 (numcol*32)+3 (numcol*32)+4]);
 imagesc(linPos, 1:length(sortidx),normtoneMap(sortidx,:))
 colormap(ax1, BuPu)
 caxis([-1 3])
 title('Tone')
 
-subplot(numrows,numcol,[(numcol*26)+5 (numcol*26)+6 (numcol*27)+5 (numcol*27)+6 (numcol*28)+5 (numcol*28)+6 (numcol*29)+5 (numcol*29)+6]);
+subplot(numrows,numcol,[(numcol*29)+5 (numcol*29)+6 (numcol*30)+5 (numcol*30)+6 (numcol*31)+5 (numcol*31)+6 (numcol*32)+5 (numcol*32)+6]);
 bar([sum(Summary.AlllinField)./length(Summary.AlllinField) sum(Summary.AlllinFieldEnd)./length(Summary.AlllinFieldEnd)])
 box off
 %ylim([0 0.5])

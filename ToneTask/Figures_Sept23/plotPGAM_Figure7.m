@@ -203,8 +203,8 @@ nhist(dist,'probability','samebins')
 
 subplot(numrows,numcol,[(5:1:8)+(numcol*18) (5:1:8)+(numcol*19) (5:1:8)+(numcol*20)])
 scatter(Summary.mutInfoAll(idxBoth,1),Summary.mutInfoAll(idxBoth,4),10,[0.2 0.2 0.2],'filled','MarkerFaceAlpha',0.7)
-ylim([0 3.6])
-xlim([0 3.6])
+set(gca,'Yscale','log')
+set(gca,'Xscale','log')
 refline(1)
 xlabel('Mut Info, y')
 ylabel('Mut Info, Dist to stop')
@@ -224,6 +224,7 @@ kerStrength = Summary.kernelStrengthAll(idxLick==1,5:10);
 strengthChoice = kerStrength(:,1);
 strengthSpont = mean([kerStrength(:,2) kerStrength(:,4)],2);
 strengthHome = kerStrength(:,5);
+strengthNT = kerStrength(:,3);
 
 subplot(numrows,numcol,[(13:1:16)+(numcol*18) (13:1:16)+(numcol*19) (13:1:16)+(numcol*20)])
 scatter(strengthChoice, strengthHome,10,[0.3 0.3 0.3],'filled','MarkerFaceAlpha',0.7)
@@ -263,5 +264,70 @@ saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\Figure7_PGAM.png'));
 saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\Figure7_PGAM.eps'),'epsc');
 saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\Figure7_PGAM.fig'));
 %save(strcat(expPath,'\Compiled\Figures\Figure4_taskTuning',num2str(groupStyle),'.mat'),'Fig4Stats'); 
+close all
 
+%% Make a separate scatter plot figure
+fig2  = figure
+set(fig2,'Renderer','painters')
+set(fig2,'Color','w')
+set(fig2,'Position',[680 42 975 962]);
+
+subplot(2,3,1)
+scatter(strengthNT, strengthChoice,'.')
+hold on 
+lsline
+[R,p] = corrcoef(strengthNT, strengthChoice);
+title(strcat('R=',num2str(R(1,2)),',p=',num2str(p(1,2))))
+xlabel('NoTone')
+ylabel('Choice')
+
+subplot(2,3,2)
+scatter(strengthNT, strengthSpont,'.')
+hold on 
+lsline
+[R,p] = corrcoef(strengthNT, strengthSpont);
+title(strcat('R=',num2str(R(1,2)),',p=',num2str(p(1,2))))
+xlabel('NoTone')
+ylabel('Spont')
+
+subplot(2,3,3)
+scatter(strengthNT, strengthHome,'.')
+hold on 
+lsline
+[R,p] = corrcoef(strengthNT, strengthHome);
+title(strcat('R=',num2str(R(1,2)),',p=',num2str(p(1,2))))
+xlabel('NoTone')
+ylabel('Home')
+
+subplot(2,3,4)
+scatter(strengthChoice, strengthSpont,'.')
+hold on 
+lsline
+[R,p] = corrcoef(strengthChoice, strengthSpont);
+title(strcat('R=',num2str(R(1,2)),',p=',num2str(p(1,2))))
+xlabel('Choice')
+ylabel('Spont')
+
+subplot(2,3,5)
+scatter(strengthChoice, strengthHome,'.')
+hold on 
+lsline
+[R,p] = corrcoef(strengthChoice, strengthHome);
+title(strcat('R=',num2str(R(1,2)),',p=',num2str(p(1,2))))
+xlabel('Choice')
+ylabel('Home')
+
+subplot(2,3,6)
+scatter(strengthSpont, strengthHome,'.')
+hold on 
+lsline
+[R,p] = corrcoef(strengthSpont, strengthHome);
+title(strcat('R=',num2str(R(1,2)),',p=',num2str(p(1,2))))
+xlabel('Spont')
+ylabel('Home')
+
+expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task';
+saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\Figure7_PGAM_scatter.png'));
+saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\Figure7_PGAM_scatter.eps'),'epsc');
+saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\Figure7_PGAM_scatter.fig'));
 end

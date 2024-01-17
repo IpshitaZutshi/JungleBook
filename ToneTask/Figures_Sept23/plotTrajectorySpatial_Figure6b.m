@@ -81,13 +81,13 @@ hold on
 plot(avgVar,'color',col(1,:),'LineWidth',1.5)  
 
 avgVar = nanmean(Summary.stdTone6,1);
-stderrVar = nanstd(Summary.stdLin,[],1)/sqrt(size(Summary.stdLin,1));
+stderrVar = nanstd(Summary.stdTone6,[],1)/sqrt(size(Summary.stdTone6,1));
 fill([(1:1:length(avgVar))'; (length(avgVar):-1:1)'],[avgVar'-stderrVar';flipud(avgVar'+stderrVar')],col(2,:),'linestyle','none','FaceAlpha',0.2);
 hold on
 plot(avgVar,'color',col(2,:),'LineWidth',1.5)     
 
 avgVar = nanmean(Summary.stdLinEnd,1);
-stderrVar = nanstd(Summary.stdLin,[],1)/sqrt(size(Summary.stdLin,1));
+stderrVar = nanstd(Summary.stdLinEnd,[],1)/sqrt(size(Summary.stdLinEnd,1));
 fill([(1:1:length(avgVar))'; (length(avgVar):-1:1)'],[avgVar'-stderrVar';flipud(avgVar'+stderrVar')],col(3,:),'linestyle','none','FaceAlpha',0.2);
 hold on
 plot(avgVar,'color',col(3,:),'LineWidth',1.5)     
@@ -96,34 +96,34 @@ set(gca,'XTickLabels',[])
 ylim([0 1.2])
 title('ACgN')
 
-%% Panel E: Trajectory variance
-Summary = calculateTrajectoryVariance(1);
-col = [52/243 52/243 52/243;...
-    56/243 61/243 150/243;...
-    122/243 122/243 122/243];
+% %% Panel E: Trajectory variance
+% Summary = calculateTrajectoryVariance(1);
+% col = [52/243 52/243 52/243;...
+%     56/243 61/243 150/243;...
+%     122/243 122/243 122/243];
 
 subplot(numrows,numcol,[7+2*numcol 8+2*numcol 7+3*numcol 8+3*numcol])
-avgVar = nanmean(Summary.stdLin,1);
-stderrVar = nanstd(Summary.stdLin,[],1)/sqrt(size(Summary.stdLin,1));
+avgVar = nanmean(Summary.posLin,1);
+stderrVar = nanstd(Summary.posLin,[],1)/sqrt(size(Summary.posLin,1));
 fill([(1:1:length(avgVar))'; (length(avgVar):-1:1)'],[avgVar'-stderrVar';flipud(avgVar'+stderrVar')],col(1,:),'linestyle','none','FaceAlpha',0.2);
 hold on
 plot(avgVar,'color',col(1,:),'LineWidth',1.5)  
 
-avgVar = nanmean(Summary.stdTone6,1);
-stderrVar = nanstd(Summary.stdLin,[],1)/sqrt(size(Summary.stdLin,1));
+avgVar = nanmean(Summary.posTone6,1);
+stderrVar = nanstd(Summary.posTone6,[],1)/sqrt(size(Summary.posTone6,1));
 fill([(1:1:length(avgVar))'; (length(avgVar):-1:1)'],[avgVar'-stderrVar';flipud(avgVar'+stderrVar')],col(2,:),'linestyle','none','FaceAlpha',0.2);
 hold on
 plot(avgVar,'color',col(2,:),'LineWidth',1.5)     
 
-avgVar = nanmean(Summary.stdLinEnd,1);
-stderrVar = nanstd(Summary.stdLin,[],1)/sqrt(size(Summary.stdLin,1));
+avgVar = nanmean(Summary.posLinEnd,1);
+stderrVar = nanstd(Summary.posLinEnd,[],1)/sqrt(size(Summary.posLinEnd,1));
 fill([(1:1:length(avgVar))'; (length(avgVar):-1:1)'],[avgVar'-stderrVar';flipud(avgVar'+stderrVar')],col(3,:),'linestyle','none','FaceAlpha',0.2);
 hold on
 plot(avgVar,'color',col(3,:),'LineWidth',1.5)     
 box off
 set(gca,'XTickLabels',[])
-ylim([0 1.2])
-ylabel('Std dev (cm)')
+%ylim([0 1.2])
+ylabel('Avg x - position (cm)')
 
 %% Panel F: Clustering trajectories
 sessloc = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ44\Final\IZ44_220830_sess7';

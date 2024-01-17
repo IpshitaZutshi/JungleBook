@@ -33,13 +33,14 @@ sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Fin
     'IZ47\Final\IZ47_230626_sess15','IZ47\Final\IZ47_230707_sess24',...
     'IZ47\Final\IZ47_230710_sess25','IZ47\Final\IZ47_230712_sess27',...49
     'IZ48\Final\IZ48_230628_sess17','IZ48\Final\IZ48_230703_sess21',...
-    'IZ48\Final\IZ48_230705_sess22','IZ48\Final\IZ48_230714_sess28'};  
+    'IZ48\Final\IZ48_230705_sess22','IZ48\Final\IZ48_230714_sess28'};    
   
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
 
 for tt = 1:15
     Summary.psthReward.lickTypes{tt} = [];
 end
+Summary.sessID = [];
 
 for ii = 1:length(sess)
     %% Load files
@@ -198,16 +199,19 @@ for ii = 1:length(sess)
             end                
             % If its a lick cell, calculate its PSTH in response to each
                     % trial type, correct, incorrect, return
-            [~,idxMax] = max(toneMap);
-            if cellType == 1 && (toneField == 1) && (toneCorr > 0.1) && idxMax>40
+           % [~,idxMax] = max(toneMap);           
+            if cellType == 1 && (toneField == 1) && (toneCorr > 0.1) %&& idxMax>40
                 if ~isempty(st)
                     [stccg, tPSTH] = CCG({spikes.times{kk} st},[],'binSize',0.1,'duration',2,'norm','rate');                
                     Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; stccg(:,2,1)'];               
+                    if tt == 1                    
+                        Summary.sessID = [Summary.sessID; ii]; 
+                    end
                 else
                     fillArr(1,1:21) = nan;
-                    Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; fillArr];       
-                    if tt == 3
-                        disp('Here')
+                    Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; fillArr]; 
+                    if tt == 1                    
+                        Summary.sessID = [Summary.sessID; ii]; 
                     end
                 end
             end

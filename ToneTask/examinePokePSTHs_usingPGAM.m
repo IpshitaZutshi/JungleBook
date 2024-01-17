@@ -30,34 +30,76 @@ sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Fin
     'IZ44\Final\IZ44_220829_sess6','IZ44\Final\IZ44_220830_sess7',...
     'IZ44\Final\IZ44_220912_sess10','IZ44\Final\IZ44_220913_sess11','IZ44\Final\IZ44_220919_sess14',...
     'IZ44\Final\IZ44_220915_sess13','IZ44\Final\IZ44_220920_sess15',...
-    'IZ47\Final\IZ47_230626_sess15','IZ47\Final\IZ47_230707_sess24','IZ47\Final\IZ47_230710_sess25',...
-    'IZ47\Final\IZ47_230712_sess27'};  
+    'IZ47\Final\IZ47_230707_sess24','IZ47\Final\IZ47_230710_sess25',...
+    'IZ47\Final\IZ47_230712_sess27','IZ48\Final\IZ48_230628_sess17',...
+    'IZ48\Final\IZ48_230703_sess21','IZ48\Final\IZ48_230705_sess22',...
+    'IZ48\Final\IZ48_230714_sess28'};  
 
-PGAMpath = 'Z:\Buzsakilabspace\LabShare\AthinaApostolelli\PGAM\postprocess';
+PGAMpath = 'C:\Data\PGAMAnalysis\processedData\';
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
 
 for tt = 1:15
     Summary.psthReward.lickTypes{tt} = [];
 end
 
+Summary.sigAll = [];
+Summary.kernelStrengthAll = [];
+Summary.sessID = [];
+
 for ii = 1:length(sess)
     %% Load files
     cd(strcat(expPath,sess{ii}))    
-    file = dir(['*.Tracking.Behavior.mat']);
+    file = dir('*.Tracking.Behavior.mat');
     load(file(1).name);
-    file = dir(['*TrialBehavior.Behavior.mat']);
+    file = dir('*TrialBehavior.Behavior.mat');
     load(file(1).name);    
-    file = dir(['*spikes.cellinfo.mat']);
-    load(file(1).name);       
+    file = dir('*spikes.cellinfo.mat');
+    load(file(1).name);  
+    file = dir('*.cell_metrics.cellinfo.mat');
+    load(file(1).name);  
+   
     [sessionInfo] = bz_getSessionInfo(pwd,'noPrompts', true);
-    file = dir(['*.DigitalIn.Events.mat']);
+    file = dir('*.DigitalIn.Events.mat');
     load(file(1).name);
     
-    fileloc = strcat(PGAMpath,'\',sess{ii}(1:4),'\',sess{ii}(12:end),'\',sess{ii}(12:end),'.postprocessPGAM.mat');
+    fileloc = strcat(PGAMpath,sess{ii}(12:end),'\results_struct.mat');
     load(fileloc)
-     
-    lickCellIDs = resultsPGAM.tuned_licksP;
+
+    % Get neuronID 
+    for aa = 1:size(results,2)
+        neuronID(aa) = results(aa).neuron+1;
+    end
+
+    numCells = length(cell_metrics.UID);
+
+    sigMat = zeros(numCells,6);
+    kernelStrength = nan(numCells,5);
+
+    for aa = 1:numCells
+        if ~strcmp(cell_metrics.putativeCellType(aa),'Pyramidal Cell')
+            continue
+        end        
+        idx = find(neuronID == aa);
+        if isempty(idx)
+            continue
+        end
+        pyrID(aa) = 1;
+        for id = 5:10
+            if (results(idx(id)).pval < (10^-5) && ~isnan(results(idx(id)).mutual_info))
+                if results(idx(id)).signed_kernel_strength>=0
+                    sigMat(aa,id-4) = 1;
+                else
+                    sigMat(aa,id-4) = 0;
+                end
+                kernelStrength(aa,id-4) = results(idx(id)).signed_kernel_strength;
+            end
+        end
+    end    
     
+    lickcellIDs = find(sigMat(:,6)==1);
+    Summary.sigAll = [Summary.sigAll; sigMat(lickcellIDs,:)];
+    Summary.kernelStrengthAll = [Summary.kernelStrengthAll;kernelStrength(lickcellIDs,:)];
+
     licktimes = [];
     lickport1 = [];
     lickport = [2 3 4 5 6 7];
@@ -165,19 +207,26 @@ for ii = 1:length(sess)
             st = behavTrials.timestamps(idx,2)-0.03;
         end
             
-        for kk=1:length(lickCellIDs)        
+        for kk=1:length(lickcellIDs)        
             if ~isempty(st)
-                [stccg, tPSTH] = CCG({spikes.times{lickCellIDs(kk)} st},[],'binSize',0.1,'duration',4,'norm','rate');                
-                Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; stccg(:,2,1)'];               
+                [stccg, tPSTH] = CCG({spikes.times{lickcellIDs(kk)} st},[],'binSize',0.1,'duration',2,'norm','rate');                
+                Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; stccg(:,2,1)'];         
+                if tt == 1                    
+                    Summary.sessID = [Summary.sessID; ii]; 
+                end                
             else
-                fillArr(1,1:41) = nan;
-                Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; fillArr];               
+                fillArr(1,1:21) = nan;
+                Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; fillArr];     
+                if tt == 1                    
+                    Summary.sessID = [Summary.sessID; ii]; 
+                end                
             end
         end
     end
+    clear neuronID
 end
 
-save('C:\Users\ipshi\Desktop\Summary.mat', 'Summary'); 
+save('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\LickPSTHSummaryPGAM.mat', 'Summary'); 
 
 if plotfig
 
@@ -188,16 +237,17 @@ if plotfig
     YlGnBu=cbrewer('seq', 'YlGnBu', 11);
     colormap(YlGnBu)
 
-    idxT = tPSTH<0 & tPSTH>=-0.3;
+    %idxT = tPSTH<0 & tPSTH>=-0.3;
+    idxT = tPSTH<1 & tPSTH>=-1;
     avgRate = nanmean(psthReward{1}(:,idxT),2);
-    for tt = 1:3
-        newpsth{tt} = psthReward{tt}(avgRate>1,:);
+    for tt = 1:15
+        newpsth{tt} = psthReward{tt};%(avgRate>1,:);
     end
     idxT = tPSTH<0 & tPSTH>=-0.5;
     [~,idxMax2] = max(newpsth{1}(:,idxT),[],2);
     [~,idxMax] = sort(idxMax2);
-    for tt = 1:3
-        subplot(2,3,tt)
+    for tt = 1:15
+        subplot(2,8,tt)
         %temp = zscore(newpsth{tt},[],2);
         %h = imagesc(tPSTH, 1:size(newpsth{tt},1),temp(idxMax,:));
         %set(h, 'AlphaData', ~isnan(temp))
@@ -217,10 +267,10 @@ if plotfig
         line([0 0],[1 11],'Color','r')
         ylim([1 11])    
     end
-
-    saveas(gcf,strcat(expPath,'Compiled\portPokePSTHs.png'));
-    saveas(gcf,strcat(expPath,'Compiled\portPokePSTHs.eps'),'epsc');
-    saveas(gcf,strcat(expPath,'Compiled\portPokePSTHs.fig'));
+    % 
+    % saveas(gcf,strcat(expPath,'Compiled\portPokePSTHs.png'));
+    % saveas(gcf,strcat(expPath,'Compiled\portPokePSTHs.eps'),'epsc');
+    % saveas(gcf,strcat(expPath,'Compiled\portPokePSTHs.fig'));
 end
 end
 

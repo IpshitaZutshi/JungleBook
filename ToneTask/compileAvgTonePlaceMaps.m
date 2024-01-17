@@ -24,8 +24,7 @@ sess= {'IZ41\Final\IZ41_220624_sess5','IZ41\Final\IZ41_220701_sess9',...
     'IZ47\Final\IZ47_230626_sess15','IZ47\Final\IZ47_230707_sess24',...
     'IZ47\Final\IZ47_230710_sess25','IZ47\Final\IZ47_230712_sess27',...49
     'IZ48\Final\IZ48_230628_sess17','IZ48\Final\IZ48_230703_sess21',...
-    'IZ48\Final\IZ48_230705_sess22','IZ48\Final\IZ48_230714_sess28'};  
-  
+    'IZ48\Final\IZ48_230705_sess22','IZ48\Final\IZ48_230714_sess28'};    
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
 
@@ -50,6 +49,7 @@ Summary.AllspaceMapAvg = [];
 Summary.AllretMapLinInit = [];
 Summary.AllretMapCorr = [];
 Summary.AllretMapIncorr = [];
+Summary.AllretMapLinEnd = [];
 
 Summary.AlltoneMap = [];
 Summary.AlltoneMapError1 = [];
@@ -174,7 +174,7 @@ for ii = 1:length(sess)
         retMapLinInit(kk,:) = firingMaps.reverse.rateMaps{kk}{1};
         retMapCorr(kk,:) = firingMaps.reverse.rateMaps{kk}{2};
         retMapIncorr(kk,:) = firingMaps.reverse.rateMaps{kk}{3};
-        retMapLinEnd(kk,:) = firingMaps.reverse.rateMaps{kk}{9};
+        retMapLinEnd(kk,:) = firingMaps.reverse.rateMaps{kk}{10};
         
         if length(firingMaps.forward.rateMaps{kk})==28
           linMapEnd(kk,:) = firingMaps.forward.rateMaps{kk}{28};
@@ -219,15 +219,15 @@ for ii = 1:length(sess)
         retlinToneCorr(kk,1) = corrLin(1,2);
         
         % Average return track correlation (2 halves)
-        corrLin = corrcoef(firingMaps.reverse.rateMaps{kk}{7}',firingMaps.reverse.rateMaps{kk}{8}','rows','complete');
+        corrLin = corrcoef(firingMaps.reverse.rateMaps{kk}{8}',firingMaps.reverse.rateMaps{kk}{9}','rows','complete');
         retlinlinCorr(kk,1) = corrLin(1,2);
         
         % Average return track correlation (no tone and no tone end)
-        corrLin = corrcoef(firingMaps.reverse.rateMaps{kk}{1}',firingMaps.reverse.rateMaps{kk}{9}','rows','complete');
+        corrLin = corrcoef(firingMaps.reverse.rateMaps{kk}{1}',firingMaps.reverse.rateMaps{kk}{10}','rows','complete');
         retlinlinEndCorr(kk,1) = corrLin(1,2);
         
         % Average return track correlation (tone and no tone end)
-        corrLin = corrcoef(firingMaps.reverse.rateMaps{kk}{2}',firingMaps.reverse.rateMaps{kk}{9}','rows','complete');
+        corrLin = corrcoef(firingMaps.reverse.rateMaps{kk}{2}',firingMaps.reverse.rateMaps{kk}{10}','rows','complete');
         retlinEndToneCorr(kk,1) = corrLin(1,2);        
         
         % Average spatial and tone correlation
@@ -387,6 +387,7 @@ for ii = 1:length(sess)
     Summary.AllretMapLinInit = [Summary.AllretMapLinInit;retMapLinInit];
     Summary.AllretMapCorr = [Summary.AllretMapCorr;retMapCorr];
     Summary.AllretMapIncorr = [Summary.AllretMapIncorr;retMapIncorr];
+    Summary.AllretMapLinEnd = [Summary.AllretMapLinEnd;retMapLinEnd];
     Summary.AllretFieldlin = [Summary.AllretFieldlin;retFieldlin];
     Summary.AllretFieldCorrect = [Summary.AllretFieldCorrect;retFieldCorrect];
     Summary.AllretFieldlinEnd = [Summary.AllretFieldlinEnd;retFieldlinEnd];

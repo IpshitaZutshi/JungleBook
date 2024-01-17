@@ -1,10 +1,19 @@
-function meanAccuracy = compileDecodedTrialChoice(varargin)
+function [meanAccuracy, mouseID, Accuracy, trialDur] = compileDecodedTrialChoice(varargin)
 
 force = 0;
+
+expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
+
+p = inputParser;
+addParameter(p,'plotfig',false,@islogical);
+addParameter(p,'forFigure',true,@islogical);
+addParameter(p,'bin_width',250,@isnumeric);
+addParameter(p,'step_size',100,@isnumeric);
+
 % 
 % sess= {'IZ39\Final\IZ39_220714_sess18',...
 %     'IZ40\Final\IZ40_220714_sess18',...
-%     'IZ43\Final\IZ43_220919_sess14',...%'IZ43\Final\IZ43_220828_sess4',...
+%     'IZ43\Final\IZ43_220828_sess4',...
 %     'IZ44\Final\IZ44_220830_sess7',...
 %     'IZ47\Final\IZ47_230710_sess25',...
 %     'IZ48\Final\IZ48_230705_sess22',...
@@ -40,10 +49,14 @@ plotfig = p.Results.plotfig;
 forFigure = p.Results.forFigure;
 bin_width = p.Results.bin_width;
 step_size = p.Results.step_size;
+trialDur = [];
 
 for ss = 1:length(sess)
     cd(strcat(expPath,sess{ss}))
     
+    file = dir(['*TrialBehavior.Behavior.mat']);
+    load(file(1).name);    
+
     if ~exist('Decoding','dir') || force
         try
             decodeTrialChoice('plotfig',false,'eventType',0,'bin_width',bin_width,'step_size',step_size);
@@ -62,8 +75,13 @@ for ss = 1:length(sess)
         mid_range = round(length(DECODING_RESULTS.ZERO_ONE_LOSS_RESULTS.mean_decoding_results)/2);
         before = round(mid_range/10);
         meanAccuracy(ss) = max(DECODING_RESULTS.ZERO_ONE_LOSS_RESULTS.mean_decoding_results(mid_range-before:mid_range));
+        mouseID{ss} = str2num(sess{ss}(3:4));
+        Accuracy(ss,:) = DECODING_RESULTS.ZERO_ONE_LOSS_RESULTS.mean_decoding_results;
+        trialDur = [trialDur;((behavTrials.timestamps(:,2)-behavTrials.timestamps(:,1)))];
     else
         meanAccuracy(ss) = nan;
+        Accuracy(ss,:) = nan;
+        trialDur = [trialDur;((behavTrials.timestamps(:,2)-behavTrials.timestamps(:,1)))];
     end
     
     if ~forFigure    

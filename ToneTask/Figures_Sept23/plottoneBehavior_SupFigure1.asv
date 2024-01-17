@@ -88,7 +88,7 @@ b = bar(M(2:end),h,'FaceColor','flat');
 b(1).BarWidth = 1.25;
 b(1).CData = [0.5 0.5 0.5];
 b(2).CData = [96/243 60/243 108/243];
-xlim([-5 3])
+xlim([-5 5])
 ylabel('Probability')
 title('4 Hz Probe trials','FontName', 'Arial','FontSize', 9)
 SupFig1Stats.PortDiffDist4 =  groupStats({Summary.PortDiffDist4{1} Summary.PortDiffDist4{2}},[],'doPlot',false);
@@ -96,20 +96,11 @@ box off
 
 %% Panel F: Distance to stop, 8 kHz
 subplot(numrows,numcol,6)
-% histogram(-Summary.PortDiffDist8{1},'Normalization','probability','FaceColor',[0.5 0.5 0.5],'FaceAlpha',0.5,'EdgeColor','none')
-% hold on
-% histogram(-Summary.PortDiffDist8{2},'Normalization','probability','FaceColor',[96/243 60/243 108/243],'FaceAlpha',0.5,'EdgeColor','none')
-% box off
-% xlim([-5 5])
-edges = [-4.5 -3.5 -2.5 -1.5 -0.5 0.5 1.5 2.5 3.5];
-[h(:,1)] = histcounts(-Summary.PortDiffDist8{1},edges,'Normalization','probability');
-[h(:,2)] = histcounts(-Summary.PortDiffDist8{2},edges,'Normalization','probability');
-M = movmean(edges,2);
-b = bar(M(2:end),h,'FaceColor','flat');
-b(1).BarWidth = 1.25;
-b(1).CData = [0.5 0.5 0.5];
-b(2).CData = [96/243 60/243 108/243];
-xlim([-5 3])
+histogram(-Summary.PortDiffDist8{1},'Normalization','probability','FaceColor',[0.5 0.5 0.5],'FaceAlpha',0.5,'EdgeColor','none')
+hold on
+histogram(-Summary.PortDiffDist8{2},'Normalization','probability','FaceColor',[96/243 60/243 108/243],'FaceAlpha',0.5,'EdgeColor','none')
+box off
+xlim([-5 5])
 ylabel('Probability')
 title('8 Hz Probe trials','FontName', 'Arial','FontSize', 9)
 box off

@@ -74,10 +74,15 @@ for ii = 1:length(sess)
     tone6 = find(behavTrials.linTrial(1:(end-1))==0 & behavTrials.lickLoc(1:(end-1)) == 5);            
 
     Summary.stdLin(ii,:) = std(position(lin_begin,:),[],1);
+    Summary.posLin(ii,:) = mean(position(lin_begin,:),1);
+
     Summary.stdTone6(ii,:) = std(position(tone6,:),[],1);
+    Summary.posTone6(ii,:) = mean(position(tone6,:),1);
     if ~isempty(lin_end)
         Summary.stdLinEnd(ii,:) = std(position(lin_end,:),[],1);
+        Summary.posLinEnd(ii,:) = mean(position(lin_end,:),1);
     else
         Summary.stdLinEnd(ii,1:(length(yBins)-1)) = nan;
+        Summary.posLinEnd(ii,1:(length(yBins)-1)) = nan;
     end
 end

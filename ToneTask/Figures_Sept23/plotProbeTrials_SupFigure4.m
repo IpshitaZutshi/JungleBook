@@ -8,7 +8,7 @@ set(fig2,'Position',[2000 27 788 950]);
 BuPu=cbrewer('seq', 'BuPu', 11);
 YlGnBu=cbrewer('seq', 'YlGnBu', 11);
 
-numrows = 25;
+numrows = 28;
 numcol = 9;
 
 %% Panel A1: Example tone tuned cell 1
@@ -87,6 +87,8 @@ for ii = 1:2
     ylabel(strcat('Cell ID ',num2str(length(sortidx))))
     caxis([-1 3])
     colormap(ax1, YlGnBu) 
+    hold on
+    line([55 55],[1 length(sortidx)],'Color','r')
     title('Space no probe')
 
     ax1 = subplot(numrows,numcol,[(numcol*16)+3+(numcol*5*(ii-1)) (numcol*16)+4+(numcol*5*(ii-1)) (numcol*17)+3+(numcol*5*(ii-1)) (numcol*17)+4+(numcol*5*(ii-1)) ...
@@ -94,6 +96,8 @@ for ii = 1:2
     imagesc(linPos, 1:length(sortidx),normspaceMapProbe(sortidx,:))
     caxis([-1 3])
     colormap(ax1, YlGnBu)
+    hold on
+    line([55 55],[1 length(sortidx)],'Color','r')
     title('Space Probe')  
         
     ax1 = subplot(numrows,numcol,[(numcol*16)+5+(numcol*5*(ii-1)) (numcol*16)+6+(numcol*5*(ii-1)) (numcol*17)+5+(numcol*5*(ii-1)) (numcol*17)+6+(numcol*5*(ii-1)) ...
@@ -109,6 +113,55 @@ for ii = 1:2
     caxis([-1 3])
     colormap(ax1, BuPu)
     title('Tone Probe') 
+    
+    subplot(numrows,numcol,[(numcol*25)+4*(ii-1)+1 (numcol*25)+4*(ii-1)+2 ...
+        (numcol*26)+4*(ii-1)+1 (numcol*26)+4*(ii-1)+2 ...
+        (numcol*27)+4*(ii-1)+1 (numcol*27)+4*(ii-1)+2]);    
+    % PV correlation
+    a = diag(corr(selectedspaceMap,selectedspaceMapProbe,'Rows','pairwise','Type','Spearman'));
+    c = [];
+    for rr = 1:10
+        b = randsample(1:50,50);
+        c(rr,:) = diag(corr(selectedspaceMap,selectedspaceMapProbe(:,b),'Rows','pairwise','Type','Spearman'));
+    end
+    plot(linPos,nanmean(c),'Color',[0.5 0.5 0.5],'Linewidth',1.5)   
+    hold on
+    plot(linPos,a,'Color','b','Linewidth',1.5)
+    line([55 55],[1 length(sortidx)],'Color','r')
+    box off
+    xlabel('Position')
+    ylabel('Population correlation')
+    xlim([0 120])
+    ylim([0 1])
+    
+    % Ratemap correlation
+    if ii == 1 
+       idx = idxSpace>22; %position 55 is index 22
+       corrMap1 = selectedspaceMap(idx,:);
+       corrMap2 = selectedspaceMapProbe(idx,:);
+       a = diag(corr(corrMap1',corrMap2','Rows','pairwise','Type','Spearman'));
+       d = [];
+       for rr = 1:10
+           b = randsample(1:size(corrMap1,1),size(corrMap1,1));
+           c = diag(corr(corrMap1',corrMap2(b,:)','Rows','pairwise','Type','Spearman'));
+           d = [d;c];
+       end
+    else
+       a = diag(corr(selectedtoneMap',selectedtoneMapProbe','Rows','pairwise','Type','Spearman'));
+       d = [];
+       for rr = 1:10
+           b = randsample(1:size(selectedtoneMap,1),size(selectedtoneMap,1));
+           c = diag(corr(selectedtoneMap',selectedtoneMapProbe(b,:)','Rows','pairwise','Type','Spearman'));
+           d = [d;c];
+       end       
+    end 
+    
+    subplot(numrows,numcol,[(numcol*25)+4*(ii-1)+3 (numcol*25)+4*(ii-1)+4 ...
+        (numcol*26)+4*(ii-1)+3 (numcol*26)+4*(ii-1)+4 ...
+        (numcol*27)+4*(ii-1)+3 (numcol*27)+4*(ii-1)+4]);
+    SupFig4Stats.ratemapCorr{ii} = groupStats([{a},{d}],[],'inAxis',true,'labelSummary',false,'color',[0 0 1;0.5 0.5 0.5]);
+    ylabel('Rate map correlation')
+    
 end
 
 %% Save figure
@@ -117,5 +170,6 @@ expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task';
 saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\SupFigure4_probeTrials.png'));
 saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\SupFigure4_probeTrials.eps'),'epsc');
 saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\SupFigure4_probeTrials.fig'));
+save(strcat(expPath,'\Compiled\Figures_Sep23\SupFigure4_probeTrials.mat'),'SupFig4Stats'); 
 
 end

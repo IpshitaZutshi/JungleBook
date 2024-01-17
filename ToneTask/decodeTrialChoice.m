@@ -107,7 +107,7 @@ for num = 0:shuff_num
         save_file_name = strcat('Decoding\decoding_results_',num2str(eventType));
 
     else 
-        'Currently running shuffled label decoding results (data for the null distribution)'   
+        %'Currently running shuffled label decoding results (data for the null distribution)'   
         ds = basic_DS(binned_format_file_name, specific_label_name_to_use, num_cv_splits);
         ds.create_simultaneously_recorded_populations = 1;        
         %ds.randomly_shuffle_labels_before_running = 1;% randomly shuffled the labels before running

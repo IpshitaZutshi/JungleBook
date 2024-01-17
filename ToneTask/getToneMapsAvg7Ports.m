@@ -5,7 +5,7 @@ p = inputParser;
 addParameter(p,'basepath',pwd,@isstr);
 addParameter(p,'plotfig',true,@islogical);
 addParameter(p,'toneMap',true,@islogical);
-addParameter(p,'var','probe',@isstring);
+addParameter(p,'var','stim',@isstring);
 
 parse(p,varargin{:});
 basepath = p.Results.basepath;
@@ -137,7 +137,7 @@ for ii = 1:length(idx)
             end
                 
         end  
-        if ii == 1 || ii == 7
+        if ii == 1 || ii == 7 || ii == 13
             idPos = find(idx{ii}(1:(end-1)));
             % Only take moments when vy is negative
             [~,~,~,vx,vy,~,~] = KalmanVel(tracking.position.x,tracking.position.y,tracking.timestamps,2);
@@ -152,12 +152,22 @@ for ii = 1:length(idx)
                 positions.reverse{ii}= [tracking.timestamps(idxPos) x_temp(idxPos) y_temp(idxPos)];             
             elseif ii == 7
                 positions.reverse{2}= [tracking.timestamps(idxPos) x_temp(idxPos) y_temp(idxPos)];    
+            elseif ii == 13
+                if ~isempty(idPos)
+                    positions.reverse{3}= [tracking.timestamps(idxPos) x_temp(idxPos) y_temp(idxPos)];
+                else
+                    positions.reverse{3}= [nan nan nan]; 
+                end
             end
         end
     elseif ii<30
         idPos = find(idx{ii}(1:(end-1)));
         [idxPos] = InIntervals(tracking.timestamps,[behavTrials.timestamps(idPos,2) behavTrials.timestamps(idPos+1,1)]);  
-        positions.reverse{ii-23}= [tracking.timestamps(idxPos) x_temp(idxPos) y_temp(idxPos)]; 
+        if ~isempty(idPos)
+            positions.reverse{ii-22}= [tracking.timestamps(idxPos) x_temp(idxPos) y_temp(idxPos)]; 
+        else
+            positions.reverse{ii-22}= [nan nan nan]; 
+        end
     else
         [idxPos] = InIntervals(tracking.timestamps,behavTrials.timestamps(idx{ii}(1:(end-1)),:));
         if ~isempty(idxPos)
@@ -166,7 +176,11 @@ for ii = 1:length(idx)
         
         idPos = find(idx{ii}(1:(end-1)));
         [idxPos] = InIntervals(tracking.timestamps,[behavTrials.timestamps(idPos,2) behavTrials.timestamps(idPos+1,1)]);  
-        positions.reverse{ii-23}= [tracking.timestamps(idxPos) x_temp(idxPos) y_temp(idxPos)];        
+        if ~isempty(idPos)
+            positions.reverse{ii-22}= [tracking.timestamps(idxPos) x_temp(idxPos) y_temp(idxPos)];        
+        else
+            positions.reverse{ii-22}= [nan nan nan];
+        end
     end
     
 end
