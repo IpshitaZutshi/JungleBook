@@ -168,7 +168,7 @@ for ii = 1:length(sesstoAnalyze)
         dataMatProbe =[];
         dataMatToneProbe = [];   
         
-        for jj = 4:6                
+        for jj = 3:6                
             dataMat = [dataMat;firingMaps.forward.rateMaps{kk}{jj}];
             
             a = fillmissing(firingMaps.tone.rateMaps{kk}{jj},'linear');

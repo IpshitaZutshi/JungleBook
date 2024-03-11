@@ -347,8 +347,8 @@ selectedPSTH = Summary.psthReward.lickTypes{2};
 
 if ~usePGAM
     lickT = [10 11 12 13 14 15];
-else   
-    lickT = [2 1 5];
+else
+   lickT = [2 1 5];
 end
 
 for tt = 1:length(lickT)
@@ -384,8 +384,8 @@ for tt = 1:length(lickT)
     line([0 0],[2 7],'Color','r')
     
     norm = normPSTH(:,idxT);
-    tempRate  = temp(:,idxT);
-    avgRateTemp{tt} = log10(median(tempRate,2));
+    tempRate  = normPSTH(maxRateIdx>=8 & maxRateIdx<12,idxT);
+    avgRateTemp{tt} = median(tempRate,2);
     
     for ss = 1:max(Summary.sessID)
         idxss = Summary.sessID==ss;       

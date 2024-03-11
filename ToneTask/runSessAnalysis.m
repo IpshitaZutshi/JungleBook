@@ -91,7 +91,7 @@ parfor ii = 1:length(sess)
     
 %     if isempty(dir('*.rateMapsAvg.cellinfo.mat'))|| forceRun
 %         disp('Calculating average rate maps');
-         getToneMapsAvg7Ports('plotfig',false)
+         getToneMapsAvg7Ports_notLog('plotfig',false)
 %     end
 % 
 %     getToneMapsAvgLickLocProbe('plotfig',false)

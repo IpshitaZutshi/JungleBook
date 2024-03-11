@@ -96,11 +96,7 @@ end
 for ii = 1:size(behavTrials.timestamps,1)
     
     trialWin = behavTrials.timestamps(ii,:)*1250;
-    if ii <size(behavTrials.timestamps,1)
-        trialWin2 = [behavTrials.timestamps(ii,1)*1250 behavTrials.timestamps(ii+1,1)*1250];
-    else
-        trialWin2 = behavTrials.timestamps(ii,:)*1250;
-    end
+    trialWin2 = [behavTrials.timestamps(ii,1)*1250 behavTrials.timestamps(ii+1,1)*1250];
     %if the solenoid was triggered, it was a correct trial
     if sum(InIntervals(digitalIn.timestampsOn{11}*1250,[trialWin(1) trialWin(2)+1250]))|| sum(InIntervals(digitalIn.timestampsOn{12}*1250,[trialWin(1) trialWin(2)+1250])) ||...
             sum(InIntervals(digitalIn.timestampsOn{13}*1250,[trialWin(1) trialWin(2)+1250])) ||  sum(InIntervals(digitalIn.timestampsOn{14}*1250,[trialWin(1) trialWin(2)+1250])) || ...
@@ -115,7 +111,7 @@ for ii = 1:size(behavTrials.timestamps,1)
     % if incorrect, where did they lick?
     for lickSens = 3:9
         %behavTrials.numLicks(ii,lickSens-2) = sum(InIntervals(digitalIn.timestampsOn{lickSens}*1250,[trialWin(1) trialWin(2)+1250]));
-        behavTrials.numLicks(ii,lickSens-2) = sum(InIntervals(digitalIn.timestampsOn{lickSens}*1250,[trialWin2(1) trialWin2(2)]));
+        behavTrials.numLicks(ii,lickSens-2) = sum(InIntervals(digitalIn.timestampsOn{lickSens}*1250,[trialWin(1) trialWin(2)]));
     end   
     if behavTrials.correct(ii) == 0
         if sum(behavTrials.numLicks(ii,2:7)) == 0 
@@ -214,8 +210,7 @@ if plotfig
     saveas(gcf,'Behavior\toneBehavior.eps','epsc');
 
 end
-[~,fbasename,~]=fileparts(pwd);
-behavTrials.folder = fbasename;
+
 if saveMat
     C = strsplit(pwd,'\');
     save([basepath filesep C{end} '.TrialBehavior.Events.mat'],'behavTrials');

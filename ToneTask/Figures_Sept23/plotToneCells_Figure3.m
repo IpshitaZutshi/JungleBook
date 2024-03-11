@@ -39,7 +39,7 @@ file = dir(['*.Tracking.Behavior.mat']);
 load(file(1).name);
 file = dir(['*TrialBehavior.Behavior.mat']);
 load(file.name);
-file = dir(['*.rateMapsAvg.cellinfo.mat']);
+file = dir(['*.rateMapsAvgnotLog.cellinfo.mat']);
 load(file.name);
 plotExampleCell(1,3, spikeData, tracking, behavTrials, firingMaps,fig2,numrows,numcol,cellNum)
 
@@ -57,7 +57,7 @@ file = dir(['*.Tracking.Behavior.mat']);
 load(file(1).name);
 file = dir(['*TrialBehavior.Behavior.mat']);
 load(file.name);
-file = dir(['*.rateMapsAvg.cellinfo.mat']);
+file = dir(['*.rateMapsAvgnotLog.cellinfo.mat']);
 load(file.name);
 plotExampleCell(1,5, spikeData, tracking, behavTrials, firingMaps,fig2,numrows,numcol,cellNum)
 
@@ -73,7 +73,7 @@ file = dir(['*.Tracking.Behavior.mat']);
 load(file(1).name);
 file = dir(['*TrialBehavior.Behavior.mat']);
 load(file.name);
-file = dir(['*.rateMapsAvg.cellinfo.mat']);
+file = dir(['*.rateMapsAvgnotLog.cellinfo.mat']);
 load(file.name);
 plotExampleCell(1,7, spikeData, tracking, behavTrials, firingMaps,fig2,numrows,numcol,cellNum)
 
@@ -158,6 +158,7 @@ col = [119/255 221/255 229/255;...
     38/255 169/255 224/255;...
     73/255 136/255 189/255];
 
+subplot(numrows,numcol,[(numcol*16)+1 (numcol*16)+2 (numcol*17)+1 (numcol*17)+2 (numcol*18)+1 (numcol*18)+2 (numcol*19)+1 (numcol*19)+2]);
 for ll = 1:length(sessID)
     cellPos(ll) = find(sortsessID == sessID(ll) & sortcellID == cellID(ll));
     line([0 linPos(end)],[cellPos(ll) cellPos(ll)],'Color',col(ll,:),'LineWidth',2)
@@ -241,7 +242,7 @@ box off
 %ylim([0 0.5])
 
 
-%% Save figure
+% Save figure
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task';
 saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\Figure3_toneTuning.png'));
 saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\Figure3_toneTuning.eps'),'epsc');

@@ -150,7 +150,7 @@ col = [52/243 52/243 52/243;...
 
 % Control
 idxSess = Summary.AllsessType==0 & Summary.AllcellType == 1 & ...
-    (Summary.AlllinField == 1 | Summary.AllspaceField == 1| Summary.AlllinEndField == 1);
+    (Summary.AlllinField == 1 | Summary.AllspaceField == 1 | Summary.AlllinEndField == 1);
 data{1} = Summary.AlllinCorr(idxSess);
 data{3} = Summary.AlltoneNoToneCorr(idxSess);
 data{4} = Summary.AlltonelinEndCorr(idxSess);

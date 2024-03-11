@@ -94,7 +94,7 @@ if exist([basepath filesep strcat(sessionInfo.session.name,'.MergePoints.events.
             subSessions = [subSessions; MergePoints.timestamps(trackFolder(ii),1:2)];
             maskSessions = [maskSessions; ones(size(sumTs))*ii];
             ts = [ts; sumTs];
-            
+
             sumTs = tempBehav{ii}.timestamps + MergePoints.timestamps(trackFolder(ii),1);
             maskSessionsBehav = [maskSessionsBehav; ones(size(sumTs))*ii];
             tsBehav = [tsBehav; sumTs];
@@ -116,11 +116,11 @@ x = []; y = []; vx = []; vy = []; v = []; folder = []; samplingRate = []; descri
 for ii = 1:size(tempTracking,2) 
     x = [x; tempTracking{ii}.position.x];     
     y = [y; tempTracking{ii}.position.y]; 
-    
+
     vx = [vx; tempTracking{ii}.position.vx];     
     vy = [vy; tempTracking{ii}.position.vy]; 
     v = [v; tempTracking{ii}.position.v];     
-    
+
     folder{ii} = tempTracking{ii}.folder; 
     samplingRate = [samplingRate; tempTracking{ii}.samplingRate];  
     description{ii} = tempTracking{ii}.description;  

@@ -38,30 +38,25 @@ xlim([0 125])
 box off
 
 subplot(numrows,numcol,4,'Parent', fig2)
-colMap = [235/243 235/243 235/243;...
-    0/243 0/243 0/243;...
-    150/243 150/243 150/243;...
+colMap = [220/243 220/243 220/243;...
+    52/243 52/243 52/243;...
     0.2 0.6 0.2;...
     1 0 0.8];
 lickHM = behavTrials.numLicks(:,2:7);
-lickHM(lickHM>=1) = 2; %First make all licks the same
-
+lickHM(lickHM>=1) = 1; %First make all licks the same
 for ii = 1:length(behavTrials.linTrial)
     if behavTrials.linTrial(ii) == 0 
-        lickLoc = behavTrials.lickLoc(ii)+1;
+        lickLoc = behavTrials.lickLoc(ii)+2;
         if behavTrials.correct(ii) == 1
-            lickHM(ii,lickLoc) = 3;
+            lickHM(ii,lickLoc) = 2;
         else
-            lickHM(ii,lickLoc) = 4;
-        end
-    else
-        lickHM(ii,6) = 1;
-    end
-end
+            lickHM(ii,lickLoc) = 3;
+lickHM(behavTrials.linTrial==0 & behavTrials.correct==1,:) = 2; %Tone correct trials are 2
+lickHM((behavTrials.linTrial==0 & behavTrials.correct==0),:) = 3; %Tone incorrect trials are 3
 % 
-imagesc(lickHM)
+% imagesc(behavTrials.numLicks(:,2:7))
 colormap(colMap)
-caxis([0 4])
+caxis([0 3])
 xlim([0.5 7.5])
 ylabel(strcat('Trials (',num2str(1),'-',num2str(size(behavTrials.timestamps,1)),')'))
 %xticklabels({'Lick1','Lick2','Lick3','Lick4','Lick5','Lick6'})
@@ -74,6 +69,9 @@ col = [119/255 221/255 229/255;...
     73/255 136/255 189/255;...
     17/255 55/255 174/255;...
     0/255 0/255 134/255];
+scatter(ones(1,sum(behavTrials.correct))*6.5,find(behavTrials.correct),1,[70/243 148/243 73/243],'filled');
+scatter(ones(1,sum(behavTrials.correct==0&behavTrials.linTrial==0))*6.75,find(behavTrials.correct==0&behavTrials.linTrial==0),1,[175/243 54/243 60/243],'filled');
+scatter(ones(1,sum(behavTrials.linTrial==1))*6.9,find(behavTrials.linTrial==1),1,[50/243 50/243 50/243],'filled');
 scatter(ones(1,sum(behavTrials.toneGain==0&behavTrials.linTrial==0))*7.1,find(behavTrials.toneGain==0&behavTrials.linTrial==0),1,col(1,:),'filled');
 scatter(ones(1,sum(behavTrials.toneGain==1&behavTrials.linTrial==0))*7.1,find(behavTrials.toneGain==1&behavTrials.linTrial==0),1,col(2,:),'filled');
 scatter(ones(1,sum(behavTrials.toneGain==2&behavTrials.linTrial==0))*7.1,find(behavTrials.toneGain==2&behavTrials.linTrial==0),1,col(3,:),'filled');
@@ -108,12 +106,12 @@ col = [119/255 221/255 229/255;...
     17/255 55/255 174/255;...
     0/255 0/255 134/255];
 
-% col = [140/255 81/255 10/255;...
-%     216/255 179/255 101/255;...
-%     246/255 232/255 195/255;...
-%     199/255 234/255 229/255;...
-%     90/255 180/255 172/255;...
-%     1/255 102/255 94/255];
+col = [140/255 81/255 10/255;...
+    216/255 179/255 101/255;...
+    246/255 232/255 195/255;...
+    199/255 234/255 229/255;...
+    90/255 180/255 172/255;...
+    1/255 102/255 94/255];
 
 
 Fig1Stats.performance = groupStats([{Summary.portCorrect(:,1)},{Summary.portCorrect(:,2)},{Summary.portCorrect(:,3)},{Summary.portCorrect(:,4)},{Summary.portCorrect(:,5)},{Summary.portCorrect(:,6)}],[],'repeatedMeasures',true,'inAxis',true,'plotType','boxplot','color',col,'labelSummary',false);

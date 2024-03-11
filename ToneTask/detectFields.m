@@ -6,8 +6,8 @@ function Field_Info = detectFields(SmoothedFiringRate,varargin)
     parse(p,varargin{:});
     maxRate = p.Results.maxRate;
 
-    minFieldSize = 8;
-    maxFieldSize = 40;
+    minFieldSize = 4;
+    maxFieldSize = 35;
     % Pad on each end with zeros for edge effects
     SmoothedFiringRate = [0 0 SmoothedFiringRate 0 0];
     [peakValues, peakLocations] = findpeaks(SmoothedFiringRate, 'minpeakheight',maxRate, 'minpeakdistance', 10);

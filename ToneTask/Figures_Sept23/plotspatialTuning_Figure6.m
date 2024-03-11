@@ -111,7 +111,7 @@ col = [52/243 52/243 52/243;...
 
 % Task
 idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 ...
-    & (Summary.AlllinField | Summary.AllspaceField | Summary.AlllinEndField);
+    & (Summary.AlllinField | Summary.AllspaceField | Summary.AlllinEndField) & ~Summary.AlltoneField;
 %idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 & (Summary.AlllinField==1);%1 == 1 | Summary.AlllinField2 == 1);
 data{1} = Summary.AlllinCorr(idxSess);
 

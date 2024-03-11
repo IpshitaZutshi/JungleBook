@@ -1,8 +1,8 @@
-function manifoldPlot(varargin)
+function manifoldPlot_probe(varargin)
 
 p = inputParser;
 addParameter(p,'umap_path',pwd);
-addParameter(p,'umap_name','behavior_speed_1_smooth_5');
+addParameter(p,'umap_name','behavior_speed_1_smooth_10');
 addParameter(p,'behav_file',[]);
 addParameter(p,'A',-7);
 addParameter(p,'E',40);
@@ -11,6 +11,7 @@ addParameter(p,'addFreq',false);
 addParameter(p,'numcol',1);
 addParameter(p,'rowloc',1);
 addParameter(p,'colloc',1);
+addParameter(p,'probe',false);
 addParameter(p,'col','jet');
 
 addParameter(p,'dim1',1);
@@ -30,6 +31,7 @@ numrow = p.Results.numrow;
 numcol = p.Results.numcol;
 rowloc = p.Results.rowloc;
 colloc = p.Results.colloc;
+probe = p.Results.probe;
 col = p.Results.col;
 dim1 = p.Results.dim1;
 dim2 = p.Results.dim2;
@@ -70,9 +72,11 @@ plot_ind = [];
 for tt = 1:length(TRIAL_TYPE)
     if TRIAL_TYPE(tt)<6 && exist('correct_ds')
         if exist('probe_ds')
-            plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1 & probe_ds==0)];
+            %plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1 & probe_ds==probe)];
+            plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & probe_ds==probe)];
         else
-            plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1)]; 
+            %plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1)]; 
+            plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt))]; 
         end
     else
         plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt))];
