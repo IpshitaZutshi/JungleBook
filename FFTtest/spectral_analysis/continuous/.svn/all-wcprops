@@ -1,0 +1,197 @@
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous
+END
+ftestc.m
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/ftestc.m
+END
+mtspecgramtrigc.m
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/mtspecgramtrigc.m
+END
+coherencyc_unequal_length_trials.m
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/coherencyc_unequal_length_trials.m
+END
+spsvd.m
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/spsvd.m
+END
+cohmatrixc.m
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/cohmatrixc.m
+END
+mtspectrumsegc.m
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/mtspectrumsegc.m
+END
+mtspectrumc.m
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/mtspectrumc.m
+END
+extractdatac.m
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/extractdatac.m
+END
+locsmooth.m
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/locsmooth.m
+END
+mtdspectrumc.m
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/mtdspectrumc.m
+END
+rmlinesc.m
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/rmlinesc.m
+END
+mtspectrum_of_spectrumc.m
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/mtspectrum_of_spectrumc.m
+END
+mtspectrumc_unequal_length_trials.m
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/mtspectrumc_unequal_length_trials.m
+END
+fitlinesc.m
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/fitlinesc.m
+END
+cohgramc.m
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/cohgramc.m
+END
+mtpowerandfstatc.m
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/mtpowerandfstatc.m
+END
+nonst_stat.m
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/nonst_stat.m
+END
+mtspectrumtrigc.m
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/mtspectrumtrigc.m
+END
+createdatamatc.m
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/createdatamatc.m
+END
+findpeaks.m
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/findpeaks.m
+END
+mtspecgramc.m
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/mtspecgramc.m
+END
+quadinv.m
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/quadinv.m
+END
+CrossSpecMatc.m
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/CrossSpecMatc.m
+END
+mtdspecgramc.m
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/mtdspecgramc.m
+END
+rmlinesmovingwinc.m
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/rmlinesmovingwinc.m
+END
+runline.m
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/runline.m
+END
+evoked.m
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/evoked.m
+END
+coherencysegc.m
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/coherencysegc.m
+END
+quadcof.m
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/quadcof.m
+END
+coherencyc.m
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/coherencyc.m
+END
+mtfftc.m
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/mtfftc.m
+END
+locdetrend.m
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/continuous/locdetrend.m
+END

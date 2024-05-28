@@ -48,8 +48,8 @@ linPos = linspace(1,122,50);
     
 ss = 2;
 idxSess = Summary.AllsessType==(ss-1) & Summary.AllcellType == 1;
-idxMaps{1} = idxSess & Summary.AlllinField;% & Summary.AlllinCorr>0.1;
-idxMaps{2} = idxSess & Summary.AllspaceField;% & Summary.AllspatialCorr>0.1;
+idxMaps{1} = idxSess & Summary.AlllinField & Summary.AlllinCorr>0.1;
+idxMaps{2} = idxSess & Summary.AllspaceField & Summary.AllspatialCorr>0.1;
          
 for ii = 1:2            
     selectedlinMap = Summary.AlllinMapInit(idxMaps{ii},:);
@@ -112,23 +112,16 @@ col = [52/243 52/243 52/243;...
 % Task
 idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 ...
     & (Summary.AlllinField | Summary.AllspaceField | Summary.AlllinEndField) & ~Summary.AlltoneField;
-%idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 & (Summary.AlllinField==1);%1 == 1 | Summary.AlllinField2 == 1);
 data{1} = Summary.AlllinCorr(idxSess);
-
-%idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 & (Summary.AlllinField == 1 | Summary.AllspaceField == 1);
 data{3} = Summary.AlltoneNoToneCorr(idxSess);
-
-%idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 & (Summary.AlllinEndField == 1 | Summary.AllspaceField == 1);
 data{4} = Summary.AlltonelinEndCorr(idxSess);
-
-%idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 & (Summary.AlllinEndField == 1 | Summary.AlllinField == 1);
 data{2} = Summary.AlllinlinEndCorr(idxSess);
 
 % Set up a one way ANOVA
 datacombined = [data{1};data{2};data{3};data{4}];
 group1 = [ones(length(data{1}),1);ones(length(data{2}),1)*2;ones(length(data{3}),1)*3;ones(length(data{4}),1)*4];
 
-Fig6Stats.FwdCorr = groupStats(datacombined,[group1],'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
+Stats.FwdCorr = groupStats(datacombined,[group1],'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
 ylim([-1 2])
 
 %% Panel F: Return runs
@@ -149,13 +142,15 @@ group1 = [ones(length(data{1}),1);ones(length(data{2}),1)*2;ones(length(data{3})
 subplot(numrows,numcol,[numcol*15+5 numcol*15+6 numcol*15+7 numcol*15+8 ...
     numcol*16+5 numcol*16+6 numcol*16+7 numcol*16+8 numcol*17+5 numcol*17+6 numcol*17+7 numcol*17+8])
 
-Fig6Stats.ReturnCorr = groupStats(datacombined,group1,'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
+Stats.ReturnCorr = groupStats(datacombined,group1,'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
 ylim([-1 2])
 
-expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task';
-saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\Figure6a_spatialTuning.png'));
-saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\Figure6a_spatialTuning.eps'),'epsc');
-saveas(gcf,strcat(expPath,'\Compiled\Figures_Sep23\Figure6a_spatialTuning.fig'));
-save(strcat(expPath,'\Compiled\Figures_Sep23\Figure6a_spatialTuning.mat'),'Fig6Stats'); 
+%% Save figure
+expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
+saveas(gcf,strcat(expPath,'SupFigure3_placeCellRemapping.png'));
+saveas(gcf,strcat(expPath,'SupFigure3_placeCellRemapping.eps'),'epsc');
+saveas(gcf,strcat(expPath,'SupFigure3_placeCellRemapping.fig'));
+save(strcat(expPath,'SupFigure3_placeCellRemapping.mat'),'Stats'); 
+
 
 end

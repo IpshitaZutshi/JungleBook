@@ -44,6 +44,8 @@ if ~isempty(dir([basepath filesep '*.spikeData.cellinfo.mat']))
     load(file.name);
 else
     for unit = 1:length(spikes.UID)
+        spikeData.posIdx{unit} = [];
+        spikeData.pos{unit} = [];
         [idx] = InIntervals(spikes.times{unit},[tracking.timestamps(1) tracking.timestamps(end)]); 
         tsBehav = spikes.times{unit}(idx);
         if isempty(tsBehav)

@@ -56,7 +56,7 @@ addParameter(p,'passband',[6 12],@isnumeric)
 addParameter(p,'intervals',[0 inf],@isnumeric)
 addParameter(p,'samplingRate',1250,@isnumeric)
 addParameter(p,'method','hilbert',@isstr)
-addParameter(p,'plotting',true,@islogical)
+addParameter(p,'plotting',false,@islogical)
 addParameter(p,'numBins',180,@isnumeric)
 addParameter(p,'powerThresh',2,@isnumeric)
 addParameter(p,'saveMat',false,@islogical)
@@ -220,7 +220,7 @@ PhaseLockingData = v2struct(phasedistros,phasebins,...
                             detectorName, detectorParams);
 %PhaseLockingData.region = spikes.region;
 PhaseLockingData.UID = spikes.UID;
-PhaseLockingData.sessionName = spikes.sessionName;
+%PhaseLockingData.sessionName = spikes.sessionName;
 
 if saveMat
  save([lfp.Filename(1:end-4) '.PhaseLockingData.cellinfo.mat'],'PhaseLockingData');

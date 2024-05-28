@@ -77,18 +77,21 @@ if ~isempty(dir([basepath filesep '*Tracking.Behavior.mat'])) && ~forceReload
     return
 end
 
-    if ~isempty(dir([basepath filesep '*avi']))
-        aviFile = dir([basepath filesep '*avi']); 
+    if ~isempty(dir([basepath filesep 'Top*avi']))
+        aviFile = dir([basepath filesep 'Top*avi']); 
         aviFile = erase(aviFile.name,'.avi');
+
+        aviFile2 = dir([basepath filesep 'Front*avi']); 
+        aviFile2 = erase(aviFile2.name,'.avi');
     else
         warning('No video file!!');
         tracking = [];
         return
     end
     
-    if ~isempty(dir([basepath filesep 'CueTask*csv']))
-        csvFile = dir([basepath filesep 'CueTask*csv']); 
-        csvTS = load(csvFile.name);
+    if ~isempty(dir([basepath filesep 'Top*csv']))
+        csvFile = dir([basepath filesep 'Top*csv']); 
+        csvFile2 = dir([basepath filesep 'Front*csv']);       
     else
         warning('No csv file!!');
         tracking = [];

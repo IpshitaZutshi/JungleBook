@@ -31,10 +31,12 @@ expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
 p = inputParser;
 addParameter(p,'plotfig',true,@islogical);
 addParameter(p,'savefig',false,@islogical);
+addParameter(p,'saveMat',false,@islogical);
 
 parse(p,varargin{:});
 plotfig = p.Results.plotfig;
 savefig = p.Results.savefig;
+saveMat = p.Results.saveMat;
 
 Summary.AllcellType = [];
 Summary.AllsessType = [];
@@ -90,7 +92,7 @@ for ii = 1:length(sess)
     cd(strcat(expPath,sess{ii}))    
     % This variable has correct and incorrect trials averaged by target
     % port
-    file = dir(['*.rateMapsAvg.cellinfo.mat']);
+    file = dir(['*.rateMapsAvgnotLog.cellinfo.mat']);
     load(file(1).name);
     
     % Exception for control mice because they don't have the separate error
@@ -329,7 +331,7 @@ for ii = 1:length(sess)
             spaceField(kk,1) = 1;
         end
         
-        Field_Info = detectFields(toneMap(kk,:));
+        Field_Info = detectFields(toneMap(kk,:),'maxFieldSize',40);
         if isempty(Field_Info)
             toneField(kk,1) = 0;
         else 
@@ -401,6 +403,10 @@ for ii = 1:length(sess)
         spatialInfo toneInfo linpeakRate tonelinEndCorr spacepeakRate tonepeakRate linField linField1 linField2 linEndField spaceField toneField sessID cellID ...
         retMapLinInit retMapCorr retMapIncorr retFieldlin retFieldCorrect retlinToneCorr retlinlinCorr retlinlinEndCorr retlinEndToneCorr ...
         toneCorrError1 toneCorrError2 retFieldlinEnd retMapLinEnd
+end
+
+if saveMat
+    save('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\compilePlaceFields.mat','Summary')
 end
 
 if plotfig
@@ -502,10 +508,10 @@ if plotfig
     ylabel('Tone correlation')
 
     subplot(2,2,2)
-    idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 & (Summary.AllspaceField==1);% & (AllspatialCorr >0.1);
+    idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 & (Summary.AllspaceField==1) & (Summary.AllspatialCorr >0.1);
     scatter(Summary.AllspatialCorr(idxSess),Summary.AlltoneCorr(idxSess),10,[0.5 0.5 0.5],'filled')
     hold on
-    idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 & (Summary.AlltoneField==1);% & (AlltoneCorr >0.1);
+    idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 & (Summary.AlltoneField==1) & (Summary.AlltoneCorr >0.1);
     scatter(Summary.AllspatialCorr(idxSess),Summary.AlltoneCorr(idxSess),10,[187/243 86/243 149/243],'filled')
 
     ylim([-0.2 1])

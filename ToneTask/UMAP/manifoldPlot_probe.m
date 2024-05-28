@@ -2,7 +2,7 @@ function manifoldPlot_probe(varargin)
 
 p = inputParser;
 addParameter(p,'umap_path',pwd);
-addParameter(p,'umap_name','behavior_speed_1_smooth_10');
+addParameter(p,'umap_name','behavior_speed_1_smooth_5_0.1');
 addParameter(p,'behav_file',[]);
 addParameter(p,'A',-7);
 addParameter(p,'E',40);
@@ -83,10 +83,6 @@ for tt = 1:length(TRIAL_TYPE)
     end
 %    plot_ind =  [plot_ind,find(trial_type_ds==TRIAL_TYPE(tt))]; 
 end
-% plot_ind = plot_ind(plot_ind<9700);
-% a(1:9700)= 1;
-% a(plot_ind) = 0;
-% plot_ind_rest = find(a);
 
 for tt = 1:length(position_y_all)
     if trial_type_ds(tt)<6
@@ -129,7 +125,7 @@ xlabel(['Dim' num2str(dim1)]);
 ylabel(['Dim' num2str(dim2)]);
 zlabel(['Dim' num2str(dim3)]);
 axis off;
-colorbar
+%colorbar
 
 % color by frequency
 if length(TRIAL_TYPE)==6 && addFreq
@@ -148,15 +144,17 @@ if length(TRIAL_TYPE)==6 && addFreq
     ylabel(['Dim' num2str(dim2)]);
     zlabel(['Dim' num2str(dim3)]);
     axis off;
-    colorbar
+   % colorbar
 end
 % color by trialType
 ax2 = subplot(numrow,numcol,numcol*(rowloc-1)+colloc+1,'Parent', figHandle);
 %scatter3(Umap_results(plot_ind_rest,dim1),Umap_results(plot_ind_rest,dim2),Umap_results(plot_ind_rest,dim3),5,[0.85 0.85 0.85],'filled','MarkerFaceAlpha',0.1);
 hold on;
-scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),8,lick_plot,'filled');
-%colorbar
-colormap(ax2,col);
+for ii = 1:6
+    res = Umap_results(plot_ind,:);
+    lick_id = lick_plot==(ii-1);
+    scatter3(res(lick_id,dim1),res(lick_id,dim2),res(lick_id,dim3),8,col(ii,:),'filled');
+end
 view(A,E)
 grid off;
 title('Neural Manifold (position)')
@@ -164,7 +162,7 @@ xlabel(['Dim' num2str(dim1)]);
 ylabel(['Dim' num2str(dim2)]);
 zlabel(['Dim' num2str(dim3)]);
 axis off;
-colorbar
+%colorbar
 
 Link = linkprop([ax1, ax2],{'CameraUpVector', 'CameraPosition', 'CameraTarget', 'XLim', 'YLim', 'ZLim'});
 setappdata(gcf, 'StoreTheLink', Link);

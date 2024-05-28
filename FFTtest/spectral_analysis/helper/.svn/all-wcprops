@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/helper
+END
+jackknife.m
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/helper/jackknife.m
+END
+change_row_to_column.m
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/helper/change_row_to_column.m
+END
+cohmathelper.m
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/helper/cohmathelper.m
+END
+getfgrid.m
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/helper/getfgrid.m
+END
+check_consistency.m
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/helper/check_consistency.m
+END
+den_jack.m
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/helper/den_jack.m
+END
+dpsschk.m
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/helper/dpsschk.m
+END
+coherr.m
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/helper/coherr.m
+END
+getparams.m
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/helper/getparams.m
+END
+specerr.m
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/helper/specerr.m
+END

@@ -55,7 +55,7 @@ for ss = 1:length(sess)
     load(file.name);    
     positions = [];
     for pf = 1:(size(behavTrials.timestamps,1)-1)    
-        [idx] = InIntervals(tracking.timestamps,behavTrials.timestamps(pf,:));
+        [idx] = InIntervals(tracking.timestamps,(behavTrials.timestamps(pf,:)-0.03));
         if sum(idx)>0
             positions.forward{pf} = [tracking.timestamps(idx) tracking.position.x(idx) tracking.position.y(idx)];
             if behavTrials.linTrial(pf)==1

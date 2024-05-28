@@ -2,10 +2,10 @@ function getToneMapsAvg7Ports_notLog(varargin)
 
 %% Defaults and Parms
 p = inputParser;
-addParameter(p,'basepath',pwd,@isstr);
+addParameter(p,'basepath',pwd,@ischar);
 addParameter(p,'plotfig',true,@islogical);
 addParameter(p,'toneMap',true,@islogical);
-addParameter(p,'var','stim',@isstring);
+addParameter(p,'var','stim',@ischar);
 
 parse(p,varargin{:});
 basepath = p.Results.basepath;
@@ -128,7 +128,7 @@ for ii = 1:length(idx)
             for jj = 1:length(y)
                 tonepos(jj) = (y(jj)*gain(kk))/120;
             end
-            tonepos(tonepos>1.2) = nan;        
+            tonepos(tonepos>1.1) = nan;        
             if isempty(tracking.timestamps(idxPos))
                 positions.tone{ii} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)];    
             else
@@ -186,7 +186,7 @@ end
 
 firingMaps.forward = bz_getRateMaps(positions.forward,spikes,'xRange',[0 6],'yRange',[0 125], 'binSize',2.5,'saveMat',false);
 if toneMap
-   firingMaps.tone = bz_getRateMaps(positions.tone,spikes,'xRange',[0 6],'yRange',[0 1.25], 'binSize',0.025,'minOccupancy',0,'saveMat',false);    
+   firingMaps.tone = bz_getRateMaps(positions.tone,spikes,'xRange',[0 6],'yRange',[0 1.1], 'binSize',0.021,'minOccupancy',0,'saveMat',false);    
 end
 firingMaps.reverse = bz_getRateMaps(positions.reverse,spikes,'xRange',[0 6],'yRange',[0 125], 'binSize',2.5,'saveMat',false);
 

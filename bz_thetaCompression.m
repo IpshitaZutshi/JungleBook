@@ -123,7 +123,7 @@ else
     end
     
     % Calculate peak-peak estimation between place fields
-    [ccg2,t2] = CCG(tSp,[],'binSize',0.005,'duration',2);
+    [ccg2,t2] = CCG(tSp,[],'binSize',0.2,'duration',2);
     t2 = t2*1000;
     
     % Theta-cycle time difference between place fields
@@ -222,48 +222,48 @@ end
 
 
 %% for IZ only! fitting the slope across all peaks 
-
-% Fit for theta phase
-idxtoKeep = placefield_center==1 & ...
-        (ccgs_place_offset>-600 & ccgs_place_offset<600);   
-StartPoint = [0.001,5,400,20,0.00001,0,0];
-LowerLimits = [0.00005,0,100,5,0,-1,-10];
-UpperLimits = [0.003,10,700,200,0.01,1,100];
-data1 = repmat(ccgs_place_offset(idxtoKeep),[1 size(ccgs_phase_peaks,2)]);
-data2 = ccgs_phase_peaks(idxtoKeep,:);
-data1 = reshape(data1,[size(data1,1)*size(data1,2),1]);
-data2 = reshape(data2,[size(data2,1)*size(data2,2),1]);
-x_out = data1;
-y_out = data2;  
-x_bins = -400:8:400;
-y_bins = -20:0.2:20;
-if sum(idxtoKeep) > 5
-    [fit_params_phase,~] = customFit(x_out,y_out,x_bins,y_bins,StartPoint,LowerLimits,UpperLimits);
-else
-    fit_params_phase(1:7) = nan;
-end
-
-% Fit for theta timescale
-StartPoint =  [0.2,   100,  400,   800,  0.00001,  0.6,     0];
-LowerLimits = [0.001,   50,  100,   400, 0.000001, 0.2,  -500];
-UpperLimits = [0.8,  150,  700,  1500,    0.001,  1.5,   500];
-data1 = repmat(ccgs_place_offset(idxtoKeep),[1 size(ccgs_time_peaks,2)]);
-data2 = ccgs_time_peaks(idxtoKeep,:);
-data1 = reshape(data1,[size(data1,1)*size(data1,2),1]);
-data2 = reshape(data2,[size(data2,1)*size(data2,2),1]);
-x_out = data1;
-y_out = data2;    
-x_bins = -400:8:400;
-y_bins = -490:10:490; 
-if sum(idxtoKeep) > 5
-    [fit_params_time,~] = customFit(x_out,y_out,x_bins,y_bins,StartPoint,LowerLimits,UpperLimits);    
-else
-    fit_params_time(1:7) = nan;
-end
+% 
+% % Fit for theta phase
+% idxtoKeep = placefield_center==1 & ...
+%         (ccgs_place_offset>-600 & ccgs_place_offset<600);   
+% StartPoint = [0.001,5,400,20,0.00001,0,0];
+% LowerLimits = [0.00005,0,100,5,0,-1,-10];
+% UpperLimits = [0.003,10,700,200,0.01,1,100];
+% data1 = repmat(ccgs_place_offset(idxtoKeep),[1 size(ccgs_phase_peaks,2)]);
+% data2 = ccgs_phase_peaks(idxtoKeep,:);
+% data1 = reshape(data1,[size(data1,1)*size(data1,2),1]);
+% data2 = reshape(data2,[size(data2,1)*size(data2,2),1]);
+% x_out = data1;
+% y_out = data2;  
+% x_bins = -400:8:400;
+% y_bins = -20:0.2:20;
+% if sum(idxtoKeep) > 5
+%     [fit_params_phase,~] = customFit(x_out,y_out,x_bins,y_bins,StartPoint,LowerLimits,UpperLimits);
+% else
+%     fit_params_phase(1:7) = nan;
+% end
+% 
+% % Fit for theta timescale
+% StartPoint =  [0.2,   100,  400,   800,  0.00001,  0.6,     0];
+% LowerLimits = [0.001,   50,  100,   400, 0.000001, 0.2,  -500];
+% UpperLimits = [0.8,  150,  700,  1500,    0.001,  1.5,   500];
+% data1 = repmat(ccgs_place_offset(idxtoKeep),[1 size(ccgs_time_peaks,2)]);
+% data2 = ccgs_time_peaks(idxtoKeep,:);
+% data1 = reshape(data1,[size(data1,1)*size(data1,2),1]);
+% data2 = reshape(data2,[size(data2,1)*size(data2,2),1]);
+% x_out = data1;
+% y_out = data2;    
+% x_bins = -400:8:400;
+% y_bins = -490:10:490; 
+% if sum(idxtoKeep) > 5
+%     [fit_params_time,~] = customFit(x_out,y_out,x_bins,y_bins,StartPoint,LowerLimits,UpperLimits);    
+% else
+%     fit_params_time(1:7) = nan;
+% end
 if plotfig
     % for IZ only!
     idxtoKeep =  placefield_center==1 & ...
-        (ccgs_place_offset>-600 & ccgs_place_offset<600);
+        (ccgs_place_offset>-1000 & ccgs_place_offset<600);
     
     %Plot fig for inspection
     figure

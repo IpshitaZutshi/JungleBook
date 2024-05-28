@@ -2,21 +2,14 @@ function [aopt phi0 rho R p]=rccc(lindat, phidat, abound, da)
 iNan = isnan(lindat) | isnan(phidat);
 phidat = phidat(~iNan);
 lindat = lindat(~iNan);
-% phinan = isnan(phidat);
-% phidat(phinan) = [];
-% lindat(phinan) = [];
-% linnan = isnan(lindat);
-% lindat(linnan) = [];
-% phidat(linnan) = [];
 
 
-%%
 %% phidat in radiants
 %%
 % starting points of maximization
 Nrep=ceil(abs(abound(2)-abound(1))/da);
 astart=min(abound);
-%%
+
 
 Rfunc = @(a) -abs(nanmean(exp(1i*(phidat-2*pi*a*lindat))));
 %Rfunc = @(a) sqrt(nanmean(sin(phidat-2*pi*a*lindat))^2+nanmean(sin(phidat-2*pi*a*lindat))^2);
@@ -53,6 +46,7 @@ if numA > 1
             %phase offset
             v=mean(exp(1i*(phidat-2*pi*aopt(a)*lindat)));
             phi0=angle(v);
+            %phi0 = angle(mean(exp(1i*phidat)) / mean(exp(1i*2*pi*aopt*lindat)));
             %
             
             theta=angle(exp(2*pi*1i*abs(aopt(a))*(lindat)));
@@ -119,6 +113,7 @@ else
         
         v=mean(exp(1i*(phidat-2*pi*aopt*lindat)));
         phi0=angle(v);
+        %phi0 = angle(mean(exp(1i*phidat)) / mean(exp(1i*2*pi*aopt*lindat)));
         
         theta=angle(exp(2*pi*1i*abs(aopt)*(lindat)));
         

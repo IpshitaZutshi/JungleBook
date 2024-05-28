@@ -45,6 +45,22 @@ for ii = 1:length(sessloc)
         Summary.PortDiffDist16{1} = [Summary.PortDiffDist16{1}; behavTrials.toneGain(idxNoProbe )-behavTrials.lickLoc(idxNoProbe)];
         Summary.PortDiffDist16{2} = [Summary.PortDiffDist16{2}; behavTrials.toneGain(idxProbe)-behavTrials.lickLoc(idxProbe)];        
     end
+
+    %% Extract performance split up by port
+    for pp = 0:5
+        if sum(behavTrials.toneGain== pp & behavTrials.linTrial==0 & behavTrials.probe==0)>2
+            Summary.perfTrial(ii,pp+1) = sum(behavTrials.linTrial==0 & behavTrials.toneGain== pp & behavTrials.probe==0 & behavTrials.correct==1)./...
+                sum(behavTrials.toneGain== pp & behavTrials.linTrial==0 & behavTrials.probe==0);
+        else
+            Summary.perfTrial(ii,pp+1) = nan;
+        end
+        if sum(behavTrials.toneGain== pp & behavTrials.linTrial==0 & behavTrials.probe==1)>0
+            Summary.perfTrial(ii,pp+7) = sum(behavTrials.linTrial==0 & behavTrials.toneGain== pp & behavTrials.probe==1 & behavTrials.correct==1)./...
+                sum(behavTrials.toneGain== pp & behavTrials.linTrial==0 & behavTrials.probe==1);
+        else
+            Summary.perfTrial(ii,pp+7) = nan;
+        end
+    end
 end
     
 end

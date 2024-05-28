@@ -1,22 +1,34 @@
-function plotExampleCell(rowloc, colloc,spikeData, tracking, behavTrials, firingMaps,fighandle,numrows,numcol,cellNum)
+function plotExampleCell(rowloc, colloc,fighandle,numrows,numcol,cellNum)
 
 
 b = linspace(0,125,50);
-a = linspace(2000,22000,50);
+c = linspace(0,1.05,50);
 
-%colMap = cbrewer('seq','Blues',18);
-%col = [colMap(5,:);colMap(8,:);colMap(10,:);colMap(13,:);colMap(16,:);colMap(18,:)];
-col = [119/255 221/255 229/255;...
-    122/255 201/255 229/255;...
-    38/255 169/255 224/255;...
-    73/255 136/255 189/255;...
-    17/255 55/255 174/255;...
-    0/255 0/255 134/255];
+freqExp = log10(22000/1000);
+for ii = 1:length(c)
+    a(ii) = (1000*(10.^(freqExp*c(ii))));
+end
+
+file = dir(['*.spikeData.cellinfo.mat']);
+load(file.name);
+file = dir(['*.Tracking.Behavior.mat']);
+load(file(1).name);
+file = dir(['*TrialBehavior.Behavior.mat']);
+load(file.name);
+file = dir(['*.rateMapsAvgnotLog.cellinfo.mat']);
+load(file.name);
+
+col = [238/255 67/255 69/255;...
+    241/255 114/255 42/255;...
+    247/255 149/255 33/255;...
+    249/255 197/255 81/255;...
+    143/255 189/255 107/255;...
+    87/255 116/255 144/255];
 
 for pf = 1:(size(behavTrials.timestamps,1)-1)    
     [idx] = InIntervals(tracking.timestamps,behavTrials.timestamps(pf,:));
-  %  vy = tracking.position.vy;
-  %  idx2 = vy>0.2 & idx;
+   v = tracking.position.v;
+   idx2 = v>5 & idx;
     positions.forward{pf} = [tracking.position.x(idx) tracking.position.y(idx) tracking.position.v(idx) find(idx==1)];   
 end
 
@@ -98,9 +110,10 @@ for kk = 1:6
     subplot(numrows, numcol, [(rowloc-1)*numcol+colloc+(12*numcol) (rowloc-1)*numcol+colloc+1+(12*numcol)], 'Parent', fighandle);
     hold on
     plot(a,firingMaps.tone.rateMaps{cellNum}{1+kk},'Color',col(kk,:),'LineWidth',1);      
-    xlim([1000 25000])
+    xlim([1000 22000])
     set(gca,'xtick',[])
-    box off
+    box off   
+    xscale log
     
     dataMat = [dataMat;firingMaps.forward.rateMaps{cellNum}{1+kk}];
     atm = fillmissing(firingMaps.tone.rateMaps{cellNum}{1+kk},'linear');
@@ -118,9 +131,11 @@ xlabel(num2str(max(nanmean(dataMat,1))))
 
 BuPu=cbrewer('seq', 'BuPu', 11);
 ax2 = subplot(numrows, numcol, [(rowloc-1)*numcol+colloc+(13*numcol) (rowloc-1)*numcol+colloc+1+(13*numcol)], 'Parent', fighandle);
-imagesc(1,a,nanmean(dataMatTone,1))
+imagesc(a,1,nanmean(dataMatTone,1))
 colormap(ax2, BuPu)
 box off
-set(gca,'xtick',[],'ytick',[])
+set(gca,'ytick',[])
+xscale log
 xlabel(num2str(max(nanmean(dataMatTone,1))))
+
 end

@@ -13,7 +13,7 @@ E_all = [-90,90,-1.55,-11,1.55];
 A_all2 = [176.3896,176.3896,-154,191,-179];
 E_all2 = [17.3750,17.3750,2.33,-11,-22];
 
-for ii = 1:length(umap_path)
+for ii = 5%1:length(umap_path)
 
     fig2 = figure;
     set(fig2, 'Renderer','painters')

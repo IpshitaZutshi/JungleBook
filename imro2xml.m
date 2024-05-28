@@ -1,0 +1,63 @@
+function channelGroups = imro2xml(varargin)
+% TO USE: imro2xml('imrofile','~/your/imro/path.imro')
+
+p = inputParser;
+addParameter(p,'basepath',pwd,@isfolder);
+addParameter(p,'imroFile',[],@isfile);
+addParameter(p,'maxGap',5,@isnumeric)
+
+parse(p,varargin{:});
+basepath = p.Results.basepath;
+imroFile = p.Results.imroFile;
+maxGap = p.Results.maxGap;
+
+if isempty(imroFile)
+    fImro = checkFile('basepath',basepath,'fileType','imro');
+
+    imroFile = [fImro.folder filesep fImro.name];
+end
+
+textData = fileread(imroFile);
+
+textData = textData(9:end); %remove (24,384) at beginning
+
+data = textscan(textData,' %d %d %*d %*d %d', 'Delimiter',{'(',')',' ',','},'MultipleDelimsAsOne',true);
+
+channelID = data{1}+1;
+shankID = data{2}+1;
+electrodeID = data{3};
+
+shankList = unique(shankID);
+nShank = length(shankList);
+
+count=1;
+
+for shIdx = 1:nShank
+
+    shChans = channelID(shankID == shankList(shIdx));
+    shElec = electrodeID(shankID == shankList(shIdx));
+
+    [shElecSort,sortIdx] = sort(shElec);
+    
+    shChansSort = shChans(sortIdx);
+
+    gapIdx = [0; find(diff(shElecSort)>(2*maxGap)); length(shElec)];
+    
+    for grIdx = 1:(length(gapIdx)-1)
+        
+        group = shChansSort((gapIdx(grIdx)+1):gapIdx(grIdx+1));
+
+        group = group -1;
+
+        disp(num2str(group'))
+
+        channelGroups{count} = group';
+
+        count = count+1;
+    end
+
+end
+
+for shIdx = 1:nShank
+    channelGroups{shIdx} = flip(channelGroups{shIdx});
+end

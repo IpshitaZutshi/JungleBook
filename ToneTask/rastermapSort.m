@@ -1,0 +1,31 @@
+%pyenv('Version','C:\Users\ipshi\Anaconda3\envs\rastermap\pythonw.exe','ExecutionMode', 'OutOfProcess')
+
+function  [sortIdx] = rastermapSort
+
+filename = 'IZ48_230714_sess28.rastermapData';
+directory_path  = 'C:\Data\Rastermap\preProcessedData\';
+
+load(strcat(directory_path,filename))
+
+data = zscore(spkMat,[],1);
+
+dataNdArray = py.numpy.array(data);
+
+pyrun("from rastermap import Rastermap") %load interpreter, import main function
+rmModel = pyrun("model = Rastermap(n_clusters=50, n_PCs=200, locality=0, time_lag_window=3, grid_upsample = 0).fit(spks)", "model", spks=dataNdArray);
+sortIdx = int16(py.memoryview(rmModel.isort.data)) + 1; %back to MATLAB array, 1-indexing
+
+%
+sortIdx_new = [sortIdx(61:end) sortIdx(1:60)];
+
+figure
+imagesc(data(sortIdx_new , :), [0, 1]);
+colormap(flipud(gray))
+
+hold on
+plot(constVariables.y/120*size(data,1),'Color',[0.5 0.5 0.5], 'LineWidth',1)
+plot(eventVariables.trialEnd*size(data,1),'Color','b', 'LineWidth',0.5)
+plot(eventVariables.trialStart*size(data,1),'Color','r', 'LineWidth',0.5)
+set(gca,'YDir','normal')
+
+end

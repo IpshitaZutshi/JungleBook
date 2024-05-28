@@ -1,4 +1,4 @@
-function Summary = sessionRemappingTrajectorynoToneVer2
+function Summary = sessionRemappingTrajectorynoToneVer2(varargin)
 
  sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
     'IZ39\Final\IZ39_220702_sess14','IZ39\Final\IZ39_220714_sess18',...
@@ -19,7 +19,14 @@ function Summary = sessionRemappingTrajectorynoToneVer2
     'IZ48\Final\IZ48_230705_sess22','IZ48\Final\IZ48_230714_sess28'};  
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
-plotfig = 0;
+
+p = inputParser;
+addParameter(p,'plotfig',true,@islogical);
+addParameter(p,'matchTrials',false,@islogical);
+
+parse(p,varargin{:});
+plotfig = p.Results.plotfig;
+matchTrials = p.Results.matchTrials;
 
 YlGnBu=cbrewer('seq', 'YlGnBu', 11);
 
@@ -125,14 +132,32 @@ for ii = 1:length(sess)
                 Maps{zz} = [Maps{zz};firingMapsTrial.firingMaps.forward.rateMaps{kk}{trialIdx(tt)}];
             end
             
-            if isempty(Maps{zz})
-                avgMaps(zz,1:50) = nan;
-            else
-                avgMaps(zz,:) = nanmean(Maps{zz},1);
-            end
-            
         end
-        
+
+        if ~matchTrials
+            for zz = 1:6 
+                if isempty(Maps{zz})
+                    avgMaps(zz,1:50) = nan;
+                else
+                    avgMaps(zz,:) = nanmean(Maps{zz},1);
+                end
+            end
+        else  %Subsample to match trial numbers   
+            for zz = 1:3
+                [minNum] = min([size(Maps{(2*(zz-1)+1)},1),size(Maps{(2*(zz-1)+2)},1)]);
+                if minNum==0
+                    avgMaps((2*(zz-1)+1),1:50) = nan;
+                    avgMaps((2*(zz-1)+2),1:50) = nan;
+                else
+                    trialID = randsample(1:size(Maps{(2*(zz-1)+1)},1),minNum);
+                    avgMaps((2*(zz-1)+1),:) = nanmean(Maps{(2*(zz-1)+1)}(trialID,:),1);
+
+                    trialID = randsample(1:size(Maps{(2*(zz-1)+2)},1),minNum);
+                    avgMaps((2*(zz-1)+2),:) = nanmean(Maps{(2*(zz-1)+2)}(trialID,:),1);
+                end
+            end
+        end
+            
         % Also take subsets of within stability
         idx = find(trialLabel == 1 & trajectLabel == typePre);
         trialIdx1 = trialNum(idx(1:floor(length(idx)/2)));

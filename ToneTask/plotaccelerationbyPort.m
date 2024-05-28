@@ -19,7 +19,7 @@ sesstoAnalyze = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10',
     'IZ48\Final\IZ48_230705_sess22','IZ48\Final\IZ48_230714_sess28',... 
     }; 
 
-plotfig = 0;
+plotfig = 1;
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task';
 
 col = [0 0 0;...

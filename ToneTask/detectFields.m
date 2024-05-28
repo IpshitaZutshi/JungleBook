@@ -2,15 +2,28 @@ function Field_Info = detectFields(SmoothedFiringRate,varargin)
 
     p = inputParser;
     addParameter(p,'maxRate',5,@isnumeric);
+    addParameter(p,'minFieldSize',4,@isnumeric);
+    addParameter(p,'maxFieldSize',35,@isnumeric);
+    addParameter(p,'percentRate',0.2,@isnumeric);
 
     parse(p,varargin{:});
     maxRate = p.Results.maxRate;
+    minFieldSize = p.Results.minFieldSize;
+    maxFieldSize = p.Results.maxFieldSize;
+    percentRate = p.Results.percentRate;
 
-    minFieldSize = 4;
-    maxFieldSize = 35;
-    % Pad on each end with zeros for edge effects
+    % Pad on each end with zeros for edge effects. If SmoothedFiringRate
+    % has nans at the end, pad around the nans. 
+    % Find the index of the last non-NaN element
+    last_nonNaN_index = find(~isnan(SmoothedFiringRate), 1, 'last');
+    SmoothedFiringRate = SmoothedFiringRate(1:last_nonNaN_index);
     SmoothedFiringRate = [0 0 SmoothedFiringRate 0 0];
-    [peakValues, peakLocations] = findpeaks(SmoothedFiringRate, 'minpeakheight',maxRate, 'minpeakdistance', 10);
+    if length(SmoothedFiringRate) < 11
+        minpeakdistance = 0;
+    else
+        minpeakdistance = 10;
+    end
+    [peakValues, peakLocations] = findpeaks(SmoothedFiringRate, 'minpeakheight',maxRate, 'minpeakdistance', minpeakdistance);
     Field_Info = [];
     for j = 1:length(peakLocations)
         FieldPeak = peakLocations(j);
@@ -20,10 +33,10 @@ function Field_Info = detectFields(SmoothedFiringRate,varargin)
         LookBack = 1:FieldPeak-1;
         PercentPeakRate_Forward = SmoothedFiringRate(LookForward)./peakValues(j);
         PercentPeakRate_Back = SmoothedFiringRate(LookBack)./peakValues(j);
-        tempInd1 = find(PercentPeakRate_Forward < .2);
+        tempInd1 = find(PercentPeakRate_Forward < percentRate);
         if isempty(tempInd1), continue, end
         FieldEnd = FieldPeak+tempInd1(1); % this is the first bin forward of the animal that has a FR less than 10% of the peak rate
-        tempInd2 = find(PercentPeakRate_Back < .2);
+        tempInd2 = find(PercentPeakRate_Back < percentRate);
         if isempty(tempInd2)
             FieldStart = 1;
         else
@@ -42,7 +55,7 @@ function Field_Info = detectFields(SmoothedFiringRate,varargin)
         else
             FieldStart = FieldStart-2;
         end
-        Field_Info = [Field_Info;FieldStart, FieldEnd, FieldPeak];
+        Field_Info = [Field_Info; peakValues(j), FieldStart, FieldEnd, FieldPeak-2];
     end
 
 end

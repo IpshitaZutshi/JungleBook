@@ -2,21 +2,22 @@ function plotExampleCellErrorTrials(rowloc, colloc,spikeData, tracking, behavTri
 
 
 b = linspace(0,125,50);
-a = linspace(2000,22000,50);
+c = linspace(0,1.05,50);
 
-%colMap = cbrewer('seq','Blues',18);
-%col = [colMap(5,:);colMap(8,:);colMap(10,:);colMap(13,:);colMap(16,:);colMap(18,:)];
-col = [119/255 221/255 229/255;...
-    122/255 201/255 229/255;...
-    38/255 169/255 224/255;...
-    73/255 136/255 189/255;...
-    17/255 55/255 174/255;...
-    0/255 0/255 134/255];
+freqExp = log10(22000/1000);
+for ii = 1:length(c)
+    a(ii) = (1000*(10.^(freqExp*c(ii))));
+end
+
+col = [238/255 67/255 69/255;...
+    241/255 114/255 42/255;...
+    247/255 149/255 33/255;...
+    249/255 197/255 81/255;...
+    143/255 189/255 107/255;...
+    87/255 116/255 144/255];
 
 for pf = 1:(size(behavTrials.timestamps,1)-1)    
     [idx] = InIntervals(tracking.timestamps,behavTrials.timestamps(pf,:));
-  %  vy = tracking.position.vy;
-  %  idx2 = vy>0.2 & idx;
     positions.forward{pf} = [tracking.position.x(idx) tracking.position.y(idx) tracking.position.v(idx) find(idx==1)];   
 end
 
@@ -69,6 +70,7 @@ for kk = 1:6
     hold on
     plot(a,firingMaps.tone.rateMaps{cellNum}{7+kk},'Color',col(kk,:),'LineWidth',1);      
     xlim([1000 25000])
+    xscale log
     set(gca,'xtick',[])
     box off
     
@@ -76,6 +78,7 @@ for kk = 1:6
     hold on
     plot(a,errorMaps.tone.rateMaps{cellNum}{7+kk},'Color',col(kk,:),'LineWidth',1);      
     xlim([1000 25000])
+    xscale log
     set(gca,'xtick',[])
     box off    
     
@@ -92,7 +95,7 @@ end
 
 YlGnBu=cbrewer('seq', 'YlGnBu', 11);
 ax1 = subplot(numrows, numcol, [(rowloc-1)*numcol+colloc+(8*numcol) (rowloc-1)*numcol+colloc+1+(8*numcol)], 'Parent', fighandle);
-imagesc(1,b,nanmean(dataMat1,1))
+imagesc(b,1,nanmean(dataMat1,1))
 colormap(ax1,YlGnBu)
 box off
 set(gca,'xtick',[],'ytick',[])
@@ -100,7 +103,7 @@ xlabel(num2str(max(nanmean(dataMat1,1))))
 
 YlGnBu=cbrewer('seq', 'YlGnBu', 11);
 ax1 = subplot(numrows, numcol, [(rowloc-1)*numcol+colloc+(9*numcol) (rowloc-1)*numcol+colloc+1+(9*numcol)], 'Parent', fighandle);
-imagesc(1,b,nanmean(dataMat2,1))
+imagesc(b,1,nanmean(dataMat2,1))
 colormap(ax1,YlGnBu)
 box off
 set(gca,'xtick',[],'ytick',[])
@@ -109,20 +112,25 @@ xlabel(num2str(max(nanmean(dataMat2,1))))
 
 BuPu=cbrewer('seq', 'BuPu', 11);
 ax2 = subplot(numrows, numcol, [(rowloc-1)*numcol+colloc+(13*numcol) (rowloc-1)*numcol+colloc+1+(13*numcol)], 'Parent', fighandle);
-imagesc(1,a,nanmean(dataMatTone1,1))
+imagesc(a,1,nanmean(dataMatTone1,1))
 colormap(ax2, BuPu)
 box off
-set(gca,'xtick',[],'ytick',[])
+set(gca,'ytick',[])
+xscale log
+xlim([1000 25000])
 xlabel(num2str(max(nanmean(dataMatTone1,1))))
 
+caxis([0 35])
 
 BuPu=cbrewer('seq', 'BuPu', 11);
 ax2 = subplot(numrows, numcol, [(rowloc-1)*numcol+colloc+(14*numcol) (rowloc-1)*numcol+colloc+1+(14*numcol)], 'Parent', fighandle);
-imagesc(1,a,nanmean(dataMatTone2,1))
+imagesc(a,1,nanmean(dataMatTone2,1))
 colormap(ax2, BuPu)
 box off
-set(gca,'xtick',[],'ytick',[])
+set(gca,'ytick',[])
+xscale log
+xlim([1000 25000])
 xlabel(num2str(max(nanmean(dataMatTone2,1))))
-
+caxis([0 35])
 
 end

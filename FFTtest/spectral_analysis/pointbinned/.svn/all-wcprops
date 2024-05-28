@@ -1,0 +1,95 @@
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned
+END
+mtspectrumsegpb.m
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/mtspectrumsegpb.m
+END
+mtspecgrampb.m
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/mtspecgrampb.m
+END
+mtspectrumpb.m
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/mtspectrumpb.m
+END
+extractdatapb.m
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/extractdatapb.m
+END
+mtdspecgrampb.m
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/mtdspecgrampb.m
+END
+CrossSpecMatpb.m
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/CrossSpecMatpb.m
+END
+mtdspectrumpb.m
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/mtdspectrumpb.m
+END
+coherencysegpb.m
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/coherencysegpb.m
+END
+coherencypb.m
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/coherencypb.m
+END
+mtfftpb.m
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/mtfftpb.m
+END
+cohgrampb.m
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/cohgrampb.m
+END
+mtspecgramtrigpb.m
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/mtspecgramtrigpb.m
+END
+mtspectrumtrigpb.m
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/mtspectrumtrigpb.m
+END
+cohmatrixpb.m
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/cohmatrixpb.m
+END
+createdatamatpb.m
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/!svn/ver/1552/abogaard/chronux/spectral_analysis/pointbinned/createdatamatpb.m
+END

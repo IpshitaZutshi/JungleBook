@@ -42,7 +42,7 @@ Summary.AllcellID = [];
 for ii = 1:length(sess)
     %% Load files
     cd(strcat(expPath,sess{ii}))    
-    file = dir(['*.rateMapsAvg.cellinfo.mat']);
+    file = dir(['*.rateMapsAvgnotLog.cellinfo.mat']);
     load(file(1).name);
     file = dir(['*.rateMapsTrial.cellinfo.mat']);
     trialMaps = load(file(1).name);    

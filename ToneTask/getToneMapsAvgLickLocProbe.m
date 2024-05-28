@@ -53,6 +53,14 @@ idx{11} = behavTrials.lickLoc ==4 & behavTrials.linTrial ==0 & behavTrials.probe
 idx{12} = behavTrials.lickLoc ==5 & behavTrials.linTrial ==0 & behavTrials.probe ==1;    
 
 
+% (var) trials
+idx{13} = behavTrials.toneGain ==0 & behavTrials.linTrial ==0 & behavTrials.probe ==1;
+idx{14} = behavTrials.toneGain ==1 & behavTrials.linTrial ==0 & behavTrials.probe ==1;
+idx{15} = behavTrials.toneGain ==2 & behavTrials.linTrial ==0 & behavTrials.probe ==1;
+idx{16} = behavTrials.toneGain ==3 & behavTrials.linTrial ==0 & behavTrials.probe ==1;
+idx{17} = behavTrials.toneGain ==4 & behavTrials.linTrial ==0 & behavTrials.probe ==1;
+idx{18} = behavTrials.toneGain ==5 & behavTrials.linTrial ==0 & behavTrials.probe ==1;    
+
 gain = [120/11.6, 120/32.27 120/55.53 120/79.62 120/102.79 120/120];
 freqExp = log10(22000/1000);
 
@@ -65,14 +73,17 @@ for ii = 1:length(idx)
     
     if ii<7
         kk = ii;
-    else
+    elseif (ii>=7 && ii <13)
         kk = ii-6;
+    else
+        kk =ii-12;
     end
+
     for jj = 1:length(y)
-        freq = (y(jj)*gain(kk))/122;
-        tonepos(jj) = (1000*(10.^(freqExp*freq)));
+        tonepos(jj) = (y(jj)*gain(kk))/120;
+        %tonepos(jj) = (1000*(10.^(freqExp*freq)));
     end
-    tonepos(tonepos>25000) = nan;        
+    tonepos(tonepos>1.1) = nan;        
     if isempty(tracking.timestamps(idxPos))
         positions.tone{ii} = [tracking.timestamps(idxPos) tracking.position.x(idxPos) tracking.position.y(idxPos)];    
     else
@@ -81,7 +92,7 @@ for ii = 1:length(idx)
 end
 
 firingMaps.forward = bz_getRateMaps(positions.forward,spikes,'xRange',[0 6],'yRange',[0 125], 'binSize',2.5,'saveMat',false);
-firingMaps.tone = bz_getRateMaps(positions.tone,spikes,'xRange',[0 6],'yRange',[2000 22000], 'binSize',400,'minOccupancy',0,'saveMat',false);    
+firingMaps.tone = bz_getRateMaps(positions.tone,spikes,'xRange',[0 6],'yRange',[0 1.1], 'binSize',0.022,'minOccupancy',0,'saveMat',false);    
 
 firingMaps.linTrial = behavTrials.linTrial(1:(end-1));
 firingMaps.toneTrial = behavTrials.toneTrial(1:(end-1));

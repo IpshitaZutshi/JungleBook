@@ -24,6 +24,10 @@ Summary.linCorr = [];
 Summary.toneNoToneCorr = [];
 Summary.linlinEndCorr = [];
 Summary.tonelinEndCorr = [];
+Summary.linCorrvalidPairs = [];
+Summary.toneNoToneCorrvalidPairs = [];
+Summary.linlinEndCorrvalidPairs = [];
+Summary.tonelinEndCorrvalidPairs = [];
 
 for ii = 1:length(sess)
     %% Load files
@@ -70,23 +74,39 @@ for ii = 1:length(sess)
         end    
 
         if cellType == 1 && linField==1
-            corrtemp = corrcoef(Maps2D.firingMaps.forward.rateMaps{kk}{2}(:),Maps2D.firingMaps.forward.rateMaps{kk}{3}(:),'rows','pairwise');
-            Summary.linCorr = [Summary.linCorr;corrtemp(1,2)];
+            if sum(~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{2}(:)) & ~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{3}(:)))>150
+                corrtemp = corrcoef(Maps2D.firingMaps.forward.rateMaps{kk}{2}(:),Maps2D.firingMaps.forward.rateMaps{kk}{3}(:),'rows','pairwise');
+                Summary.linCorr = [Summary.linCorr;corrtemp(1,2)];
+                Summary.linCorrvalidPairs = [Summary.linCorrvalidPairs sum(~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{2}(:)) ...
+                    & ~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{3}(:)))];
+            end
         end
         
         if cellType == 1 && (linField==1 || toneField==1)
-            corrtemp = corrcoef(Maps2D.firingMaps.forward.rateMaps{kk}{1}(:),Maps2D.firingMaps.forward.rateMaps{kk}{5}(:),'rows','pairwise');
-            Summary.toneNoToneCorr = [Summary.toneNoToneCorr;corrtemp(1,2)];
+            if sum(~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{1}(:)) & ~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{5}(:)))>150
+                corrtemp = corrcoef(Maps2D.firingMaps.forward.rateMaps{kk}{1}(:),Maps2D.firingMaps.forward.rateMaps{kk}{5}(:),'rows','pairwise');
+                Summary.toneNoToneCorr = [Summary.toneNoToneCorr;corrtemp(1,2)];
+                Summary.toneNoToneCorrvalidPairs = [Summary.toneNoToneCorrvalidPairs sum(~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{1}(:)) ...
+                    & ~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{5}(:)))];
+            end
         end
         
         if cellType == 1 && (linEndField==1 || toneField==1)
-            corrtemp = corrcoef(Maps2D.firingMaps.forward.rateMaps{kk}{4}(:),Maps2D.firingMaps.forward.rateMaps{kk}{5}(:),'rows','pairwise');
-            Summary.tonelinEndCorr = [Summary.tonelinEndCorr;corrtemp(1,2)];
+            if sum(~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{4}(:)) & ~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{5}(:)))>150            
+                corrtemp = corrcoef(Maps2D.firingMaps.forward.rateMaps{kk}{4}(:),Maps2D.firingMaps.forward.rateMaps{kk}{5}(:),'rows','pairwise');
+                Summary.tonelinEndCorr = [Summary.tonelinEndCorr;corrtemp(1,2)];
+                Summary.tonelinEndCorrvalidPairs = [Summary.tonelinEndCorrvalidPairs sum(~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{4}(:)) ...
+                    & ~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{5}(:)))];
+            end
         end
         
         if cellType == 1 && (linField==1 && linEndField==1)
-            corrtemp = corrcoef(Maps2D.firingMaps.forward.rateMaps{kk}{1}(:),Maps2D.firingMaps.forward.rateMaps{kk}{4}(:),'rows','pairwise');
-            Summary.linlinEndCorr = [Summary.linlinEndCorr;corrtemp(1,2)];
+            if sum(~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{1}(:)) & ~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{4}(:)))>150                        
+                corrtemp = corrcoef(Maps2D.firingMaps.forward.rateMaps{kk}{1}(:),Maps2D.firingMaps.forward.rateMaps{kk}{4}(:),'rows','pairwise');
+                Summary.linlinEndCorr = [Summary.linlinEndCorr;corrtemp(1,2)];
+                Summary.linlinEndCorrvalidPairs = [Summary.linlinEndCorrvalidPairs sum(~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{1}(:)) ...
+                    & ~isnan(Maps2D.firingMaps.forward.rateMaps{kk}{4}(:)))];
+            end
         end        
     end
 end

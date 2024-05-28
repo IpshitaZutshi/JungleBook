@@ -57,14 +57,16 @@ else
     end
 end
 
+%% Make a separate raster matrix for each cell, which then can be processed by the toolbox
 for ii = 1:size(spikes.UID,2)
+    % Initiate the matrix, number of trials by time
     raster_data = zeros(length(st),(win(2)-win(1))+1);
     for kk = 1:length(st)
-        temp_rast = (spikes.times{ii} - st(kk))*1000;
+        temp_rast = (spikes.times{ii} - st(kk))*1000;% Convert to ms
         temp_rast = temp_rast(temp_rast>win(1) & temp_rast<win(2));
-        temp_rast = round(temp_rast)+abs(win(1));
-        temp_rast(temp_rast==0) = 1;
-        temp_rast(temp_rast>(win(2)-win(1))+1) = (win(2)-win(1))+1;
+        temp_rast = round(temp_rast)+abs(win(1)); % Shift everything relative to the start of win(1)
+        temp_rast(temp_rast==0) = 1; % If there's a random stray timepoint at timepoint 0, fix it so code does not break
+        temp_rast(temp_rast>(win(2)-win(1))+1) = (win(2)-win(1))+1; % for the end of the timepoint
         raster_data(kk,temp_rast) = 1;
         
     end
@@ -74,7 +76,7 @@ for ii = 1:size(spikes.UID,2)
     save(strcat('raster_data_ndt_',num2str(eventType),'\',sessname{end},'_',num2str(ii),'_','raster_data.mat'),'raster_data','raster_labels','raster_site_info')
 end
  
-
+%% Everything below is just directly following the toolbox guidelines and code
 %% Bin data
 raster_file_directory_name = strcat('raster_data_ndt_',num2str(eventType),'\');
 save_prefix_name = strcat('Binned_',sessname{end},'_',num2str(eventType));
@@ -131,7 +133,7 @@ for num = 0:shuff_num
     end
 
     % we will also greatly speed up the run-time of the analysis by not creating a full TC
-    the_cross_validator.test_only_at_training_times = 1;
+    the_cross_validator.test_only_at_training_times = 0;
 
     % run the decoding analysis
     DECODING_RESULTS = the_cross_validator.run_cv_decoding;
