@@ -1,6 +1,4 @@
-function [clock,counterclock] = extractRotationChoice
-
-cd('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\rotationData')
+function [clock counterclock]
 file = dir('*.rotation.mat');
 
 for ii = 1:length(file)
@@ -15,10 +13,9 @@ for ii = 1:length(file)
     end
 end
 
-% figure
-% subplot(1,2,1)
-% imagesc(clock)
-% 
-% subplot(1,2,2)
-% imagesc(counterclock)
-end
+figure
+subplot(1,2,1)
+imagesc(clock)
+
+subplot(1,2,2)
+imagesc(counterclock)

@@ -7,7 +7,7 @@ function [trackRotation] = calculateHDfromDLC(varargin)
 
 p = inputParser;
 addParameter(p,'basepath',pwd,@isstr);
-addParameter(p,'plotfig',false,@islogical);
+addParameter(p,'plotfig',true,@islogical);
 addParameter(p,'saveMat',false,@islogical);
 
 parse(p,varargin{:});
@@ -134,21 +134,19 @@ for i = 1:numTrials
     
     a = find(abs(angle(startIdx(i):endIdx(i))) ...
         > angle_thres, 1, 'first');
-    if isempty(a)
-        rotations(i) = nan;
-        timestamps(i) = nan;
+    if ismepty(a)
+        angle_thres_idx(i) = nan;
     else
-        angle_thres_idx(i) = a;
-        angle_thres_idx(i) = a+ startIdx(i);
-        rotations(i) = sign(angle(angle_thres_idx(i))); 
-        timestamps(i) =tracking.timestamps(angle_thres_idx(i));
-    end
+        angle_thres_idx(i) = nan;
+        angle_thres_idx(i) = angle_thres_idx(i) + startIdx(i);
+
+    rotations(i) = sign(angle(angle_thres_idx(i)));     
 end
 
 trackRotation.lickLoc = behavTrials.lickLoc+1;
 trackRotation.linTrial = behavTrials.linTrial;
 trackRotation.direction = rotations;
-trackRotation.timestamps =  timestamps;
+trackRotation.timestamps =  tracking.timestamps(angle_thres_idx);
 trackRotation.angle = angle;
 trackRotation.nosePos = nose;
 

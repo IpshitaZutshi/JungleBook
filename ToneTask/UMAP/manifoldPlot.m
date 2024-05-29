@@ -8,18 +8,22 @@ addParameter(p,'A',-7);
 addParameter(p,'E',40);
 addParameter(p,'numrow',1);
 addParameter(p,'addFreq',false);
+addParameter(p,'addPosPlot',true);
 addParameter(p,'numcol',1);
 addParameter(p,'rowloc',1);
 addParameter(p,'colloc',1);
 addParameter(p,'col','jet');
 addParameter(p,'singleTrial',false);
 addParameter(p,'tsWin',[]);
-
+addParameter(p,'dotSize',8);
+addParameter(p,'error',1);
 addParameter(p,'dim1',1);
 addParameter(p,'dim2',2);
 addParameter(p,'dim3',3);
 addParameter(p,'TRIAL_TYPE',[5 6 8]);
 addParameter(p,'figHandle',[]);
+addParameter(p,'poscutOff',0);
+addParameter(p,'speedThresh',1)
 
 parse(p,varargin{:});
 umap_path = p.Results.umap_path;
@@ -40,6 +44,11 @@ TRIAL_TYPE = p.Results.TRIAL_TYPE;
 figHandle = p.Results.figHandle;
 singleTrial = p.Results.singleTrial;
 tsWin = p.Results.tsWin;
+dotSize = p.Results.dotSize;
+error = p.Results.error;
+addPosPlot = p.Results.addPosPlot;
+poscutOff = p.Results.poscutOff;
+speedThresh = p.Results.speedThresh;
 
 %% load Umap result
 Umap_results = readtable([umap_path, '\Umap_',umap_name,'.csv']);
@@ -74,12 +83,12 @@ plot_ind = [];
 for tt = 1:length(TRIAL_TYPE)
     if TRIAL_TYPE(tt)<6 && exist('correct_ds')
         if exist('probe_ds')
-            plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1 & probe_ds==0 & position_y_all>11 & speed_all'>2)];
+            plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==error & probe_ds==0 & position_y_all>poscutOff & speed_all' >speedThresh)];
         else
-            plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1 & position_y_all>11 & speed_all'>2)]; 
+            plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==error & position_y_all>poscutOff & speed_all' >speedThresh)]; 
         end
     else
-        plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & position_y_all>11 & speed_all'>2)];
+        plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & position_y_all>poscutOff & speed_all' >speedThresh)];
     end
 %    plot_ind =  [plot_ind,find(trial_type_ds==TRIAL_TYPE(tt))]; 
 end
@@ -114,23 +123,23 @@ lick_plot(isnan(lick_plot))=0; % deal with nan
 lick_plot = lick_plot(plot_ind);
     
 if ~singleTrial
-    % color by position
-    BuPu=cbrewer('div', 'PiYG', 500);
-    ax1 = subplot(numrow,numcol,numcol*(rowloc-1)+colloc,'Parent', figHandle);
-    set(figHandle,'color','w');
-    %scatter3(Umap_results(plot_ind_rest,dim1),Umap_results(plot_ind_rest,dim2),Umap_results(plot_ind_rest,dim3),5,[0.85 0.85 0.85],'filled','MarkerFaceAlpha',0.1);
-    hold on;
-    scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),8,pos_plot,'filled');
-    %colorbar
-    colormap(ax1,'jet');
-    view(A,E)
-    grid off;
-    title('Neural Manifold (position)')
-    xlabel(['Dim' num2str(dim1)]);
-    ylabel(['Dim' num2str(dim2)]);
-    zlabel(['Dim' num2str(dim3)]);
-    axis off;
-    colorbar
+
+    if addPosPlot
+        % color by position
+        BuPu=cbrewer('div', 'PiYG', 500);
+        ax1 = subplot(numrow,numcol,numcol*(rowloc-1)+colloc,'Parent', figHandle);
+        set(figHandle,'color','w');
+        %scatter3(Umap_results(plot_ind_rest,dim1),Umap_results(plot_ind_rest,dim2),Umap_results(plot_ind_rest,dim3),5,[0.85 0.85 0.85],'filled','MarkerFaceAlpha',0.1);
+        hold on;
+        scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),dotSize,pos_plot,'filled');
+        %colorbar
+        colormap(ax1,'jet');
+        view(A,E)
+        grid off;
+        axis tight
+        axis off;
+        %colorbar
+    end
     
     % color by frequency
     if length(TRIAL_TYPE)==6 && addFreq
@@ -139,37 +148,38 @@ if ~singleTrial
         set(figHandle,'color','w');
         %scatter3(Umap_results(plot_ind_rest,dim1),Umap_results(plot_ind_rest,dim2),Umap_results(plot_ind_rest,dim3),5,[0.85 0.85 0.85],'filled','MarkerFaceAlpha',0.1);
         hold on;
-        scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),8,freq_plot,'filled');
+        scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),dotSize,freq_plot,'filled');
         %colorbar
         colormap(ax1,BuPu);
         view(A,E)
         grid off;
-        title('Neural Manifold (position)')
-        xlabel(['Dim' num2str(dim1)]);
-        ylabel(['Dim' num2str(dim2)]);
-        zlabel(['Dim' num2str(dim3)]);
         axis off;
-        colorbar
+        axis tight
+        %colorbar
         caxis([2000 23000])
     end
+
     % color by trialType
-    ax2 = subplot(numrow,numcol,numcol*(rowloc-1)+colloc+1,'Parent', figHandle);
+    if addPosPlot
+        ax2 = subplot(numrow,numcol,numcol*(rowloc-1)+colloc+1,'Parent', figHandle);
+    else
+        ax2 = subplot(numrow,numcol,numcol*(rowloc-1)+colloc,'Parent', figHandle);
+    end
     %scatter3(Umap_results(plot_ind_rest,dim1),Umap_results(plot_ind_rest,dim2),Umap_results(plot_ind_rest,dim3),5,[0.85 0.85 0.85],'filled','MarkerFaceAlpha',0.1);
     hold on;
-    scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),8,lick_plot,'filled');
+    scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),dotSize,lick_plot,'filled');
     %colorbar
     colormap(ax2,col);
     view(A,E)
     grid off;
-    title('Neural Manifold (position)')
-    xlabel(['Dim' num2str(dim1)]);
-    ylabel(['Dim' num2str(dim2)]);
-    zlabel(['Dim' num2str(dim3)]);
     axis off;
-    colorbar
+    axis tight
+    %colorbar
     
-    Link = linkprop([ax1, ax2],{'CameraUpVector', 'CameraPosition', 'CameraTarget', 'XLim', 'YLim', 'ZLim'});
-    setappdata(gcf, 'StoreTheLink', Link);
+    if addPosPlot
+        Link = linkprop([ax1, ax2],{'CameraUpVector', 'CameraPosition', 'CameraTarget', 'XLim', 'YLim', 'ZLim'});
+        setappdata(gcf, 'StoreTheLink', Link);
+    end
 
 else
 %% Plot the entire manifold in gray
@@ -180,8 +190,8 @@ else
     %colorbar
     view(A,E)
     grid off;
-    title('Neural Manifold (all)')
     axis off;
+    
     %colorbar
 
 %% Now plot the trial of interest
