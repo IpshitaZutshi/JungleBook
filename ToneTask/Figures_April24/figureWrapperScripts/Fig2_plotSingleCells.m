@@ -241,12 +241,12 @@ saveas(gcf,strcat(expPath,'Figure2A_plotSingleCells.fig'));
 
 
 %% Make a new figure with the assembly stuff
-load('Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ43\Final\IZ43_220828_sess4\sessAssemblyPlot.mat')
+load('Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ48\Final\IZ48_230703_sess21\sessAssemblyPlot.mat')
 
 fig2 = figure;
 set(fig2,'Renderer','painters')
 set(fig2,'Color','w')
-%set(fig2,'Position',[1921 41 1920 970]);
+set(fig2,'Position',[680 350 1250 550]);
 
 cellID = find(keepCells);
 toneCell = toneCellLog(keepCells);
@@ -255,34 +255,35 @@ placeCell = placeCellLog(keepCells);
 [~,maxPSTH]  = max(psth1,[],2);
 [~,sortidx] = sort(maxPSTH,'descend');
 
-%Plot a "place assembly" - assembly 4
-subplot(2,5,1)
-activation = Vectors(:,4);
+sortidx = sortidx(7:30);
+%Plot a "place assembly" - assembly 30
+subplot(2,5,[1 6])
+activation = Vectors(:,30);
 [~,sortVec] = sort(activation,'ascend');
 sortedTone = logical(toneCell(sortVec));
 sortedPlace = logical(placeCell(sortVec));
 sortedAct = activation(sortVec);
-stem(1:length(cellID),sortedAct,'filled','color',[0.5 0.5 0.5],'MarkerSize',2)
+stem(1:length(cellID),sortedAct,'filled','color',[0.5 0.5 0.5],'MarkerSize',1.5)
 hold on
-stem(find(sortedTone),sortedAct(sortedTone),'filled','color','m','MarkerSize',2,'LineWidth',1.5)
-stem(find(sortedPlace),sortedAct(sortedPlace),'filled','color','k','MarkerSize',2,'LineWidth',1.5)
+stem(find(sortedTone),sortedAct(sortedTone),'filled','color','m','MarkerSize',1.5,'LineWidth',1)
+stem(find(sortedPlace),sortedAct(sortedPlace),'filled','color','k','MarkerSize',1.5,'LineWidth',1)
 ylim([-0.3 0.55])
 xlim([1 length(cellID)])
 camroll(90)
 box off
 set(gca,'XDir','reverse')
 
-%Plot a "Tone assembly" - assembly 5
-subplot(2,5,2)
-activation = Vectors(:,5);
+%Plot a "Tone assembly" - assembly 22
+subplot(2,5,[2 7])
+activation = Vectors(:,22);
 [~,sortVec] = sort(activation,'ascend');
 sortedTone = logical(toneCell(sortVec));
 sortedPlace = logical(placeCell(sortVec));
 sortedAct = activation(sortVec);
-stem(1:length(cellID),sortedAct,'filled','color',[0.5 0.5 0.5],'MarkerSize',2)
+stem(1:length(cellID),sortedAct,'filled','color',[0.5 0.5 0.5],'MarkerSize',1.5,'LineWidth',1)
 hold on
-stem(find(sortedTone),sortedAct(sortedTone),'filled','color','m','MarkerSize',2,'LineWidth',1.5)
-stem(find(sortedPlace),sortedAct(sortedPlace),'filled','color','k','MarkerSize',2,'LineWidth',1.5)
+stem(find(sortedPlace),sortedAct(sortedPlace),'filled','color','k','MarkerSize',1.5,'LineWidth',1)
+stem(find(sortedTone),sortedAct(sortedTone),'filled','color','m','MarkerSize',1.5,'LineWidth',1)
 ylim([-0.3 0.55])
 xlim([1 length(cellID)])
 camroll(90)
@@ -292,16 +293,16 @@ set(gca,'XDir','reverse')
 %Show PSTH
 t = linspace(-3, 3, 61);
 ax = subplot(2,5,[3 4]);
-imagesc(t,1:size(psth1,1),zscore(psth1(sortidx,:),[],2))
+imagesc(t,1:length(sortidx),zscore(psth1(sortidx,:),[],2))
 set(gca,'YDir','normal')
 RdPu=cbrewer('seq', 'RdPu', 11);
 colormap(ax,RdPu)
 caxis([-1 5])
 colorbar
 hold on
-line([0 0],[1 size(psth1,1)],'Color','k','LineWidth',1.5)
-line([t(1) t(end)],[7 7])
-line([t(1) t(end)],[17 17])
+line([0 0],[1 length(sortidx)],'Color','k','LineWidth',1.5)
+line([t(1) t(end)],[21 21])
+line([t(1) t(end)],[10 10])
 
 % Fraction of tone/place
 subplot(2,5,5);
@@ -312,7 +313,7 @@ end
 plot(fractTonePlace(sortedtoKeep,1),1:length(sortedtoKeep),'Color','m','LineWidth',1.5)
 hold on
 plot(fractTonePlace(sortedtoKeep,2),1:length(sortedtoKeep),'Color','k','LineWidth',1.5)
-ylim([1 length(sortedtoKeep)])
+ylim([7 30])
 
 % Plot average
 %[AllPlaceWt, AllToneWt, tBins] = calcSessionCellTypeAssemblies;
@@ -321,7 +322,7 @@ zero_rows = all(AllPlaceWt == 0, 2);
 AllPlaceWt = AllPlaceWt(~zero_rows, :);
 AllToneWt = AllToneWt(~zero_rows, :);
 
-subplot(2,5,[6 7])
+subplot(2,5,8)
 meanpsth = nanmean(AllPlaceWt,1);
 stdpsth = nanstd(AllPlaceWt,1)./sqrt(size(AllPlaceWt,1));
 lArr  = meanpsth-stdpsth;
@@ -349,7 +350,7 @@ box off
 data1 = AllPlaceWt(:,12);
 data2 = AllToneWt(:,12);
 
-subplot(2,5,8)
+subplot(2,5,9)
 Summary.bin7assembly = groupStats([{data1} {data2}],[],'repeatedMeasures',true,'inAxis',true,'Color',[0 0 0;1 0 1]);
 ylim([-1 3])
 ylabel('Sum of weights')
@@ -358,7 +359,7 @@ box off
 
 data1 = AllPlaceWt(:,19);
 data2 = AllToneWt(:,19);
-subplot(2,5,9)
+subplot(2,5,10)
 Summary.bin14assembly = groupStats([{data1} {data2}],[],'repeatedMeasures',true,'inAxis',true,'Color',[0 0 0;1 0 1]);
 ylim([-1 3])
 ylabel('Sum of weights')

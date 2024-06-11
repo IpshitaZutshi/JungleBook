@@ -2,28 +2,36 @@ fig2 = figure;
 set(fig2, 'Renderer','painters')
 set(fig2,'Position',[21 177 1366 579])
 
-umap_path = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\finalSessions\Task\IZ47_230710_sess25\manifold';
+%umap_path = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\finalSessions\Task\IZ47_230710_sess25\manifold';
+umap_path = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\NatureRevisions\IZ48_230714_sess28\manifold';
 sessname  = strsplit(umap_path,'\');
-behav_file = strcat(umap_path,'\',sessname{8},'.position_behavior_speed_1_smooth_5.mat');
-A = -179;%-89;%
-E = -22;%7.68;%
+behav_file = strcat(umap_path,'\',sessname{7},'.position_behavior_speed_1_smooth_5.mat');
+umap_name = 'behavior_speed_1_smooth_5';
+A = 0;%-89;%
+E = 90;%7.68;%
 
 % First, entire manifold
 TRIAL_TYPE = [0 1 2 3 4 5 6 7 8];
-manifoldPlot('figHandle',fig2,'umap_path',umap_path,'behav_file',behav_file,...
-    'numrow',3,'numcol',3,'rowloc',1,'colloc',1,'TRIAL_TYPE', TRIAL_TYPE,'A',A,'E',E)
+manifoldPlot('figHandle',fig2,'umap_path',umap_path,'behav_file',behav_file,'umap_name',umap_name,...
+    'numrow',1,'numcol',2,'rowloc',1,'colloc',1,'TRIAL_TYPE', TRIAL_TYPE,'A',A,'E',E)
 
 % Next, tone trials
 TRIAL_TYPE = [0:5];
 %col = 'jet';
-col = [238/255 67/255 69/255;...
+fig2 = figure;
+set(fig2, 'Renderer','painters')
+set(fig2,'Position',[21 177 1366 579])
+set(fig2,'Color','k')
+
+col = [117/255 26/255 51/255;...
+    184/255 15/255 10/255;...
     241/255 114/255 42/255;...
-    247/255 149/255 33/255;...
     249/255 197/255 81/255;...
     143/255 189/255 107/255;...
     87/255 116/255 144/255];
-manifoldPlot('figHandle',fig2,'umap_path',umap_path,'behav_file',behav_file,...
-    'numrow',3,'numcol',3,'rowloc',1,'colloc',2,'col',col,'TRIAL_TYPE', TRIAL_TYPE,'A',A,'E',E)
+
+manifoldPlot('figHandle',fig2,'umap_path',umap_path,'behav_file',behav_file,'umap_name',umap_name,'poscutOff',4,'speedThresh',3,...
+    'numrow',1,'numcol',3,'rowloc',1,'colloc',1,'col',col,'addFreq',true,'TRIAL_TYPE', TRIAL_TYPE,'A',A,'E',E)
 
 % Next, tone 6 and no tone trials
 TRIAL_TYPE = [5 6 8];
@@ -32,7 +40,7 @@ col = [0/255 0/255 255/255;...
    224/255 163/255 46/255];
 A = 78;%-179
 E = -3.8;%-22
-manifoldPlot('figHandle',fig2,'umap_path',umap_path,'behav_file',behav_file,...
+manifoldPlot('figHandle',fig2,'umap_path',umap_path,'behav_file',behav_file,'umap_name',umap_name,...
     'numrow',3,'numcol',3,'rowloc',1,'colloc',3,'col',col,'TRIAL_TYPE', TRIAL_TYPE,'A',A,'E',E)
 
 % ax1 = subplot(3,3,1,'Parent',fig2);

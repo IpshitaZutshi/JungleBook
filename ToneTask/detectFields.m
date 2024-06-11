@@ -18,7 +18,7 @@ function Field_Info = detectFields(SmoothedFiringRate,varargin)
     last_nonNaN_index = find(~isnan(SmoothedFiringRate), 1, 'last');
     SmoothedFiringRate = SmoothedFiringRate(1:last_nonNaN_index);
     SmoothedFiringRate = [0 0 SmoothedFiringRate 0 0];
-    if length(SmoothedFiringRate) < 11
+    if length(SmoothedFiringRate) < 12
         minpeakdistance = 0;
     else
         minpeakdistance = 10;

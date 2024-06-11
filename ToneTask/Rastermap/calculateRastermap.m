@@ -38,7 +38,7 @@ timestamps = spkData.timestamps';
 logicalVector = cellfun(@(x) strcmp(x, 'Pyramidal Cell'), cell_metrics.putativeCellType);
 %Only select cells with a rate> 0.1 Hz
 rate = sum(spkMat,2)./(length(timestamps)*(1/30));
-logVector2 = rate>0.2;
+logVector2 = rate>0.1;
 keepCells = logicalVector'& logVector2;
 spkMat = spkMat(keepCells,:);
 cellId = find(keepCells);

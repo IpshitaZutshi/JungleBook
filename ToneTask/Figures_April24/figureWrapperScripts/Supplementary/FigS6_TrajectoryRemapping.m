@@ -1,4 +1,4 @@
-function FigS4_TrajectoryRemapping
+function FigS6_TrajectoryRemapping
 
 fig2  = figure;
 set(fig2,'Renderer','painters')
@@ -141,10 +141,10 @@ Stats.binNumber = groupStats({Summary.linCorrvalidPairs,Summary.linlinEndCorrval
 
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
-saveas(gcf,strcat(expPath,'SupFigure4A_2DTrajectory.png'));
-saveas(gcf,strcat(expPath,'SupFigure4A_2DTrajectory.eps'),'epsc');
-saveas(gcf,strcat(expPath,'SupFigure4A_2DTrajectory.fig'));
-save(strcat(expPath,'SupFigure4A_2DTrajectory.mat'),'Stats'); 
+saveas(gcf,strcat(expPath,'SupFigure6A_2DTrajectory.png'));
+saveas(gcf,strcat(expPath,'SupFigure6A_2DTrajectory.eps'),'epsc');
+saveas(gcf,strcat(expPath,'SupFigure6A_2DTrajectory.fig'));
+save(strcat(expPath,'SupFigure6A_2DTrajectory.mat'),'Stats'); 
 
 %%Now analyze trajectory
 fig2  = figure;
@@ -433,7 +433,7 @@ col = [52/243 52/243 52/243;...
     224/243 163/243 46/243];
 
 subplot(numrows,numcol,[4+15*numcol 5+15*numcol 6+15*numcol 4+16*numcol 5+16*numcol 6+16*numcol 4+17*numcol 5+17*numcol 6+17*numcol])
-Stats = groupStats([{Summary.comp1},{Summary.comp2},{Summary.comp3},{Summary.comp4}],[],'color',col,'inAxis',true','plotType','boxplot','labelSummary',false);
+Stats.all = groupStats([{Summary.comp1},{Summary.comp2},{Summary.comp3},{Summary.comp4}],[],'color',col,'inAxis',true','plotType','boxplot','labelSummary',false);
 xticks('auto')
 xticklabels({'','SC,ST','SC,DT','DC,ST','DC,DT'})
 
@@ -445,14 +445,14 @@ col = [52/243 52/243 52/243;...
     224/243 163/243 46/243];
 
 subplot(numrows,numcol,[1+15*numcol 2+15*numcol 3+15*numcol 1+16*numcol 2+16*numcol 3+16*numcol 1+17*numcol 2+17*numcol 3+17*numcol])
-Stats = groupStats([{Summary.comp1},{Summary.comp2},{Summary.comp3},{Summary.comp4}],[],'color',col,'inAxis',true','plotType','boxplot','labelSummary',false);
+Stats.subsampled = groupStats([{Summary.comp1},{Summary.comp2},{Summary.comp3},{Summary.comp4}],[],'color',col,'inAxis',true','plotType','boxplot','labelSummary',false);
 xticks('auto')
 xticklabels({'','SC,ST','SC,DT','DC,ST','DC,DT'})
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
-saveas(gcf,strcat(expPath,'SupFigure4B_TrajectoryCluster.png'));
-saveas(gcf,strcat(expPath,'SupFigure4B_TrajectoryCluster.eps'),'epsc');
-saveas(gcf,strcat(expPath,'SupFigure4B_TrajectoryCluster.fig'));
-save(strcat(expPath,'SupFigure4B_TrajectoryCluster.mat'),'Stats'); 
+saveas(gcf,strcat(expPath,'SupFigure6B_TrajectoryCluster.png'));
+saveas(gcf,strcat(expPath,'SupFigure6B_TrajectoryCluster.eps'),'epsc');
+saveas(gcf,strcat(expPath,'SupFigure6B_TrajectoryCluster.fig'));
+save(strcat(expPath,'SupFigure6B_TrajectoryCluster.mat'),'Stats'); 
 
 end

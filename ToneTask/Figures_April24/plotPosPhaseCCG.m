@@ -1,4 +1,4 @@
-function plotPosPhaseCCG(cell1, cell2, cell3,numrows, numcol, rowloc, fighandle)
+function plotPosPhaseCCG(cell1, cell2, cell3,numrows, numcol, rowloc, fighandle, maxRate)
 
 %% Load files
 file = dir(['*.spikes.cellinfo.mat']);
@@ -17,6 +17,7 @@ load(file.name);
 
 
 tSp{1} = spikeData.pos{cell1}; tSp{2} = spikeData.pos{cell2}; 
+tSp{1} = reshape(tSp{1},length(tSp{1}),1); tSp{2} = reshape(tSp{2},length(tSp{2}),1);
 pSp{1} = rad2deg(spikeData.phase{cell1}); pSp{2} = rad2deg(spikeData.phase{cell2}); 
 
 if ~isempty(cell3)
@@ -60,16 +61,16 @@ for ii = 1:6
     subplot(numrows, numcol,((rowloc-1)*numcol)+ii,'Parent',fighandle)
     scat_dat1 = [tSp{1}(bools_1);tSp{1}(bools_1)];
     scat_dat2 = [pSp{1}(bools_1);pSp{1}(bools_1)+360];
-    scatter(scat_dat1 ,scat_dat2,4,[0/255 0/255 0/255],'filled')
+    scatter(scat_dat1 ,scat_dat2,1,[0/255 0/255 0/255],'filled')
     hold on
     scat_dat1 = [tSp{2}(bools_2);tSp{2}(bools_2)];
     scat_dat2 = [pSp{2}(bools_2);pSp{2}(bools_2)+360];    
-    scatter(scat_dat1,scat_dat2,4,[8/255 133/255 161/255],'filled')
+    scatter(scat_dat1,scat_dat2,1,[8/255 133/255 161/255],'filled')
 
     if ~isempty(cell3)
         scat_dat1 = [tSp{3}(bools_3);tSp{3}(bools_3)];
         scat_dat2 = [pSp{3}(bools_3);pSp{3}(bools_3)+360];    
-        scatter(scat_dat1,scat_dat2,4,'m','filled')%[224/255 163/255 46/255]
+        scatter(scat_dat1,scat_dat2,1,'m','filled')%[224/255 163/255 46/255]
     end
 
     title(strcat('Port ',num2str(ii)))
@@ -87,7 +88,7 @@ for ii = 1:6
     xlim([0 125])
     FieldInfo1 = detectFields(firingMaps.forward.rateMaps{cell1}{ii+1},'minFieldSize',2,'maxFieldSize',35);
     FieldInfo2 = detectFields(firingMaps.forward.rateMaps{cell2}{ii+1},'minFieldSize',2,'maxFieldSize',35);
-    ylim([0 40])
+    ylim([0 maxRate])
 
     if ~isempty(FieldInfo1)
         line([bPos(FieldInfo1(1,4)) bPos(FieldInfo1(1,4))],[0 FieldInfo1(1,1)],'Color',[0/255 0/255 0/255],'LineWidth',1)
@@ -113,6 +114,7 @@ for ii = 1:6
         a = bandpass(smooth,[6 12],1/binSize);
         plot(lag,a,'Color','r','LineWidth',1.5)
         xlim([-0.2 0.2])
+        box off
     end
 end
 

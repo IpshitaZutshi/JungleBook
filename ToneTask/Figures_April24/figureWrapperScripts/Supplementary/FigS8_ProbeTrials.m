@@ -1,4 +1,4 @@
-function FigS7_ProbeTrials
+function FigS8_ProbeTrials
 
 fig2  = figure;
 set(fig2,'Renderer','painters')
@@ -125,9 +125,9 @@ colorbar
 
 %% UMAP of probe trial
 TRIAL_TYPE = [0:5];
-col = [238/255 67/255 69/255;...
+col = [83/255 0/255 0/255;...
+    184/255 15/255 10/255;...
     241/255 114/255 42/255;...
-    247/255 149/255 33/255;...
     249/255 197/255 81/255;...
     143/255 189/255 107/255;...
     87/255 116/255 144/255];
@@ -157,9 +157,9 @@ manifoldPlot_probe('figHandle',fig2,'umap_path',umap_path,'behav_file',behav_fil
     'numrow',numrows,'numcol',numcol,'rowloc',3,'colloc',3,'probe',true,'col',col,'TRIAL_TYPE', TRIAL_TYPE,'A',A,'E',E)
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
-saveas(gcf,strcat(expPath,'SupFigure7A_ProbeTrials.png'));
-saveas(gcf,strcat(expPath,'SupFigure7A_ProbeTrials.eps'),'epsc');
-saveas(gcf,strcat(expPath,'SupFigure7A_ProbeTrials.fig'));
+saveas(gcf,strcat(expPath,'SupFigure8A_ProbeTrials.png'));
+saveas(gcf,strcat(expPath,'SupFigure8A_ProbeTrials.eps'),'epsc');
+saveas(gcf,strcat(expPath,'SupFigure8A_ProbeTrials.fig'));
 
 %% Make a separate figure with examples of single cells
 
@@ -171,9 +171,9 @@ set(fig2,'Position',[500 150 1050 775]);
 numrows = 7;
 numcol = 6;
 
-col = [238/255 67/255 69/255;...
+col = [83/255 0/255 0/255;...
+    184/255 15/255 10/255;...
     241/255 114/255 42/255;...
-    247/255 149/255 33/255;...
     249/255 197/255 81/255;...
     143/255 189/255 107/255;...
     87/255 116/255 144/255];
@@ -191,9 +191,9 @@ cd(sessloc)
 plotTrialFieldsProbe(234,numrows, numcol, 1, 5, fig2,col)
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
-saveas(gcf,strcat(expPath,'SupFigure7B_ProbeTrialsSingleCells.png'));
-saveas(gcf,strcat(expPath,'SupFigure7B_ProbeTrialsSingleCells.eps'),'epsc');
-saveas(gcf,strcat(expPath,'SupFigure7B_ProbeTrialsSingleCells.fig'));
+saveas(gcf,strcat(expPath,'SupFigure8B_ProbeTrialsSingleCells.png'));
+saveas(gcf,strcat(expPath,'SupFigure8B_ProbeTrialsSingleCells.eps'),'epsc');
+saveas(gcf,strcat(expPath,'SupFigure8B_ProbeTrialsSingleCells.fig'));
 
 end
 

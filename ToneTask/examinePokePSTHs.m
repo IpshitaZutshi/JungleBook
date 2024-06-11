@@ -45,7 +45,7 @@ Summary.sessID = [];
 for ii = 1:length(sess)
     %% Load files
     cd(strcat(expPath,sess{ii}))    
-    file = dir(['*.rateMapsAvg.cellinfo.mat']);
+    file = dir(['*.rateMapsAvgnotLog.cellinfo.mat']);
     load(file(1).name);
     file = dir(['*.rateMapsTrial.cellinfo.mat']);
     trialMaps = load(file(1).name);    
@@ -191,7 +191,7 @@ for ii = 1:length(sess)
             toneCorr = nanmean(corrTone);  
 
             %% Detect fields
-            Field_Info = detectFields(toneMap);
+            Field_Info = detectFields(toneMap,'maxFieldSize',40);
             if isempty(Field_Info)
                 toneField = 0;
             else 
@@ -199,8 +199,8 @@ for ii = 1:length(sess)
             end                
             % If its a lick cell, calculate its PSTH in response to each
                     % trial type, correct, incorrect, return
-           % [~,idxMax] = max(toneMap);           
-            if cellType == 1 && (toneField == 1) && (toneCorr > 0.1) %&& idxMax>40
+            [~,idxMax] = max(toneMap);           
+            if cellType == 1 && (toneField == 1) && (toneCorr > 0.1) && idxMax>40
                 if ~isempty(st)
                     [stccg, tPSTH] = CCG({spikes.times{kk} st},[],'binSize',0.1,'duration',2,'norm','rate');                
                     Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; stccg(:,2,1)'];               

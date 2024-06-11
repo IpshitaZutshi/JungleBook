@@ -1,6 +1,6 @@
 function [AllPlaceWt, AllToneWt, tBins] = calcSessionCellTypeAssemblies
 
-usePGAM = 0;
+usePGAM = 1;
 plotfig = 0;
 
 sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
@@ -18,7 +18,8 @@ sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Fin
     'IZ47\Final\IZ47_230710_sess25','IZ47\Final\IZ47_230712_sess27',...49
     'IZ48\Final\IZ48_230628_sess17','IZ48\Final\IZ48_230703_sess21',...
     'IZ48\Final\IZ48_230705_sess22','IZ48\Final\IZ48_230714_sess28'};     
-    
+%sess = {'IZ48\Final\IZ48_230703_sess21'};
+
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
 
 AllPlaceWt(length(sess),22) = nan;
@@ -122,13 +123,13 @@ for ss = 1:length(sess)
                         placeCellLog(ii) = 1;
                     end   
 
-                    if placeCellLog(ii)==1 && toneCellLog(ii) ==1
-                        if toneCorr > spaceCorr
-                            placeCellLog(ii) = 0;
-                        else
-                            toneCellLog(ii) = 0;
-                        end
-                    end
+                    % if placeCellLog(ii)==1 && toneCellLog(ii) ==1
+                    %     if toneCorr > spaceCorr
+                    %         placeCellLog(ii) = 0;
+                    %     else
+                    %         toneCellLog(ii) = 0;
+                    %     end
+                    % end
                 end
             end
         else
@@ -246,11 +247,11 @@ for ss = 1:length(sess)
             plot(fractTonePlace(sortedtoKeep,2),1:length(sortedtoKeep),'Color','k','LineWidth',1.5)
             ylim([1 length(sortedtoKeep)])
             
-            %save('sessAssemblyPlot.mat','Vectors','psth1','sortedtoKeep','toneCellLog','placeCellLog','keepCells','assembliesID','Activities')
+          %  save('sessAssemblyPlot.mat','Vectors','psth1','sortedtoKeep','toneCellLog','placeCellLog','keepCells','assembliesID','Activities')
         end
     catch
     end
 end
 
-save('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Assemblycontribution.mat','AllPlaceWt','AllToneWt','tBins')
+%save('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Assemblycontribution.mat','AllPlaceWt','AllToneWt','tBins')
 end

@@ -6,7 +6,7 @@ set(fig2,'Color','w')
 set(fig2,'Position',[22 465 1892 488]);
 
 numrows = 1;
-numcol = 9;
+numcol = 10;
 
 %% Calculate place cells
 %Summary = compileAvgTonePlaceMaps('plotfig',false,'savefig',false);
@@ -99,6 +99,18 @@ ax1 = subplot(numrows,numcol,9);
 bar([sum(Summary.AlllinField)./length(Summary.AlllinField) sum(Summary.AlllinFieldEnd)./length(Summary.AlllinFieldEnd)])
 box off
 %ylim([0 0.5])
+
+subplot(numrows,numcol,10)
+Summary = plotToneBehaviorStatistics;
+[r,p] = corr([sessFractTuned' Summary.performance'],'Type','Pearson','rows','complete');
+scatter(sessFractTuned,Summary.performance,5,'filled')
+hold on
+lsline
+box off
+xlabel('Fraction non-spatial')
+ylabel('Behavior performance')
+title(strcat(num2str(r(1,2)),'|',num2str(p(1,2))))
+
 
 %% Save figure
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';

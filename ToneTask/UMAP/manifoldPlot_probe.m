@@ -129,7 +129,7 @@ axis off;
 
 % color by frequency
 if length(TRIAL_TYPE)==6 && addFreq
-    BuPu=viridis;   
+    BuPu=jet;   
     ax1 = subplot(numrow,numcol,numcol*(rowloc-1)+colloc+2,'Parent', figHandle);
     set(figHandle,'color','w');
     %scatter3(Umap_results(plot_ind_rest,dim1),Umap_results(plot_ind_rest,dim2),Umap_results(plot_ind_rest,dim3),5,[0.85 0.85 0.85],'filled','MarkerFaceAlpha',0.1);

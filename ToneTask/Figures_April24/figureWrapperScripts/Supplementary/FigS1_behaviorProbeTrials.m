@@ -117,9 +117,12 @@ for ff = 1:length(freqs)
         x = data(:,1);
         y = data(:,2);
         str = strcat('ProbeTrials',num2str(freqs(ff)));
-        [SupFig1Stats.(str){ii}.p, SupFig1Stats.(str){ii}.h,SupFig1Stats.(str){ii}.stats] = ranksum(x(~isnan(x)), y(~isnan(y)));
-        [SupFig1Stats.(str){ii}.n] = [sum(~isnan(x)), sum(~isnan(y))];
+        [SupFig1Stats.(str){ii}.h, SupFig1Stats.(str){ii}.p,SupFig1Stats.(str){ii}.stats] = ttest(x(~isnan(x)&~isnan(y)), y(~isnan(x)&~isnan(y)));
+        [SupFig1Stats.(str){ii}.n] = [sum(~isnan(x)&~isnan(y)), sum(~isnan(x)&~isnan(y))];
     end
+
+    title(strcat(num2str(SupFig1Stats.(str){1}.p),'|',num2str(SupFig1Stats.(str){2}.p),'|',num2str(SupFig1Stats.(str){3}.p),'|',...
+        num2str(SupFig1Stats.(str){4}.p),'|',num2str(SupFig1Stats.(str){5}.p),'|',num2str(SupFig1Stats.(str){6}.p)));
 end
 
 

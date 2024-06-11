@@ -89,7 +89,7 @@ for ii = 1:length(keepCells)
 
         %% Detect fields
         Field_Info = detectFields(toneMap);
-        if ~isempty(Field_Info) && (toneCorr > 0.1) && idxMax>30
+        if ~isempty(Field_Info) && (toneCorr > 0.1) %&& idxMax>30
             toneCellLog(count) = 1;
         end
     end
@@ -118,6 +118,7 @@ axis off
 umap_path = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\finalSessions\Task\IZ48_230714_sess28\manifold';
 sessname  = strsplit(umap_path,'\');
 behav_file = strcat(umap_path,'\',sessname{8},'.position_behavior_speed_1_smooth_5.mat');
+umap_name = 'behavior_speed_1_smooth_10';
 A = 23;
 E = 1.55;
 TRIAL_TYPE = [0 1 2 3 4 5];

@@ -12,9 +12,6 @@ load(file.name)
 file = dir('*.TrialBehavior.Behavior.mat');
 load(file.name)
 
-RdPu=cbrewer('seq', 'RdPu', 11);
-Purples=cbrewer('seq', 'PuBu', 11);
-
 posterior_goal =  ncread('causal_posterior_lickLoc_y.nc','x_position') ;
 posterior_pos =  ncread('causal_posterior_lickLoc_y.nc','y_position') ;
 post_time =  ncread('causal_posterior_lickLoc_y.nc','time') ;
@@ -22,7 +19,7 @@ post_pos =  ncread('causal_posterior_lickLoc_y.nc','y_position_value') ;
 post_goal =  ncread('causal_posterior_lickLoc_y.nc','x_position_value') ;
 
 cell1 = 86;%107;%45;
-cell2 = 54;%166;%275;%218;
+cell2 = 8;%166;%275;%218;
 
 trials = [104 8];%[38 41];%[25 26 66]; % direct-ish, deliberate-ish
 
@@ -52,7 +49,7 @@ umap_name = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\NatureRevisions\IZ47
 behav_file = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\NatureRevisions\IZ47_230626_sess15\manifold\IZ47_230626_sess15.position_behavior_speed_1_smooth_5_bin_0.1.mat';
 
 %A = -93.25; E = -84.0809; % For the 100 ms, smooth_5 maps;
-A = -9;E = 137;%-43;%
+A = -9;E = -43;%
 % -176; E = 20;
 
 numrows = 10;
@@ -116,13 +113,13 @@ for tt = 1:length(trials) % Make separate videos for each trial
     subplot(numrows,numcol,[4 5 6 10 11 12 16 17 18 22 23 24]) %Front video
     set(gca,'visible','off')
     
-    subplot(numrows,numcol,[25 26 31 32 37 38]) % Position UMAP - static
+    subplot(numrows,numcol,[25 26 31 32]) % Position UMAP - static
     set(gca,'visible','off')
 
-    subplot(numrows,numcol,[27 28 33 34 39 40]) % Goal UMAP - static
+    subplot(numrows,numcol,[27 28 33 34]) % Goal UMAP - static
     set(gca,'visible','off')
     
-    subplot(numrows,numcol,[29 30 35 36 41 42]) % Single trial UMAP
+    subplot(numrows,numcol,[29 30 35 36]) % Single trial UMAP
     set(gca,'visible','off')
     % 
     % ax1 = subplot(numrows,numcol,37:42); % theta LFP
@@ -146,18 +143,11 @@ for tt = 1:length(trials) % Make separate videos for each trial
     ylabel('Position (cm)', 'Color', 'white');
     set(ax1,'XLim',tsWin);
     set(ax1,'YLim',[min(tracking.position.y) 125]);
-    line([tsWin(1) tsWin(2)],[18 18],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')   
-    hold on
-    line([tsWin(1) tsWin(2)],[35 35],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')        
-    line([tsWin(1) tsWin(2)],[61 61],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
-    line([tsWin(1) tsWin(2)],[82 82],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
-    line([tsWin(1) tsWin(2)],[108 108],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
-    line([tsWin(1) tsWin(2)],[122 122],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
     h2 = animatedline('Color',[0.8 0.8 0.8],'LineWidth',1.5);
 
     ax = subplot(numrows,numcol,49:54); % Bayesian posterior
-    colormap(ax, 'magma');
-    caxis([0 0.5])
+    colormap(ax, 'inferno');
+    caxis([0 0.6])
     box off
     ax = gca;
     % Set the background color of the axes to black
@@ -175,7 +165,7 @@ for tt = 1:length(trials) % Make separate videos for each trial
     hold on
 
     ax = subplot(numrows,numcol,55:60); % Goal posterior
-    colormap(ax, 'magma');
+    colormap(ax, 'inferno');
     caxis([0 1.1])
     box off
     ax = gca;
@@ -244,7 +234,7 @@ for tt = 1:length(trials) % Make separate videos for each trial
         hold on
         [~,tsnow] = min(abs(post_time-tracking.timestamps(ii)));
         [~,posDec] = max(posterior_pos(:,tsnow));
-        h5 = scatter(tracking.position.x(ii),post_pos(posDec),60,'y','filled');
+        h5 = scatter(tracking.position.x(ii),post_pos(posDec),60,'m','filled');
 
         % 
         % frame = read(videoObjTop,ii);
@@ -277,11 +267,11 @@ for tt = 1:length(trials) % Make separate videos for each trial
 
         %% Plot  manifold
         if ii == startFrame
-            plotAvgManifold(umap_name,behav_file,numrows,numcol,[25 26 31 32 37 38],A,E,fig,1)
-            plotAvgManifold(umap_name,behav_file,numrows,numcol,[27 28 33 34 39 40],A,E,fig,2)
+            plotAvgManifold(umap_name,behav_file,numrows,numcol,[25 26 31 32],A,E,fig,1)
+            plotAvgManifold(umap_name,behav_file,numrows,numcol,[27 28 33 34],A,E,fig,2)
         end
             
-        videoManifold(umap_name,behav_file,numrows,numcol,[29 30 35 36 41 42],A,E,fig,[tracking.timestamps(startFrame) tracking.timestamps(ii)],ii)                
+        videoManifold(umap_name,behav_file,numrows,numcol,[29 30 35 36],A,E,fig,[tracking.timestamps(startFrame) tracking.timestamps(ii)])                
 
         %% Plot lfp
         % [~,lfpcur] = min(abs(lfp.timestamps-tracking.timestamps(ii)));
@@ -311,14 +301,7 @@ for tt = 1:length(trials) % Make separate videos for each trial
         [~,tscur] = min(abs(post_time-tracking.timestamps(ii)));
         if ii>startFrame
             imagesc(post_time(tsfirst:tscur),post_pos,posterior_pos(:,tsfirst:tscur))
-        end  
-        line([tsWin(1) tsWin(2)],[9 9],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')   
-        hold on
-        line([tsWin(1) tsWin(2)],[35 35],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')        
-        line([tsWin(1) tsWin(2)],[61 61],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
-        line([tsWin(1) tsWin(2)],[82 82],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
-        line([tsWin(1) tsWin(2)],[105 108],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
-        line([tsWin(1) tsWin(2)],[122 122],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
+        end        
 
         ax1 = subplot(numrows,numcol,55:60);
         if ii>startFrame
@@ -331,7 +314,7 @@ for tt = 1:length(trials) % Make separate videos for each trial
         line([tsWin(1) tsWin(2)],[4.5 4.5],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
         line([tsWin(1) tsWin(2)],[5.5 5.5],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
         hold on;
-        
+
         M = getframe(fig);   
         writeVideo(writerObj, M);
 
@@ -360,7 +343,7 @@ TRIAL_TYPE = 0:5;
 plot_ind = [];
 
 for tt = 1:length(TRIAL_TYPE)
-    plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1 & probe_ds==0 & position_y_all>7 & speed_all'>2)];   
+    plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1 & probe_ds==0 & position_y_all>5 & speed_all'>2)];   
 end
 lick_plot = lick_loc_ds; 
 lick_plot(isnan(lick_plot))=0; % deal with nan
@@ -390,7 +373,7 @@ axis off;
 
 end
 
-function videoManifold(umap_name,behav_file,numrows,numcol,plotloc,A,E,figHandle,win,ii)
+function videoManifold(umap_name,behav_file,numrows,numcol,plotloc,A,E,figHandle,win)
 
 %% load Umap result
 Umap_results = readtable(umap_name);
@@ -404,7 +387,7 @@ gain = [122/9, 122/32 122/55.53 122/79.62 122/102.79 122/122];
 freqExp = log10(22000/1000);
 
 for tt = 1:length(TRIAL_TYPE)
-    plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1 & probe_ds==0 & position_y_all>7 & speed_all'>1)];   
+    plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1 & probe_ds==0 & position_y_all>5 & speed_all'>1)];   
 end
 
 for tt = 1:length(position_y_all)
@@ -421,20 +404,21 @@ freq_plot(isnan(freq_plot))=0; % deal with nan
 
 
 subplot(numrows,numcol,plotloc,'Parent', figHandle);
-scatter3(Umap_results(plot_ind,1),Umap_results(plot_ind,2),Umap_results(plot_ind,3),5,[0.85 0.85 0.85],'filled','MarkerFaceAlpha',0.03);
+scatter3(Umap_results(plot_ind,1),Umap_results(plot_ind,2),Umap_results(plot_ind,3),5,[0.85 0.85 0.85],'filled','MarkerFaceAlpha',0.05);
 
 hold on
 ax1 = subplot(numrows,numcol,plotloc,'Parent', figHandle);
 [~,idxStart] = min(abs(timestamp_beh-win(1)));
 [~,idxEnd] = min(abs(timestamp_beh-win(2)));
 scatter3(Umap_results(idxStart:idxEnd,1),Umap_results(idxStart:idxEnd,2),Umap_results(idxStart:idxEnd,3),30,freq_plot(idxStart:idxEnd),'filled');  
-colormap(ax1,viridis);
+colormap(ax1,'plasma');
 caxis([2000 23000])
-view(A,E)
 grid off;
 axis off
-cb = colorbar('Color','w');
-cb.Label.String = 'Frequency';
-cb.Label.Color = 'w'; % Ensure label color is set to white
+cb = colorbar;
+cb.TickLabelInterpreter = 'latex'; % Optional: Set interpreter for tick labels to LaTeX
+cb.Label.String = 'Frequency'; % Set the label of the colorbar
+cb.Label.Color = 'w'; % Set the color of the label to white
+view(A,E)
 
 end

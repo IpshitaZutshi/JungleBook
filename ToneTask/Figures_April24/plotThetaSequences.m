@@ -1,11 +1,5 @@
 function plotThetaSequences
 
-%% Let's try to understand on a shorter timescale why the manifold diverges
-%% Continued from plotRastermapSequences
-% We will use trialNum 60 (port 4), and trialNum 34 (port 2) as examples
-% cellnum1 = 208
-% cellnum2 = 213
-
 %% Go to the directory
 sessloc = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ48\Final\IZ48_230714_sess28';
 cd(sessloc)
@@ -19,7 +13,7 @@ file = dir(['*TrialBehavior.Behavior.mat']);
 load(file.name);
 file = dir(['*cell_metrics.cellinfo.mat']);
 load(file.name);
-file = dir(['*.rateMapsAvg.cellinfo.mat']);
+file = dir(['*.rateMapsAvgnotLog.cellinfo.mat']);
 load(file(1).name);
 
 %% Generate original spike matrix
@@ -117,6 +111,7 @@ lfpphase = mod(angle(hilb),2*pi);
 f1 = figure;
 set(gcf,'Color','w')
 set(gcf,'Renderer','painters')
+set(gcf,"Position",[2100 50 1615 900])
 
 %% Plot the raw data for each trial, first trial 60, which is a port 4 trial
 trialNum = 60;
@@ -127,7 +122,7 @@ twin = [5860.5 5863.5];
 plotRastSpikes(spikes,sortIdx,twin,keepCells,toneCellLog,placeCellLog,6,1,1,f1)
 
 % Rescale filtered LFP between 0 and 1
-currLFP = rawlfp(idxStart:idxEnd);
+currLFP = filt(idxStart:idxEnd);
 currLFP_scale = (currLFP+abs(min(currLFP)));
 maxF = max(currLFP_scale);
 subplot(6,1,1)
@@ -160,7 +155,7 @@ twin = [5551.5 5554.5];
 plotRastSpikes(spikes,sortIdx,twin,keepCells,toneCellLog,placeCellLog,6,1,3,f1)
 
 % Rescale filtered LFP between 0 and 1
-currLFP = rawlfp(idxStart:idxEnd);
+currLFP = filt(idxStart:idxEnd);
 currLFP_scale = (currLFP+abs(min(currLFP)));
 maxF = max(currLFP_scale);
 subplot(6,1,3)
@@ -193,7 +188,7 @@ twin = [5652 5655];
 plotRastSpikes(spikes,sortIdx,twin,keepCells,toneCellLog,placeCellLog,6,1,5,f1)
 
 % Rescale filtered LFP between 0 and 1
-currLFP = rawlfp(idxStart:idxEnd);
+currLFP = filt(idxStart:idxEnd);
 currLFP_scale = (currLFP+abs(min(currLFP)));
 maxF = max(currLFP_scale);
 subplot(6,1,5)
@@ -217,10 +212,10 @@ ylabel('Speed')
 xlim([5652.6 5654.6])
 
 %% Save figure
-expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task';
-saveas(gcf,strcat(expPath,'\Compiled\Figures_April2024\RastermapThetaSequences.png'));
-saveas(gcf,strcat(expPath,'\Compiled\Figures_April2024\RastermapThetaSequences.eps'),'epsc');
-saveas(gcf,strcat(expPath,'\Compiled\Figures_April2024\RastermapThetaSequences.fig'));
+expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
+saveas(gcf,strcat(expPath,'SupFigure4A_RastermapThetaAssemblies.png'));
+saveas(gcf,strcat(expPath,'SupFigure4A_RastermapThetaAssemblies.eps'),'epsc');
+saveas(gcf,strcat(expPath,'SupFigure4A_RastermapThetaAssemblies.fig'));
 end
 
 function plotRastSpikes(spikes,sortIdx,timeWin,keepCells,toneCellLog,placeCellLog,numrows,numcol,plotloc,fighandle)

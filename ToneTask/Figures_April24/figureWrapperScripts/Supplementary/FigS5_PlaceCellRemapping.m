@@ -1,4 +1,4 @@
-function FigS3_PlaceCellRemapping
+function FigS5_PlaceCellRemapping
 
 fig2  = figure;
 set(fig2,'Renderer','painters')
@@ -176,10 +176,10 @@ ylim([-1 2])
 
 %% Save figure
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
-saveas(gcf,strcat(expPath,'SupFigure3A_placeCellRemapping.png'));
-saveas(gcf,strcat(expPath,'SupFigure3A_placeCellRemapping.eps'),'epsc');
-saveas(gcf,strcat(expPath,'SupFigure3A_placeCellRemapping.fig'));
-save(strcat(expPath,'SupFigure3A_placeCellRemapping.mat'),'Stats'); 
+saveas(gcf,strcat(expPath,'SupFigure5A_placeCellRemapping.png'));
+saveas(gcf,strcat(expPath,'SupFigure5A_placeCellRemapping.eps'),'epsc');
+saveas(gcf,strcat(expPath,'SupFigure5A_placeCellRemapping.fig'));
+save(strcat(expPath,'SupFigure5A_placeCellRemapping.mat'),'Stats'); 
 
 fig2  = figure;
 set(fig2,'Renderer','painters')
@@ -331,7 +331,7 @@ data{2} = Summary.AlllinlinEndCorr(idxSess);
 datacombined = [data{1};data{2};data{3};data{4}];
 group1 = [ones(length(data{1}),1);ones(length(data{2}),1)*2;ones(length(data{3}),1)*3;ones(length(data{4}),1)*4];
 
-SupFig5Stats.FwdCorr = groupStats(datacombined,group1,'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
+Stats.FwdCorr = groupStats(datacombined,group1,'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
 
 %% Panel F: Return runs
 %Task
@@ -386,12 +386,12 @@ group2 = [ones(length(data{1}),1);ones(length(data{2}),1)*1;ones(length(data{3})
 subplot(numrows,numcol,[numcol*16+1 numcol*16+2 numcol*16+3 numcol*16+4 numcol*17+1 ...
     numcol*17+2 numcol*17+3 numcol*17+4  numcol*18+1 numcol*18+2 numcol*18+3 numcol*18+4])
 
-Stat.CtrlvsTask = groupStats(datacombined,[group1 group2],'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
+Stats.CtrlvsTask = groupStats(datacombined,[group1 group2],'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
-saveas(gcf,strcat(expPath,'SupFigure3B_controlMice.png'));
-saveas(gcf,strcat(expPath,'SupFigure3B_controlMice.eps'),'epsc');
-saveas(gcf,strcat(expPath,'SupFigure3B_controlMice.fig'));
-save(strcat(expPath,'SupFigure3B_controlMice.mat'),'Stats'); 
+saveas(gcf,strcat(expPath,'SupFigure5B_controlMice.png'));
+saveas(gcf,strcat(expPath,'SupFigure5B_controlMice.eps'),'epsc');
+saveas(gcf,strcat(expPath,'SupFigure5B_controlMice.fig'));
+save(strcat(expPath,'SupFigure5B_controlMice.mat'),'Stats'); 
 
 end

@@ -24,6 +24,7 @@ addParameter(p,'TRIAL_TYPE',[5 6 8]);
 addParameter(p,'figHandle',[]);
 addParameter(p,'poscutOff',0);
 addParameter(p,'speedThresh',1)
+addParameter(p,'plotcolorbar',false)
 
 parse(p,varargin{:});
 umap_path = p.Results.umap_path;
@@ -49,6 +50,7 @@ error = p.Results.error;
 addPosPlot = p.Results.addPosPlot;
 poscutOff = p.Results.poscutOff;
 speedThresh = p.Results.speedThresh;
+plotcolorbar = p.Results.plotcolorbar;
 
 %% load Umap result
 Umap_results = readtable([umap_path, '\Umap_',umap_name,'.csv']);
@@ -96,7 +98,8 @@ end
 % a(1:9700)= 1;
 % a(plot_ind) = 0;
 % plot_ind_rest = find(a);
-
+%Take a subset
+%plot_ind = plot_ind(1:10:length(plot_ind));
 for tt = 1:length(position_y_all)
     if trial_type_ds(tt)<6
         freq = (position_y_all(tt)*gain(trial_type_ds(tt)+1))/122;
@@ -138,7 +141,9 @@ if ~singleTrial
         grid off;
         axis tight
         axis off;
-        %colorbar
+        if plotcolorbar
+            colorbar
+        end
     end
     
     % color by frequency
@@ -155,8 +160,11 @@ if ~singleTrial
         grid off;
         axis off;
         axis tight
-        %colorbar
+        if plotcolorbar
+            colorbar
+        end
         caxis([2000 23000])
+        set(gca,'colorscale','log')
     end
 
     % color by trialType
@@ -174,7 +182,9 @@ if ~singleTrial
     grid off;
     axis off;
     axis tight
-    %colorbar
+    if plotcolorbar
+        colorbar
+    end
     
     if addPosPlot
         Link = linkprop([ax1, ax2],{'CameraUpVector', 'CameraPosition', 'CameraTarget', 'XLim', 'YLim', 'ZLim'});
@@ -186,12 +196,12 @@ else
     ax1 = subplot(numrow,numcol,numcol*(rowloc-1)+colloc,'Parent', figHandle);
     set(figHandle,'color','w');
     hold on;
-    scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),5,[0.85 0.85 0.85],'filled','MarkerFaceAlpha',0.4);
+    scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),2,[0.85 0.85 0.85],'filled','MarkerFaceAlpha',0.4);
     %colorbar
     view(A,E)
     grid off;
     axis off;
-    
+    axis tight
     %colorbar
 
 %% Now plot the trial of interest
@@ -202,12 +212,13 @@ else
     [~,endidx] = min(abs(timestamp_beh-tsWin(2)));
     plot_ind_pos = zeros(1,length(freq_plot));
     plot_ind_pos(startidx:1:endidx) = 1;
-    plot_ind = plot_ind_pos & position_y_all>11 & speed_all'>5;
+    plot_ind = plot_ind_pos & position_y_all>poscutOff & speed_all' >speedThresh;
     %tsAxis = linspace(tsWin(1),tsWin(2),length(plot_ind));
-    scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),20,freq_plot(plot_ind),'filled');    
+    scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),dotSize,freq_plot(plot_ind),'filled');    
     %colormap jet
-    colormap(ax1,'plasma');
+    colormap(ax1,'viridis');
     caxis([2000 23000])
+    set(gca,'colorscale','log')
 end
 end
 

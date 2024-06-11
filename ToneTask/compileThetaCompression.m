@@ -3,8 +3,7 @@ function compileThetaCompression
 sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
     'IZ39\Final\IZ39_220702_sess14','IZ39\Final\IZ39_220714_sess18',...
     'IZ39\Final\IZ39_220705_sess16','IZ39\Final\IZ39_220707_sess17',...   23
-    'IZ40\Final\IZ40_220705_sess15','IZ40\Final\IZ40_220707_sess16',...
-    'IZ40\Final\IZ40_220708_sess17','IZ40\Final\IZ40_220714_sess18',...27
+    'IZ40\Final\IZ40_220707_sess16','IZ40\Final\IZ40_220714_sess18',...27
     'IZ43\Final\IZ43_220826_sess2','IZ43\Final\IZ43_220828_sess4',...
     'IZ43\Final\IZ43_220830_sess6','IZ43\Final\IZ43_220901_sess8',...
     'IZ43\Final\IZ43_220911_sess9','IZ43\Final\IZ43_220913_sess11','IZ43\Final\IZ43_220919_sess14',...
@@ -20,87 +19,50 @@ sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Fin
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
 
+plotfig = 0;
+compiledthetaComp.place_offset = [];
+compiledthetaComp.ccgs_time_offset = [];
+compiledthetaComp.pairIDs = [];
+compiledthetaComp.tone_offset = [];
+compiledthetaComp.tone_ccgs_time_offset = [];
+compiledthetaComp.pairIDs_tone = [];
 
-for jj = 1:2
-    compiledThetaComp.placefield{jj} = [];
-    compiledThetaComp.tonefield{jj} = [];
-    compiledThetaComp.thetaDT{jj} = [];
-    compiledThetaComp.placeDT{jj} = [];
-    compiledThetaComp.placeDist{jj} = [];
-end
 
 for ii = 1:length(sess)
     thetaComp = sessionThetaCompression('expPath',strcat(expPath,sess{ii}),'plotfig',false);
-    for jj = 1:2
-        compiledThetaComp.placefield{jj} = [compiledThetaComp.placefield{jj}; thetaComp.placefield{jj}];
-        compiledThetaComp.tonefield{jj} = [compiledThetaComp.tonefield{jj}; thetaComp.tonefield{jj}];
-        compiledThetaComp.thetaDT{jj} = [compiledThetaComp.thetaDT{jj}; thetaComp.thetaDT{jj}];
-        compiledThetaComp.placeDT{jj} = [compiledThetaComp.placeDT{jj}; thetaComp.placeDT{jj}];
-        compiledThetaComp.placeDist{jj} = [compiledThetaComp.placeDist{jj}; thetaComp.placeDist{jj}];
-    end
+    compiledthetaComp.place_offset = [compiledthetaComp.place_offset; thetaComp.place_offset'];
+    compiledthetaComp.ccgs_time_offset = [compiledthetaComp.ccgs_time_offset; thetaComp.ccgs_time_offset'];
+    compiledthetaComp.pairIDs = [compiledthetaComp.pairIDs; thetaComp.pairIDs];
+    compiledthetaComp.tone_offset = [compiledthetaComp.tone_offset; thetaComp.tone_offset'];
+    compiledthetaComp.tone_ccgs_time_offset = [compiledthetaComp.tone_ccgs_time_offset; thetaComp.tone_ccgs_time_offset'];
+    compiledthetaComp.pairIDs_tone = [compiledthetaComp.pairIDs_tone; thetaComp.pairIDs_tone];
 end
 
-saveas('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\thetaCompression.mat',compiledThetaComp);
+save('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\thetaCompression.mat','compiledthetaComp');
 
-figure
-set(gcf,'Renderer','painters')
-set(gcf,'Color','w')
-
-selectidx{1} = (abs(compiledThetaComp.placeDist{1})<10) & abs(compiledThetaComp.thetaDT{1})<250;
-selectidx{2} = (abs(compiledThetaComp.placeDist{2})<10) & abs(compiledThetaComp.thetaDT{2}) < 250;
-
-% 
-% selectidx_place = compiledThetaComp.placefield{1}==1 & compiledThetaComp.placefield{2}==1 & compiledThetaComp.thetaDT{1} <250 & compiledThetaComp.thetaDT{1} >-250 ...
-%         & compiledThetaComp.thetaDT{2} <250 & compiledThetaComp.thetaDT{2} >-250 & ...
-%         compiledThetaComp.placeDT{1} <800 & compiledThetaComp.placeDT{1} >-800 ...
-%         & compiledThetaComp.placeDT{2} <800 & compiledThetaComp.placeDT{2} >-800;
-% 
-% selectidx_tone = compiledThetaComp.tonefield{1}==1 & compiledThetaComp.tonefield{2}==1 & compiledThetaComp.thetaDT{1} <250 & compiledThetaComp.thetaDT{1} >-250 ...
-%         & compiledThetaComp.thetaDT{2} <250 & compiledThetaComp.thetaDT{2} >-250 & ...
-%         compiledThetaComp.placeDT{1} <800 & compiledThetaComp.placeDT{1} >-800 ...
-%         & compiledThetaComp.placeDT{2} <800 & compiledThetaComp.placeDT{2} >-800;
-
-for ii = 1:2
-    subplot(2,4,ii)
-    %scatter(compiledThetaComp.thetaDT{ii}(selectidx_place),compiledThetaComp.placeDT{ii}(selectidx_place),'.')
-    scatter(compiledThetaComp.placeDist{ii}(selectidx{ii}),compiledThetaComp.thetaDT{ii}(selectidx{ii}),'.')
+if plotfig
+    figure
+    set(gcf,'Renderer','painters')
+    set(gcf,'Color','w')
+    
+    numBins = 30;
+    subplot(1,2,1)
+    % % Create a 2D histogram
+    % [counts, centers] = hist3([compiledthetaComp.place_offset,compiledthetaComp.ccgs_time_offset], 'Nbins', [numBins numBins]);
+    % imagesc(centers{1}, centers{2}, counts.');
+    % set(gca, 'YDir', 'normal'); % Correct the Y-axis direction
+    % colorbar;
+    [R,P] = corrcoef(compiledthetaComp.place_offset,compiledthetaComp.ccgs_time_offset,'rows','complete');
+    scatter(compiledthetaComp.place_offset,compiledthetaComp.ccgs_time_offset,'.')
     hold on
     lsline
-    [r,p]= corrcoef(compiledThetaComp.placeDist{ii}(selectidx{ii}),compiledThetaComp.thetaDT{ii}(selectidx{ii}),'Rows','complete');
-    xlabel('delta Position bins')
-    ylabel('Theta CCG(ms)')
-    if ii == 1
-        title(strcat('Place: Short (1-3), r=', num2str(r(1,2)),', p= ',num2str(p(1,2))));
-    else
-        title(strcat('Place: Long (5-6), r=', num2str(r(1,2)),', p= ',num2str(p(1,2))));  
-    end
+    title(num2str(R));
+    
+    subplot(1,2,2)
+    scatter(compiledthetaComp.tone_offset,compiledthetaComp.tone_ccgs_time_offset,'.')
+    hold on
+    lsline
+    [R,P] = corrcoef(compiledthetaComp.tone_offset,compiledthetaComp.tone_ccgs_time_offset,'rows','complete');
+    title(num2str(R));
 end
-
-subplot(2,4,5)
-groupStats([{compiledThetaComp.thetaDT{1}(selectidx{1})} {compiledThetaComp.thetaDT{2}(selectidx{2})}],[],'inAxis',true);
-xlabel({'Short','Long'})
-title('Theta timescale')
-
-subplot(2,4,6)
-groupStats([{compiledThetaComp.placeDist{1}(selectidx{1})} {compiledThetaComp.placeDist{2}(selectidx{2})}],[],'inAxis',true);
-xlabel({'Short','Long'})
-title('Place timescale')
-% 
-% for ii = 1:2
-%     subplot(2,4,2+ii)
-%     scatter(compiledThetaComp.thetaDT{ii}(selectidx_tone),compiledThetaComp.placeDT{ii}(selectidx_tone),'.')
-%     hold on
-%     lsline
-%     [r,p]= corrcoef(compiledThetaComp.thetaDT{ii}(selectidx_tone),compiledThetaComp.placeDT{ii}(selectidx_tone));
-%     xlim([-250 250])
-%     ylim([-800 800])
-%     xlabel('Theta timescale(ms)')
-%     ylabel('Place field timecsale(ms)')
-%     if ii == 1
-%         title(strcat('Tone: Short (1-3), r=', num2str(r(1,2)),', p= ',num2str(p(1,2))));
-%     else
-%         title(strcat('Tone: Long (5-6), r=', num2str(r(1,2)),', p= ',num2str(p(1,2))));  
-%     end
-% end
-
 end

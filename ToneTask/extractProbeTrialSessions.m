@@ -48,7 +48,7 @@ for ii = 1:length(sessloc)
 
     %% Extract performance split up by port
     for pp = 0:5
-        if sum(behavTrials.toneGain== pp & behavTrials.linTrial==0 & behavTrials.probe==0)>2
+        if sum(behavTrials.toneGain== pp & behavTrials.linTrial==0 & behavTrials.probe==0)>0
             Summary.perfTrial(ii,pp+1) = sum(behavTrials.linTrial==0 & behavTrials.toneGain== pp & behavTrials.probe==0 & behavTrials.correct==1)./...
                 sum(behavTrials.toneGain== pp & behavTrials.linTrial==0 & behavTrials.probe==0);
         else

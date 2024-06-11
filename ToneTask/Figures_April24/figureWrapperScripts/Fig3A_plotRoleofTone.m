@@ -1,4 +1,4 @@
-function Fig3_plotRoleofTone
+function Fig3A_plotRoleofTone
 
 fig2  = figure;
 set(fig2,'Renderer','painters')

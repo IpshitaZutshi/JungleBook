@@ -29,7 +29,7 @@ Summary.p_int = [];
 for ii = 1:length(sess)
     %% Load files
     cd(strcat(expPath,sess{ii}))    
-    file = dir(['*.rateMapsAvg.cellinfo.mat']);
+    file = dir(['*.rateMapsAvgnotLog.cellinfo.mat']);
     load(file(1).name);
     file = dir(['*.rateMapsTrial.cellinfo.mat']);
     trialMaps = load(file(1).name);    
@@ -86,7 +86,7 @@ for ii = 1:length(sess)
         toneCorr = nanmean(corrTone);  
 
         %% Detect fields
-        Field_Info = detectFields(toneMap);
+        Field_Info = detectFields(toneMap,'maxFieldSize',40);
         if isempty(Field_Info)
             toneField = 0;
         else 

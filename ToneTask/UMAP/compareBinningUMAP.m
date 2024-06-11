@@ -23,13 +23,13 @@ behav_file = file.name;
 manifoldPlot('figHandle',fig2,'umap_name',umap_name,'behav_file',behav_file,...
     'numrow',3,'numcol',2,'rowloc',2,'colloc',1,'col',col,'TRIAL_TYPE', TRIAL_TYPE)
 
-% umap_name = 'behavior_speed_1_smooth_5_bin_0.02';
-% file = dir('*.position_behavior_speed_1_smooth_5_bin_0.02.mat');
-% behav_file = file.name;
-% % 
-% manifoldPlot('figHandle',fig2,'umap_name',umap_name,'behav_file',behav_file,...
-%     'numrow',1,'numcol',1,'rowloc',1,'colloc',1,'col',col,'TRIAL_TYPE', TRIAL_TYPE,'singleTrial',true,'tsWin',behavTrials.timestamps(26,:),'A',-93.25,'E',-84.0809)
+umap_name = 'behavior_speed_1_smooth_5_bin_0.02';
+file = dir('*.position_behavior_speed_1_smooth_5_bin_0.02.mat');
+behav_file = file.name;
 % 
+manifoldPlot('figHandle',fig2,'umap_name',umap_name,'behav_file',behav_file,...
+    'numrow',3,'numcol',2,'rowloc',3,'colloc',1,'col',col,'TRIAL_TYPE', TRIAL_TYPE)
+
 % manifoldPlot('figHandle',fig2,'umap_name',umap_name,'behav_file',behav_file,...
 %     'numrow',3,'numcol',2,'rowloc',3,'colloc',1,'col',col,'TRIAL_TYPE', TRIAL_TYPE)
 % 

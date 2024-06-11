@@ -43,18 +43,18 @@ plotTrialFields(47,numrows, numcol, 1, 6, fig2,col)
 
 %% Compile place field data across cells
 
-%Skip- the first two ports because it's too short
+%Skip- the first port because it's too short
 fieldData = compileFieldExpansion;
 trialCOM = fieldData.trialCOM(:,2:end);
 ind = sum(~isnan(trialCOM),2)==5;
 
 subplot(numrows, numcol,13)    
-PlaceFieldExpansionStats.PFPeak = groupStats({fieldData.placefield(ind,2),fieldData.placefield(ind,3),...
+Stats.PFPeak = groupStats({fieldData.placefield(ind,2),fieldData.placefield(ind,3),...
    fieldData.placefield(ind,4),fieldData.placefield(ind,5),fieldData.placefield(ind,6)},2:6,'inAxis',true,'color',col(2:end,:),'labelSummary',false,'repeatedMeasures',true);
 title('Place field peak position') 
 
 subplot(numrows, numcol,14)
-PlaceFieldExpansionStats.COM = groupStats({fieldData.trialCOM(ind,2),fieldData.trialCOM(ind,3),...
+Stats.COM = groupStats({fieldData.trialCOM(ind,2),fieldData.trialCOM(ind,3),...
    fieldData.trialCOM(ind,4),fieldData.trialCOM(ind,5),fieldData.trialCOM(ind,6)},2:6,'inAxis',true,'color',col(2:end,:),'labelSummary',false,'repeatedMeasures',true);
 title('Trial COM') 
 
@@ -64,32 +64,32 @@ title('Trial COM')
 % title('Trial COM - avg COM') 
 
 subplot(numrows, numcol,15)
-PlaceFieldExpansionStats.PFStart = groupStats({fieldData.fieldStart(ind,2),fieldData.fieldStart(ind,3),...
+Stats.PFStart = groupStats({fieldData.fieldStart(ind,2),fieldData.fieldStart(ind,3),...
    fieldData.fieldStart(ind,4),fieldData.fieldStart(ind,5),fieldData.fieldStart(ind,6)},2:6,'inAxis',true,'color',col(2:end,:),'labelSummary',false,'repeatedMeasures',true);
 title('Place field start') 
 
 subplot(numrows, numcol,16)
-PlaceFieldExpansionStats.StartRate = groupStats({fieldData.fieldStartRate(ind,2),fieldData.fieldStartRate(ind,3),...
+Stats.StartRate = groupStats({fieldData.fieldStartRate(ind,2),fieldData.fieldStartRate(ind,3),...
    fieldData.fieldStartRate(ind,4),fieldData.fieldStartRate(ind,5),fieldData.fieldStartRate(ind,6)},2:6,'inAxis',true,'color',col(2:end,:),'labelSummary',false,'repeatedMeasures',true);
 title('Place field start rate') 
 
 subplot(numrows, numcol,17)
-PlaceFieldExpansionStats.PFEnd = groupStats({fieldData.fieldEnd(ind,2),fieldData.fieldEnd(ind,3),...
+Stats.PFEnd = groupStats({fieldData.fieldEnd(ind,2),fieldData.fieldEnd(ind,3),...
    fieldData.fieldEnd(ind,4),fieldData.fieldEnd(ind,5),fieldData.fieldEnd(ind,6)},2:6,'inAxis',true,'color',col(2:end,:),'labelSummary',false,'repeatedMeasures',true);
 title('Place field end') 
 
 subplot(numrows, numcol,18)
-PlaceFieldExpansionStats.EndRate = groupStats({fieldData.fieldEndRate(ind,2),fieldData.fieldEndRate(ind,3),...
+Stats.EndRate = groupStats({fieldData.fieldEndRate(ind,2),fieldData.fieldEndRate(ind,3),...
    fieldData.fieldEndRate(ind,4),fieldData.fieldEndRate(ind,5),fieldData.fieldEndRate(ind,6)},2:6,'inAxis',true,'color',col(2:end,:),'labelSummary',false,'repeatedMeasures',true);
 title('Place field end rate')    
 
 %% Save figure and stats
 
-expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task';
-saveas(gcf,strcat(expPath,'\Compiled\Figures_April2024\PlaceFieldExpansion.png'));
-saveas(gcf,strcat(expPath,'\Compiled\Figures_April2024\PlaceFieldExpansion.eps'),'epsc');
-saveas(gcf,strcat(expPath,'\Compiled\Figures_April2024\PlaceFieldExpansion.fig'));
-save(strcat(expPath,'\Compiled\Figures_April2024\PlaceFieldExpansion.mat'),'PlaceFieldExpansionStats'); 
+expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
+saveas(gcf,strcat(expPath,'SupFigure3A_PlaceCellTruncation.png'));
+saveas(gcf,strcat(expPath,'SupFigure3A_PlaceCellTruncation.eps'),'epsc');
+saveas(gcf,strcat(expPath,'SupFigure3A_PlaceCellTruncation.fig'));
+save(strcat(expPath,'SupFigure3A_PlaceCellTruncation.mat'),'Stats'); 
 
 
 end

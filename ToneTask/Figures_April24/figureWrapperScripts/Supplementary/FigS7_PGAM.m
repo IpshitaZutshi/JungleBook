@@ -1,4 +1,4 @@
-function FigS6_PGAM
+function FigS7_PGAM
 
 fig2  = figure;
 set(fig2,'Renderer','painters')
@@ -260,9 +260,9 @@ title(strcat('R=',num2str(R(1,2)),',p=',num2str(p(1,2))))
 %% Save figure
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
-saveas(gcf,strcat(expPath,'SupFigure6A_PGAM.png'));
-saveas(gcf,strcat(expPath,'SupFigure6A_PGAM.eps'),'epsc');
-saveas(gcf,strcat(expPath,'SupFigure6A_PGAM.fig'));
+saveas(gcf,strcat(expPath,'SupFigure7A_PGAM.png'));
+saveas(gcf,strcat(expPath,'SupFigure7A_PGAM.eps'),'epsc');
+saveas(gcf,strcat(expPath,'SupFigure7A_PGAM.fig'));
 
 
 %% Make a separate scatter plot figure
@@ -327,8 +327,8 @@ ylabel('Home')
 
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
-saveas(gcf,strcat(expPath,'SupFigure6B_PGAMscatter.png'));
-saveas(gcf,strcat(expPath,'SupFigure6B_PGAMscatter.eps'),'epsc');
-saveas(gcf,strcat(expPath,'SupFigure6B_PGAMscatter.fig'));
+saveas(gcf,strcat(expPath,'SupFigure7B_PGAMscatter.png'));
+saveas(gcf,strcat(expPath,'SupFigure7B_PGAMscatter.eps'),'epsc');
+saveas(gcf,strcat(expPath,'SupFigure7B_PGAMscatter.fig'));
 
 end

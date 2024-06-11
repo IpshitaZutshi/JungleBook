@@ -96,7 +96,7 @@ for ii = 1:length(sess)
         spaceCorr = nanmean(corrSpace);
         
         %% Detect fields
-        Field_Info = detectFields(toneMap);
+        Field_Info = detectFields(toneMap,'maxFieldSize',40);
         if isempty(Field_Info)
             toneField = 0;
         else 

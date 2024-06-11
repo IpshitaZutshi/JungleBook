@@ -125,7 +125,7 @@ end
 % the process of rotating. We then find the sign of the angle when the
 % threshold is crossed. 
 
-angle_thres = 100;
+angle_thres = 135;
 angle_thres_idx = zeros(numTrials, 1);      
 
 for i = 1:numTrials
@@ -139,7 +139,7 @@ for i = 1:numTrials
         timestamps(i) = nan;
     else
         angle_thres_idx(i) = a;
-        angle_thres_idx(i) = a+ startIdx(i);
+        angle_thres_idx(i) = a+ (startIdx(i)-1);
         rotations(i) = sign(angle(angle_thres_idx(i))); 
         timestamps(i) =tracking.timestamps(angle_thres_idx(i));
     end
