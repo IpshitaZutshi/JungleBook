@@ -1,4 +1,4 @@
-function FigS11_SpeedToneCells
+function FigS9_SpeedToneCells
 
 fig2  = figure;
 set(fig2,'Renderer','painters')
@@ -86,7 +86,7 @@ vel = interp1(timeS,tracking.position.v,spkData.timestamps)';
 rate_sorted  = spkRate(idxv);
 vel(vel>60) = nan;
 vel_sorted(vel_sorted>60) = nan;
-[b,e] = discretize(vel_sorted,0:5:40);
+[b,e] = discretize(vel_sorted,0:5:60);
 meanrate = splitapply(@mean,rate_sorted,b');
 
 Greys=cbrewer('seq', 'Greys', 11);
@@ -176,7 +176,7 @@ vel = interp1(timeS,tracking.position.v,spkData.timestamps)';
 vel(vel>60) = nan;
 vel_sorted(vel_sorted>60) = nan;
 rate_sorted  = spkRate(idxv);
-[b,e] = discretize(vel_sorted,0:5:40);
+[b,e] = discretize(vel_sorted,0:5:60);
 meanrate = splitapply(@mean,rate_sorted,b');
 
 Greys=cbrewer('seq', 'Greys', 11);
@@ -220,9 +220,9 @@ SpeedStats = groupStats([{data.tone} {data.space}],[],'inaxis',true);
 %% Save figure
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
-saveas(gcf,strcat(expPath,'SupFigure10_SpeedToneControls.png'));
-saveas(gcf,strcat(expPath,'SupFigure10_SpeedToneControls.eps'),'epsc');
-saveas(gcf,strcat(expPath,'SupFigure10_SpeedToneControls.fig'));
-save(strcat(expPath,'SupFigure10_SpeedToneControls.mat'),'SpeedStats'); 
+saveas(gcf,strcat(expPath,'SupFigure9_SpeedToneControls.png'));
+saveas(gcf,strcat(expPath,'SupFigure9_SpeedToneControls.eps'),'epsc');
+saveas(gcf,strcat(expPath,'SupFigure9_SpeedToneControls.fig'));
+save(strcat(expPath,'SupFigure9_SpeedToneControls.mat'),'SpeedStats'); 
 
 end

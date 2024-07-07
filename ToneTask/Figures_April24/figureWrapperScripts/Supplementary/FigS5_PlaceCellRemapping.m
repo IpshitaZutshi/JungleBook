@@ -351,42 +351,73 @@ subplot(numrows,numcol,[numcol*13+1 numcol*13+2 numcol*13+3 numcol*13+4 numcol*1
 
 Stats.ReturnCorr = groupStats(datacombined,group1,'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
 
+% %% Control versus Task
+% idxSess0 = Summary.AllsessType==0 & Summary.AllcellType == 1 & ...
+%     (Summary.AlllinField == 1 | Summary.AllspaceField == 1| Summary.AlllinEndField == 1);
+% idxSess1 = Summary.AllsessType==1 & Summary.AllcellType == 1 & ...
+%     (Summary.AlllinField == 1 | Summary.AllspaceField == 1| Summary.AlllinEndField == 1);
+% 
+% data{1} = Summary.AlllinCorr(idxSess0);
+% data{3} = Summary.AlltoneNoToneCorr(idxSess0);
+% data{4} = Summary.AlltonelinEndCorr(idxSess0);
+% data{2} = Summary.AlllinlinEndCorr(idxSess0);
+% 
+% data{5} = Summary.AlllinCorr(idxSess1);
+% data{7} = Summary.AlltoneNoToneCorr(idxSess1);
+% data{8} = Summary.AlltonelinEndCorr(idxSess1);
+% data{6} = Summary.AlllinlinEndCorr(idxSess1);
+% 
+% col = [52/243 52/243 52/243;...
+%     52/243 52/243 52/243;...
+%     180/243 180/243 180/243;...
+%     180/243 180/243 180/243;...    
+%     56/243 61/243 150/243;...
+%     56/243 61/243 150/243;...
+%     80/243 91/243 166/243;...       
+%     80/243 91/243 166/243];
+% 
+% % Set up a two way ANOVA
+% % datacombined = [data{1};data{2};data{3};data{4};data{5};data{6};data{7};data{8}];
+% % group1 = [ones(length(data{1}),1);ones(length(data{2}),1)*2;ones(length(data{3}),1)*3;ones(length(data{4}),1)*4;...
+% %     ones(length(data{5}),1);ones(length(data{6}),1)*2;ones(length(data{7}),1)*3;ones(length(data{8}),1)*4];
+% % group2 = [ones(length(data{1}),1);ones(length(data{2}),1)*1;ones(length(data{3}),1)*1;ones(length(data{4}),1)*1;...
+% %     ones(length(data{5}),1)*2;ones(length(data{6}),1)*2;ones(length(data{7}),1)*2;ones(length(data{8}),1)*2];
+% 
+% subplot(numrows,numcol,[numcol*16+1 numcol*16+2 numcol*16+3 numcol*16+4 numcol*17+1 ...
+%     numcol*17+2 numcol*17+3 numcol*17+4  numcol*18+1 numcol*18+2 numcol*18+3 numcol*18+4])
+% 
+% Stats.CtrlvsTask = groupStats(datacombined,[group1 group2],'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
+
 %% Control versus Task
 idxSess0 = Summary.AllsessType==0 & Summary.AllcellType == 1 & ...
     (Summary.AlllinField == 1 | Summary.AllspaceField == 1| Summary.AlllinEndField == 1);
 idxSess1 = Summary.AllsessType==1 & Summary.AllcellType == 1 & ...
     (Summary.AlllinField == 1 | Summary.AllspaceField == 1| Summary.AlllinEndField == 1);
+idxSess2 = Summary.AllsessType==1 & Summary.AllcellType == 1 & ...
+    (Summary.AllretFieldlin == 1 | Summary.AllretFieldCorrect == 1 | Summary.AllretFieldlinEnd == 1);
 
-data{1} = Summary.AlllinCorr(idxSess0);
+data = [];
+data{1} = Summary.AlltoneNoToneCorr(idxSess1);
+data{2} = Summary.AllretlinToneCorr(idxSess2);
 data{3} = Summary.AlltoneNoToneCorr(idxSess0);
-data{4} = Summary.AlltonelinEndCorr(idxSess0);
-data{2} = Summary.AlllinlinEndCorr(idxSess0);
-
-data{5} = Summary.AlllinCorr(idxSess1);
-data{7} = Summary.AlltoneNoToneCorr(idxSess1);
-data{8} = Summary.AlltonelinEndCorr(idxSess1);
-data{6} = Summary.AlllinlinEndCorr(idxSess1);
 
 col = [52/243 52/243 52/243;...
-    52/243 52/243 52/243;...
-    180/243 180/243 180/243;...
-    180/243 180/243 180/243;...    
-    56/243 61/243 150/243;...
-    56/243 61/243 150/243;...
-    80/243 91/243 166/243;...       
-    80/243 91/243 166/243];
-    
-% Set up a two way ANOVA
-datacombined = [data{1};data{2};data{3};data{4};data{5};data{6};data{7};data{8}];
-group1 = [ones(length(data{1}),1);ones(length(data{2}),1)*2;ones(length(data{3}),1)*3;ones(length(data{4}),1)*4;...
-    ones(length(data{5}),1);ones(length(data{6}),1)*2;ones(length(data{7}),1)*3;ones(length(data{8}),1)*4];
-group2 = [ones(length(data{1}),1);ones(length(data{2}),1)*1;ones(length(data{3}),1)*1;ones(length(data{4}),1)*1;...
-    ones(length(data{5}),1)*2;ones(length(data{6}),1)*2;ones(length(data{7}),1)*2;ones(length(data{8}),1)*2];
+    180/243 180/243 180/243;...  
+    56/243 61/243 150/243];
 
-subplot(numrows,numcol,[numcol*16+1 numcol*16+2 numcol*16+3 numcol*16+4 numcol*17+1 ...
-    numcol*17+2 numcol*17+3 numcol*17+4  numcol*18+1 numcol*18+2 numcol*18+3 numcol*18+4])
+subplot(numrows,numcol,[numcol*16+1 numcol*16+2 numcol*17+1 ...
+    numcol*17+2 numcol*18+1 numcol*18+2])
 
-Stats.CtrlvsTask = groupStats(datacombined,[group1 group2],'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
+Stats.CtrlvsTaskNT1TONE = groupStats(data,[],'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
+
+subplot(numrows,numcol,[numcol*16+3 numcol*16+4 ...
+    numcol*17+3 numcol*17+4 numcol*18+3 numcol*18+4])
+
+data{1} = Summary.AlltonelinEndCorr(idxSess1);
+data{2} = Summary.AllretlinEndToneCorr(idxSess2);
+data{3} = Summary.AlltonelinEndCorr(idxSess0);
+
+Stats.CtrlvsTaskNT2TONE = groupStats(data,[],'inAxis',true,'color',col,'plotType','boxplot','labelSummary',false);
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\SuppFigures\';
 saveas(gcf,strcat(expPath,'SupFigure5B_controlMice.png'));

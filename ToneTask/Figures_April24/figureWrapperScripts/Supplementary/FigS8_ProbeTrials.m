@@ -84,7 +84,7 @@ hold on
 freqExp = log10(25000/1000);
 [~,idxStart] = min(abs(tracking.timestamps-trialStart));
 [~,idxEnd] = min(abs(tracking.timestamps-trialEnd));
-pos = tracking.position.y(idxStart:idxEnd)/122;
+pos = (tracking.position.y(idxStart:idxEnd)*122/102.79)/122;
 tonepos = 1000*(10.^(freqExp*pos));
 idxProbe = find(tonepos>4000,1,'first');
 tProbe = tracking.timestamps(idxStart+idxProbe);

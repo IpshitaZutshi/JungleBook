@@ -1,18 +1,16 @@
-function Dec = compileGoalDecodingStats(varargin)
+function Dec = compileGoalDecodingStats_changePoint(varargin)
 
     p = inputParser;
     addParameter(p,'plotfig',true);
-    addParameter(p,'decodingWin',15); % Window for speed/ distance profile
     addParameter(p,'tWin',60);
-    addParameter(p,'speedThresh',5);
     addParameter(p,'plotIndTrials',false);
+    addParameter(p,'selectFirst',false);
     
     parse(p,varargin{:});
     plotfig = p.Results.plotfig;
-    decodingWin = p.Results.decodingWin;
     tWin = p.Results.tWin;
-    speedThresh = p.Results.speedThresh;
     plotIndTrials = p.Results.plotIndTrials;
+    selectFirst = p.Results.selectFirst;
 
     % Define session data
     sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
@@ -34,7 +32,8 @@ function Dec = compileGoalDecodingStats(varargin)
      % Define paths and parameters
     expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
     decodingPath = 'Z:\Homes\zz737\ipshita_data\Auditory_Task\';
-    decodingName = 'py_data\theta_decoding_lickLoc_y\up_samp_binsize[0.01]movement_var[1000000]sticky_p[0.999].nc';
+    decodingName = 'py_data\theta_decoding_lickLoc_y\up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].nc';
+    changePointName = 'py_data/theta_decoding_lickLoc_y/change_point_posterior_up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].mat';
 
     gain = [122/9, 122/32 122/55.53 122/79.62 122/102.79 122/122];
     freqExp = log10(22000/2000);
@@ -53,15 +52,12 @@ function Dec = compileGoalDecodingStats(varargin)
         end
 
         % Load decoding data
-        [posterior_goal, posterior_pos, post_time, post_pos, post_goal] = loadDecodingData(decodingPath, sess{ss}, decodingName);
+        [posterior_goal, posterior_pos, post_time, post_pos, post_goal,change_point,trial] = loadDecodingData(decodingPath, sess{ss}, decodingName,changePointName);
 
         % Load HD
         if str2double(sess{ss}(3:4))==47 || str2double(sess{ss}(3:4))==48
             load(strcat('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\rotationData\',sessionInfo.FileName,'.rotation.mat'))
         end
-
-        % Process goal decoding
-        result = processGoalDecoding(posterior_goal, decodingWin);
        
         %% Within each trial, find the earliest time that the goal is decoded consistently    
         ts_dec = [];
@@ -85,73 +81,79 @@ function Dec = compileGoalDecodingStats(varargin)
         % Cycle through trials to find the first detected time 
         for tt = 1:(length(behavTrials.lickLoc)-1)
             if behavTrials.linTrial(tt)==0 && behavTrials.probe(tt) == 0 && behavTrials.correct(tt) == 1
-                % The goal is often decoded super early which is weird.
-                % Only look at times within the 2 s preceding the lick
-                trialStart = behavTrials.timestamps(tt,1);
-                trialEnd = behavTrials.timestamps(tt,2);
-                idxVel = find(tracking.position.y(tracking.timestamps>trialStart & tracking.timestamps<trialEnd)>speedThresh,1,'first');
-                startTime = tracking.timestamps(find((tracking.timestamps>trialStart)==1,1,'first')+idxVel-1);    
-                if ~isempty(idxVel)
-                    [~,idxstart] = min(abs(post_time-startTime));
-                    if post_time(idxstart)<behavTrials.timestamps(tt,1) %Take the next index
-                        idxstart = idxstart+1;
-                    end        
-                    [~,idxend] = min(abs(post_time-behavTrials.timestamps(tt,2)));
-                    if post_time(idxend)>behavTrials.timestamps(tt,2) %Take the previous index
-                        idxend = idxend-1;
-                    end   
-                    idxGoal = find(result(idxstart:idxend)==(behavTrials.lickLoc(tt)+1),1,'first');
-                    idxGoalShuff = find(result(idxstart:idxend)==randsample(1:6,1),1,'first');
-                    
-                    if ~isempty(idxGoal)                
-                        ts_dec = [ts_dec post_time(idxGoal+idxstart-1)];
+
+                [~,idxstart] = min(abs(post_time-behavTrials.timestamps(tt,1)));
+                if post_time(idxstart)<behavTrials.timestamps(tt,1) %Take the next index
+                    idxstart = idxstart+1;
+                end        
+                [~,idxend] = min(abs(post_time-behavTrials.timestamps(tt,2)));
+                if post_time(idxend)>behavTrials.timestamps(tt,2) %Take the previous index
+                    idxend = idxend-1;
+                end   
+
+                [~,decGoal] = max(posterior_goal(:,idxstart:idxend));
+
+                %% Get change points for that trial
+                 if sum(trial==(tt-1))>0
+                    curChanges = change_point{trial==(tt-1)};
+    
+                    idxGoal = curChanges(end);
+                    trialDecGoal = mode(decGoal(curChanges(end)+1:end));
+    
+                    if trialDecGoal==(behavTrials.lickLoc(tt)+1)             
+                        ts_dec = [ts_dec post_time(idxGoal+idxstart)];
                         trial_dec = [trial_dec tt];
                         Dec.countDec(ss,behavTrials.lickLoc(tt)+1) = Dec.countDec(ss,behavTrials.lickLoc(tt)+1)+1;
                     end
-    
-                    if ~isempty(idxGoalShuff)                
-                        ts_dec_shuff = [ts_dec_shuff post_time(idxGoalShuff+idxstart-1)];
+
+                    if trialDecGoal==randsample([behavTrials.lickLoc(tt)+1 6],1)
+                        ts_dec_shuff = [ts_dec_shuff post_time(idxGoal+idxstart)];
                         trial_dec_shuff = [trial_dec_shuff tt];
                     end
-    
-                    if plotIndTrials
-                        figure
-                        imagesc(idxstart:idxend,post_goal,posterior_goal(:,idxstart:idxend));
-                        title(num2str(behavTrials.lickLoc(tt)))
-                        set(gca,'YDir','normal')
-                        hold on
-                        plot(idxstart:idxend,goal_dec(idxstart:idxend)-1,'Color','b','LineWidth',1.5);  
-                        plot(idxstart:idxend,result(idxstart:idxend)-1,'Color','w','LineWidth',1.5);  
-                        if ~isempty(idxGoal)
-                            line([idxGoal+idxstart-1 idxGoal+idxstart-1],[0 6],'Color','r','LineWidth',1.5)
-                        end
-        
+
+                 end
+
+                if plotIndTrials
+                    figure
+                    imagesc(idxstart:idxend,post_goal,posterior_goal(:,idxstart:idxend));
+                    title(num2str(behavTrials.lickLoc(tt)))
+                    set(gca,'YDir','normal')
+                    hold on
+                    for cc = 1:length(curChanges)
+                        line([idxstart+curChanges(cc)-1 idxstart+curChanges(cc)-1],[0 6],'Color','w','LineWidth',1.5);  
                     end
+                    plot(idxstart:idxend,decGoal-1,'Color','w','LineWidth',1.5); 
+    
                 end
 
             elseif behavTrials.linTrial(tt)==0 && behavTrials.probe(tt) == 0 && behavTrials.correct(tt) == 0
 
-                trialStart = behavTrials.timestamps(tt,1);
-                trialEnd = behavTrials.timestamps(tt,2);
-                idxVel = find(tracking.position.y(tracking.timestamps>trialStart & tracking.timestamps<trialEnd)>speedThresh,1,'first');
-                startTime = tracking.timestamps(find((tracking.timestamps>trialStart)==1,1,'first')+idxVel-1);    
-                if ~isempty(idxVel)
-                    [~,idxstart] = min(abs(post_time-startTime));
-                    if post_time(idxstart)<behavTrials.timestamps(tt,1) %Take the next index
-                        idxstart = idxstart+1;
-                    end        
-                    [~,idxend] = min(abs(post_time-behavTrials.timestamps(tt,2)));
-                    if post_time(idxend)>behavTrials.timestamps(tt,2) %Take the previous index
-                        idxend = idxend-1;
-                    end   
-                    idxGoal = find(result(idxstart:idxend)==(behavTrials.lickLoc(tt)+1),1,'first');
-                    
-                    if ~isempty(idxGoal)                
-                        ts_dec_error = [ts_dec_error post_time(idxGoal+idxstart-1)];
+                [~,idxstart] = min(abs(post_time-behavTrials.timestamps(tt,1)));
+                if post_time(idxstart)<behavTrials.timestamps(tt,1) %Take the next index
+                    idxstart = idxstart+1;
+                end        
+                [~,idxend] = min(abs(post_time-behavTrials.timestamps(tt,2)));
+                if post_time(idxend)>behavTrials.timestamps(tt,2) %Take the previous index
+                    idxend = idxend-1;
+                end   
+
+                [~,decGoal] = max(posterior_goal(:,idxstart:idxend));
+
+                %% Get change points for that trial
+                 if sum(trial==(tt-1))>0
+                    curChanges = change_point{trial==(tt-1)};
+    
+                    idxGoal = curChanges(end);
+                    trialDecGoal = mode(decGoal(curChanges(end)+1:end));
+    
+                    if trialDecGoal==(behavTrials.lickLoc(tt)+1)             
+                        ts_dec_error = [ts_dec_error post_time(idxGoal+idxstart)];
                         trial_dec_error = [trial_dec_error tt];
                         Dec.countDecError(ss,behavTrials.lickLoc(tt)+1) = Dec.countDecError(ss,behavTrials.lickLoc(tt)+1)+1;
                     end
-                end
+                 
+                 end
+
             end
         end
 
@@ -245,9 +247,9 @@ function Dec = compileGoalDecodingStats(varargin)
         143/255 189/255 107/255;...
         87/255 116/255 144/255];
 
-        subplot(3,3,1)
-        Stats.propDecoded = groupStats([{Dec.propDecoded},{Dec.propDecodedShuff},{Dec.propDecodedError}],[],'inAxis',true);
-    
+        % subplot(3,3,1)
+        % Stats.propDecoded = groupStats([{Dec.propDecoded},{Dec.propDecodedShuff},{Dec.propDecodedError}],[],'inAxis',true);
+        % 
         subplot(3,3,2)
         Stats.propDecoded = groupStats([{Dec.timetoGoal},{Dec.timetoGoalShuff},{Dec.timetoGoalError}],[],'inAxis',true);
     
@@ -256,9 +258,9 @@ function Dec = compileGoalDecodingStats(varargin)
         Stats = groupStats(data,[],'inAxis',true,'color',col(2:end,:));
         yscale log
         
-        subplot(3,3,4)
-        histogram(Dec.decFreq,[2000:1000:23000])
-        
+        % subplot(3,3,4)
+        % histogram(Dec.decFreq,[2000:1000:23000])
+        % 
         plotAvgStd(Dec.distToGoal,3,3,5,fig2,t',[0 0 1], 0)
         title('distancetoGoal')
         
@@ -271,9 +273,9 @@ function Dec = compileGoalDecodingStats(varargin)
         plotAvgStd(Dec.nose,3,3,8,fig2,t',[0 0 1], 0)
         title('Nose position')
     
-        subplot(3,3,9)
-        data = [{Dec.propDecoded(Dec.mouseID==39)},{Dec.propDecoded(Dec.mouseID==43)},{Dec.propDecoded(Dec.mouseID==44)},{Dec.propDecoded(Dec.mouseID==47)},{Dec.propDecoded(Dec.mouseID==48)}];
-        Stats.mouseID = groupStats(data,[],'inAxis',true);
+        % subplot(3,3,9)
+        % data = [{Dec.propDecoded(Dec.mouseID==39)},{Dec.propDecoded(Dec.mouseID==43)},{Dec.propDecoded(Dec.mouseID==44)},{Dec.propDecoded(Dec.mouseID==47)},{Dec.propDecoded(Dec.mouseID==48)}];
+        % Stats.mouseID = groupStats(data,[],'inAxis',true);
     end
 
 end
@@ -316,7 +318,7 @@ function [behavTrials, spikes, sessionInfo, tracking] = loadSessionData()
     end
 end
 
-function [posterior_goal, posterior_pos, post_time, post_pos, post_goal] = loadDecodingData(decodingPath, sess, decodingName)
+function [posterior_goal, posterior_pos, post_time, post_pos, post_goal,change_point,trial] = loadDecodingData(decodingPath, sess, decodingName,changePointName)
     % Load decoding data
     file_name = strcat(decodingPath, '\', sess, '\', decodingName);
     posterior_goal = ncread(file_name, 'x_position');
@@ -324,6 +326,9 @@ function [posterior_goal, posterior_pos, post_time, post_pos, post_goal] = loadD
     post_time = ncread(file_name, 'time');
     post_pos = ncread(file_name, 'y_position_value');
     post_goal = ncread(file_name, 'x_position_value');
+
+    file_name = strcat(decodingPath, '\', sess, '\', changePointName);
+    load(file_name)
 end
 
 function result = processGoalDecoding(posterior_goal, decodingWin)

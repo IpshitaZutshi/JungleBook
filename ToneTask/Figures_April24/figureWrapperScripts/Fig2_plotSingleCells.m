@@ -11,6 +11,9 @@ numcol = 14;
 sessID = [29 47 40 31];
 cellID = [28 275 167 46];    
 
+sessID2 = [30 38 47];
+cellID2 = [41 38 47];    
+
 %% Panel A: Examples of single cells
 %Tone-like
 sessloc = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ43\Final\IZ43_220828_sess4';
@@ -157,8 +160,10 @@ idxMaps{1} = idxSess & Summary.AllspaceField & Summary.AllspatialCorr>0.1;
 for ii = 1%:2            
     selectedlinMap = Summary.AlllinMapInit(idxMaps{ii},:);
     selectedlinMapEnd = Summary.AlllinMapEnd(idxMaps{ii},:);
-    selectedspaceMap = Summary.AllspaceMap(idxMaps{ii},:);
-    
+    selectedspaceMap = Summary.AllspaceMapAvg(idxMaps{ii},:);%Summary.AllspaceMap(idxMaps{ii},:);
+    selectedsessID = Summary.AllsessID(idxMaps{ii});
+    selectedcellID = Summary.AllcellID(idxMaps{ii});
+
     [maxLin,idxLin] = max(selectedlinMap,[],2);
     [maxSpace,idxSpace] = max(selectedspaceMap,[],2);    
     
@@ -203,6 +208,21 @@ for ii = 1%:2
         title('No tone II')
     end
 end   
+
+% Identify example cells on the heatmaps
+sortsessID = selectedsessID(sortidx);
+sortcellID = selectedcellID(sortidx);
+col = [119/255 221/255 229/255;...
+    122/255 201/255 229/255;...
+    38/255 169/255 224/255;...
+    73/255 136/255 189/255];
+
+subplot(numrows,numcol,[(numcol*16)+11 (numcol*16)+12 (numcol*17)+11 (numcol*17)+12 (numcol*18)+11 (numcol*18)+12 (numcol*19)+11 (numcol*19)+12]);
+for ll = 1:length(sessID2)
+    cellPos(ll) = find(sortsessID == sessID2(ll) & sortcellID == cellID2(ll));
+    line([0 linPos(end)],[cellPos(ll) cellPos(ll)],'Color',col(ll,:),'LineWidth',2)
+    hold on
+end
 
 %% Scatter of place versus tone tuning
 subplot(numrows,numcol,[(numcol*25)+1 (numcol*25)+2 (numcol*26)+1 (numcol*26)+2 (numcol*27)+1 (numcol*27)+2]);

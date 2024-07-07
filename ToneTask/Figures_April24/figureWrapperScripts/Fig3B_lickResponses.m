@@ -12,8 +12,8 @@ useMedian = 0;
 usePGAM = 0;
 
 if ~usePGAM
-    Summary = examinePokePSTHs('plotfig',false);
-    %load('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\LickPSTHSummary.mat')
+    %Summary = examinePokePSTHs('plotfig',false);
+    load('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\LickPSTHSummary.mat')
 else
     %Summary = examinePokePSTHs_usingPGAM('plotfig',false);    
     load('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\LickPSTHSummaryPGAM.mat')
@@ -110,7 +110,7 @@ xlabel(num2str(max(nanmean(dataMat,1))))
 for ii = 1:6
     idx = behavTrials.lickLoc==(ii-1) & behavTrials.linTrial ==0; 
     st = behavTrials.timestamps(idx,2);
-    [stccg, tPSTH] = CCG({spikes.times{cellNum} st},[],'binSize',0.1,'duration',2,'norm','rate');
+    [stccg, tPSTH] = CCG({spikes.times{cellNum} st},[],'binSize',0.1,'duration',4,'norm','rate');
     subplot(numrows, numcol, [11+2*numcol 12+2*numcol]);
     hold on
     plot(tPSTH,stccg(:,2,1)','Color',col(ii,:),'LineWidth',1);   
@@ -137,7 +137,7 @@ col = [56/243 61/243 150/243;...
     193/243 90/243 99/243;...
     187/243 86/243 149/243];
 
-timeaxis = linspace(-1,1,21);
+timeaxis = linspace(-2,2,41);
 idxT = timeaxis<=0.3 & timeaxis>=-0.3;
 spec=cbrewer('seq', 'Blues', 20);
 spec(spec>1) = 1;
@@ -153,9 +153,9 @@ norm = zscore(selectedPSTH,[],2);
 imagesc(timeaxis,1:length(idxmax),norm(idxmax,:))
 %imagesc(timeaxis,1:length(idxmax),selectedPSTH(idxmax,:))
 colormap(ax1,spec)
-caxis([-1 2])
+caxis([-1 3])
 colorbar
-xlim([-1 1])
+xlim([-2 2])
 ylabel(strcat('cellID',num2str(length(idxmax))))
 title('choice', 'Color',col(1,:))
 xticks([])
@@ -173,8 +173,8 @@ norm = zscore(selectedPSTH,[],2);
 imagesc(timeaxis,1:length(idxmax),norm(idxmax,:))
 %imagesc(timeaxis,1:length(idxmax),selectedPSTH(idxmax,:))
 colormap(ax1,spec)
-caxis([-1 2])
-xlim([-1 1])
+caxis([-1 3])
+xlim([-2 2])
 xticks([])
 yticks([])
 title('no-tone end', 'Color',col(2,:))
@@ -192,8 +192,8 @@ norm = zscore(selectedPSTH,[],2);
 imagesc(timeaxis,1:length(idxmax),norm(idxmax,:))
 %imagesc(timeaxis,1:length(idxmax),selectedPSTH(idxmax,:))
 colormap(ax1,spec)
-caxis([-1 2])
-xlim([-1 1])
+caxis([-1 3])
+xlim([-2 2])
 xticks([])
 yticks([])
 title('Spont fwd', 'Color',col(3,:))
@@ -211,8 +211,8 @@ norm = zscore(selectedPSTH,[],2);
 imagesc(timeaxis,1:length(idxmax),norm(idxmax,:))
 %imagesc(timeaxis,1:length(idxmax),selectedPSTH(idxmax,:))
 colormap(ax1,spec)
-caxis([-1 2])
-xlim([-1 1])
+caxis([-1 3])
+xlim([-2 2])
 xticks([])
 yticks([])
 title('Spont rev', 'Color',col(4,:))
@@ -230,8 +230,8 @@ norm = zscore(selectedPSTH,[],2);
 imagesc(timeaxis,1:length(idxmax),norm(idxmax,:))
 %imagesc(timeaxis,1:length(idxmax),selectedPSTH(idxmax,:))
 colormap(ax1,spec)
-caxis([-1 2])
-xlim([-1 1])
+caxis([-1 3])
+xlim([-2 2])
 xticks([])
 yticks([])
 title('Home', 'Color',col(5,:))
@@ -239,7 +239,7 @@ a = selectedPSTH(:,idxT);
 avgRate(:,5) = mean(a,2);%
 if ~usePGAM
     plotAvgStd(selectedPSTH,numrows,numcol,plotloc,fig2,timeaxis',col(5,:),useMedian)
-    ylim([2 8.5])
+    ylim([2 10])
 else
     plotAvgStd(norm,numrows,numcol,plotloc,fig2,timeaxis',col(5,:),useMedian)
     ylim([-0.5 1])
@@ -263,8 +263,8 @@ avgRate(:,1) = mean(a,2);%
 norm = zscore(selectedPSTH,[],2);
 imagesc(timeaxis,1:length(idxmax),norm(idxmax,:))
 colormap(ax1,spec)
-caxis([-1 2])
-xlim([-1 1])
+caxis([-1 3])
+xlim([-2 2])
 ylabel(strcat('cellID',num2str(length(idxmax))))
 title('Correct choice')
 xticks([])
@@ -280,8 +280,8 @@ avgRate(:,2) = mean(a,2);%
 norm = zscore(selectedPSTH,[],2);
 imagesc(timeaxis,1:length(idxmax),norm(idxmax,:))
 colormap(ax1,spec)
-caxis([-1 2])
-xlim([-1 1])
+caxis([-1 3])
+xlim([-2 2])
 ylabel(strcat('cellID',num2str(length(idxmax))))
 title('Incorrect choice')
 xticks([])
@@ -300,7 +300,7 @@ norm = zscore(selectedPSTH,[],2);
 if ~usePGAM
     plotAvgStd(selectedPSTH,numrows,numcol,plotloc,fig2,timeaxis',[175/243 54/243 60/243],useMedian)
     line([0 0],[2 7],'Color','r')
-    ylim([2 8.5])
+    ylim([2 10])
 else
     plotAvgStd(norm,numrows,numcol,plotloc,fig2,timeaxis',[175/243 54/243 60/243],useMedian)
     line([0 0],[-1 1.5],'Color','r')
@@ -318,7 +318,7 @@ Stats.correctIncorrect = groupStats([{avgRate(:,1)},{avgRate(:,2)}],[],'doPlot',
 % selectedPSTH = Summary.psthReward.lickTypes{9};
 % plotAvgStd(selectedPSTH,numrows,numcol,plotloc,fig2,timeaxis',[175/243 54/243 60/243])
 % line([0 0],[0 15],'Color','r')
-% ylim([0 10])
+% ylim([2 10])
 % ylim([0 12])  
 % box off
 % title('Corr/incorr home')
@@ -357,8 +357,8 @@ for tt = 1:length(lickT)
     ax1 = subplot(numrows,numcol,plotloc);
     imagesc(timeaxis,1:length(idxmax),normPSTH(idxmax,:));
     ylabel(num2str(length(idxmax)))
-    caxis([-1 2])
-    xlim([-1 1])  
+    caxis([-1 3])
+    xlim([-2 2])     
     colormap(ax1,spec)
     xticks([])
     if tt>1
@@ -373,13 +373,14 @@ for tt = 1:length(lickT)
     if ~usePGAM
         plotAvgStd(temp,numrows,numcol,plotloc,fig2,timeaxis',col(tt,:),useMedian)    
         line([0 0],[2 7],'Color','r')
-        ylim([2 8.5])        
+        ylim([2 10])        
     else
         plotAvgStd(norm,numrows,numcol,plotloc,fig2,timeaxis',col(tt,:),useMedian)    
         line([0 0],[-1 1.5],'Color','r')
         ylim([-0.5 1]) 
     end
-    xlim([-1 1])  
+    xlim([-2 2])  
+    yscale log
     box off
     line([0 0],[2 7],'Color','r')
     
@@ -440,5 +441,6 @@ function plotAvgStd(array,numrows,numcol,subplotlocation,figureHandle,xAxis,col,
     fill([xAxis; flipud(xAxis)],[lArr'; flipud(uArr')],col,'linestyle','none','FaceAlpha',0.5);                    
     hold on
     hi = line(xAxis,meanpsth,'LineWidth',1,'Color',col);
+    yscale log
 
 end

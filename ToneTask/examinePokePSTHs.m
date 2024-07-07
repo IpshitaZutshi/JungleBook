@@ -37,7 +37,7 @@ sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Fin
   
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
 
-for tt = 1:15
+for tt = 1:16
     Summary.psthReward.lickTypes{tt} = [];
 end
 Summary.sessID = [];
@@ -63,8 +63,8 @@ for ii = 1:length(sess)
     
     licktimes = [];
     lickport1 = [];
-    lickport = [2 3 4 5 6 7];
-    for ll = 1:5
+    lickport = [1 2 3 4 5 6 7];
+    for ll = 1:7
         licktimes = [licktimes; digitalIn.timestampsOn{lickport(ll)+2}]; 
         lickport1 = [lickport1; ones(length(digitalIn.timestampsOn{lickport(ll)+2}),1)*lickport(ll)];
     end    
@@ -75,20 +75,27 @@ for ii = 1:length(sess)
     idxNew = [1;find(diff(lickportSorted)~=0)+1];
     
     tsLick2 = licktimesSorted(idxNew);
+    lickPortLoc = lickportSorted(idxNew);
+
+    % Exclude the home port licks
+    tsLick = tsLick2(lickPortLoc~=1);
+    lickLoc = lickPortLoc(lickPortLoc~=1);
     
+    tsLick2 = tsLick;
+
     %% Calculate PSTHS for each type of lick
 
-    for tt = 1:15
+    for tt = 1:16
         
         st = [];
         if tt ==1 %Forward run - no tone trials, end, 
-            st = (behavTrials.timestamps(behavTrials.linTrial==1,2)-0.03);
+            st = (behavTrials.timestamps(behavTrials.linTrial==1,2));
         elseif tt == 2 %Forward run - tone trials, end, 
-            st = (behavTrials.timestamps(behavTrials.linTrial==0,2)-0.03);                    
+            st = (behavTrials.timestamps(behavTrials.linTrial==0,2));                    
         elseif tt == 3 %Spontaneous licks,facing forward
             %No tone trials, spontaneous forward
             ts1 = behavTrials.timestamps(behavTrials.linTrial==1,1);
-            ts2 = behavTrials.timestamps(behavTrials.linTrial==1,2)-0.03;
+            ts2 = behavTrials.timestamps(behavTrials.linTrial==1,2);
             intPer = InIntervals(tsLick2,[ts1 ts2]);
             st1 = tsLick2(intPer,1);   
 
@@ -148,22 +155,30 @@ for ii = 1:length(sess)
             end           
 
         elseif tt == 5 % home port
-            st = (behavTrials.timestamps(behavTrials.linTrial==0,1)-0.03);
+            st = (behavTrials.timestamps(behavTrials.linTrial==0,1));
         elseif tt == 6 %Forward correct
-            st = behavTrials.timestamps(behavTrials.linTrial ==0 & behavTrials.correct ==1,2)-0.03;
+            st = behavTrials.timestamps(behavTrials.linTrial ==0 & behavTrials.correct ==1,2);
         elseif tt ==7 %Forward incorrect
-            st = behavTrials.timestamps(behavTrials.linTrial ==0 & behavTrials.correct ==0,2)-0.03;
+            st = behavTrials.timestamps(behavTrials.linTrial ==0 & behavTrials.correct ==0,2);
         elseif tt ==8 % return correct
             idx = find(behavTrials.linTrial(1:(end-1)) ==0 & behavTrials.correct(1:(end-1)) ==1);
             homestartidx = idx+1;
-            st = behavTrials.timestamps(homestartidx,1)-0.03;
+            st = behavTrials.timestamps(homestartidx,1);
         elseif tt ==9 % return incorrect     
             idx = find(behavTrials.linTrial(1:(end-1)) ==0 & behavTrials.correct(1:(end-1)) ==0);
             homestartidx = idx+1;
-            st = behavTrials.timestamps(homestartidx,1)-0.03;
-        elseif tt >=10
+            st = behavTrials.timestamps(homestartidx,1);
+        elseif tt >=10 && tt<16
             idx = behavTrials.lickLoc==(tt-10) & behavTrials.linTrial ==0;
-            st = behavTrials.timestamps(idx,2)-0.03;
+            st = behavTrials.timestamps(idx,2);
+        elseif tt == 16 % Only licks after error trials
+             %Tone trials, spontaneous
+            idxLin = find(behavTrials.linTrial(1:end-1) ==0 & behavTrials.correct(1:end-1) ==0);
+            tsFwd = behavTrials.timestamps(idxLin+1,1);
+            tsRet = behavTrials.timestamps(idxLin,2);
+            ints = [tsRet tsFwd];
+            intPer = InIntervals(tsLick2(:,1),ints);  
+            st = tsLick2(intPer,1);   
         end
 
         for kk=1:length(cell_metrics.UID)
@@ -202,13 +217,13 @@ for ii = 1:length(sess)
             [~,idxMax] = max(toneMap);           
             if cellType == 1 && (toneField == 1) && (toneCorr > 0.1) && idxMax>40
                 if ~isempty(st)
-                    [stccg, tPSTH] = CCG({spikes.times{kk} st},[],'binSize',0.1,'duration',2,'norm','rate');                
+                    [stccg, tPSTH] = CCG({spikes.times{kk} st},[],'binSize',0.1,'duration',4,'norm','rate');                
                     Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; stccg(:,2,1)'];               
                     if tt == 1                    
                         Summary.sessID = [Summary.sessID; ii]; 
                     end
                 else
-                    fillArr(1,1:21) = nan;
+                    fillArr(1,1:41) = nan;
                     Summary.psthReward.lickTypes{tt} = [Summary.psthReward.lickTypes{tt}; fillArr]; 
                     if tt == 1                    
                         Summary.sessID = [Summary.sessID; ii]; 

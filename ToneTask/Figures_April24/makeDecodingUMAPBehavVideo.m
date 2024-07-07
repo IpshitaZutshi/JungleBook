@@ -15,16 +15,18 @@ load(file.name)
 RdPu=cbrewer('seq', 'RdPu', 11);
 Purples=cbrewer('seq', 'PuBu', 11);
 
-posterior_goal =  ncread('causal_posterior_lickLoc_y.nc','x_position') ;
-posterior_pos =  ncread('causal_posterior_lickLoc_y.nc','y_position') ;
-post_time =  ncread('causal_posterior_lickLoc_y.nc','time') ;
-post_pos =  ncread('causal_posterior_lickLoc_y.nc','y_position_value') ;
-post_goal =  ncread('causal_posterior_lickLoc_y.nc','x_position_value') ;
+decodingPath = 'Z:\Homes\zz737\ipshita_data\Auditory_Task\IZ47\Final\IZ47_230626_sess15\py_data\theta_decoding_lickLoc_y\up_samp_binsize[0.01]movement_var[1000000]sticky_p[0.999].nc';
+
+posterior_goal =  ncread(decodingPath,'x_position') ;
+posterior_pos =  ncread(decodingPath,'y_position') ;
+post_time =  ncread(decodingPath,'time') ;
+post_pos =  ncread(decodingPath,'y_position_value') ;
+post_goal =  ncread(decodingPath,'x_position_value') ;
 
 cell1 = 86;%107;%45;
 cell2 = 54;%166;%275;%218;
 
-trials = [104 8];%[38 41];%[25 26 66]; % direct-ish, deliberate-ish
+trials = [14];%108 8 4 28 33 43 53];%[104 8];%[38 41];%[25 26 66]; % direct-ish, deliberate-ish
 
 %topVid = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ47\Final\IZ47_230707_sess24\IZ47_230707_111229\test22023-07-07T11_15_10';
 topVid = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ47\Final\IZ47_230626_sess15\IZ47_230626_160943\test22023-06-26T16_11_06';
@@ -71,7 +73,7 @@ for tt = 1:length(trials) % Make separate videos for each trial
     tsWin = [tracking.timestamps(startFrame) tracking.timestamps(endFrame)];
 
     fig = figure;
-    set(fig,'Position',[1935 40 775 955])
+    %set(fig,'Position',[1935 40 775 955])
     set(fig,'Color','k')
     
     subplot(numrows,numcol,[1 7 13 19]) %Labeled top video from deeplabcut
@@ -96,21 +98,24 @@ for tt = 1:length(trials) % Make separate videos for each trial
     h3 = animatedline('Color',[0.8 0.8 0.8],'LineWidth',1.5);
 
     subplot(numrows,numcol,[3 9 15 21]) %Decoding
+    goalLoc = [57 135 219 308 390 464];
     set(gca,'visible','off')
     axis off
-    set(gca,'XLim',[1 max(tracking.position.x)]);
-    set(gca,'YLim',[1 max(tracking.position.y)]);
+    set(gca,'XLim',[1 28]);
+    set(gca,'YLim',[1 464]);
+    % set(gca,'XLim',[1 max(tracking.position.x)]);
+    % set(gca,'YLim',[1 max(tracking.position.y)]);
     set(gca,'YDir','reverse')
-    % %Add dashed lines at the port locations
-    % line([1 28],[57 57],'Color',[0.5 0.5 0.5],'LineWidth',0.75,'LineStyle','--')
-    % hold on
-    % line([1 28],[135 135],'Color',[0.5 0.5 0.5],'LineWidth',0.75,'LineStyle','--')
-    % line([1 28],[219 219],'Color',[0.5 0.5 0.5],'LineWidth',0.75,'LineStyle','--')
-    % line([1 28],[308 308],'Color',[0.5 0.5 0.5],'LineWidth',0.75,'LineStyle','--')
-    % line([1 28],[390 390],'Color',[0.5 0.5 0.5],'LineWidth',0.75,'LineStyle','--')
+    %Add dashed lines at the port locations
+    line([1 28],[57 57],'Color',[0.5 0.5 0.5],'LineWidth',0.75,'LineStyle','--')
+    hold on
+    line([1 28],[135 135],'Color',[0.5 0.5 0.5],'LineWidth',0.75,'LineStyle','--')
+    line([1 28],[219 219],'Color',[0.5 0.5 0.5],'LineWidth',0.75,'LineStyle','--')
+    line([1 28],[308 308],'Color',[0.5 0.5 0.5],'LineWidth',0.75,'LineStyle','--')
+    line([1 28],[390 390],'Color',[0.5 0.5 0.5],'LineWidth',0.75,'LineStyle','--')
     hold on;
-    % boxWidth = 0.1; % Adjust the width of the box as needed
-    % rectangle('Position', [1+boxWidth, 1+boxWidth, 27-2*boxWidth, 463-2*boxWidth], 'EdgeColor', 'white', 'LineWidth', 1);   
+    boxWidth = 0.1; % Adjust the width of the box as needed
+    rectangle('Position', [1+boxWidth, 1+boxWidth, 27-2*boxWidth, 463-2*boxWidth], 'EdgeColor', 'white', 'LineWidth', 1);   
     h4 = animatedline('Color',[0.8 0.8 0.8],'LineWidth',1.5);
     
     subplot(numrows,numcol,[4 5 6 10 11 12 16 17 18 22 23 24]) %Front video
@@ -129,33 +134,9 @@ for tt = 1:length(trials) % Make separate videos for each trial
     % set(gca,'visible','off')
     % axis off
     % set(ax1,'XLim',tsWin);
-    % h1 = animatedline('Color',[0.8 0.8 0.8],'LineWidth',1);
+    % h1 = animatedline('Color',[0.8 0.8 0.8],'LineWidth',1);   
 
-    ax1 = subplot(numrows,numcol,43:48); % Position, spikes, speed
-    box off
-    ax = gca;
-    % Set the background color of the axes to black
-    ax.Color = 'black';
-    
-    % Set the color of the axis lines and labels to white
-    ax.XColor = 'none';
-    ax.YColor = 'white';
-    % Set the color of the tick marks to white
-    ax.TickDir = 'out';  % optional: set tick direction
-    ax.TickLength = [0.02 0.02];  % optional: set tick length   
-    ylabel('Position (cm)', 'Color', 'white');
-    set(ax1,'XLim',tsWin);
-    set(ax1,'YLim',[min(tracking.position.y) 125]);
-    line([tsWin(1) tsWin(2)],[18 18],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')   
-    hold on
-    line([tsWin(1) tsWin(2)],[35 35],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')        
-    line([tsWin(1) tsWin(2)],[61 61],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
-    line([tsWin(1) tsWin(2)],[82 82],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
-    line([tsWin(1) tsWin(2)],[108 108],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
-    line([tsWin(1) tsWin(2)],[122 122],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
-    h2 = animatedline('Color',[0.8 0.8 0.8],'LineWidth',1.5);
-
-    ax = subplot(numrows,numcol,49:54); % Bayesian posterior
+    ax = subplot(numrows,numcol,43:48); % Bayesian posterior
     colormap(ax, 'magma');
     caxis([0 0.5])
     box off
@@ -174,25 +155,50 @@ for tt = 1:length(trials) % Make separate videos for each trial
     set(gca,'Ydir','reverse')
     hold on
 
-    ax = subplot(numrows,numcol,55:60); % Goal posterior
+    ax = subplot(numrows,numcol,49:54); % Goal posterior
     colormap(ax, 'magma');
     caxis([0 1.1])
     box off
     ax = gca;
     % Set the background color of the axes to black
     ax.Color = 'black';
-    ax.XColor = 'white';
+    ax.XColor = 'none';
     ax.YColor = 'white';
     % Set the color of the tick marks to white
     ax.TickDir = 'out';  % optional: set tick direction
     ax.TickLength = [0.02 0.02];  % optional: set tick length   
     % Set the color of the axis labels to white
-    xlabel('Time (s)', 'Color', 'white');
+    %xlabel('Time (s)', 'Color', 'white');
     ylabel('Goal (port)', 'Color', 'white');
     set(ax,'XLim',tsWin);
     set(ax,'YLim',[0.5 6.5]);
     set(gca,'Ydir','reverse')
     hold on
+
+    ax1 = subplot(numrows,numcol,55:60); % Position, spikes, speed
+    box off
+    ax = gca;
+    % Set the background color of the axes to black
+    ax.Color = 'black';    
+    % Set the color of the axis lines and labels to white
+    ax.XColor = 'white';
+    ax.YColor = 'white';
+    % Set the color of the tick marks to white
+    ax.TickDir = 'out';  % optional: set tick direction
+    ax.TickLength = [0.02 0.02];  % optional: set tick length   
+    ylabel('Position (cm)', 'Color', 'white');
+    set(ax1,'XLim',tsWin);
+    set(ax1,'YLim',[min(tracking.position.y) 125]);
+    line([tsWin(1) tsWin(2)],[18 18],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')   
+    hold on
+    line([tsWin(1) tsWin(2)],[35 35],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')        
+    line([tsWin(1) tsWin(2)],[61 61],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
+    line([tsWin(1) tsWin(2)],[82 82],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
+    line([tsWin(1) tsWin(2)],[108 108],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
+    line([tsWin(1) tsWin(2)],[122 122],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
+    xlabel('Time (s)', 'Color', 'white');
+    set(gca,'Ydir','reverse')
+    h2 = animatedline('Color',[0.8 0.8 0.8],'LineWidth',1.5);
 
     for ii = startFrame:endFrame
         
@@ -240,11 +246,13 @@ for tt = 1:length(trials) % Make separate videos for each trial
         if ii>(startFrame)
             delete(h5)
         end 
-        addpoints(h4,tracking.position.x(ii),tracking.position.y(ii));
+        addpoints(h4,x3,y3);
+        %addpoints(h4,tracking.position.x(ii),tracking.position.y(ii));
         hold on
         [~,tsnow] = min(abs(post_time-tracking.timestamps(ii)));
-        [~,posDec] = max(posterior_pos(:,tsnow));
-        h5 = scatter(tracking.position.x(ii),post_pos(posDec),60,'y','filled');
+        [~,goalDec] = max(posterior_goal(:,tsnow));
+        %h5 = scatter(tracking.position.x(ii),goalLoc(goalDec),60,'y','filled');
+        h5 = scatter(14,goalLoc(goalDec),60,'y','filled');
 
         % 
         % frame = read(videoObjTop,ii);
@@ -290,23 +298,8 @@ for tt = 1:length(trials) % Make separate videos for each trial
         % end        
         % lfplast = lfpcur;
 
-        %% Plot spikes
-        addpoints(h2,tracking.timestamps(ii),tracking.position.y(ii));
-        subplot(numrows,numcol,43:48);
-        set(gca,'YDir','reverse')
-        if sum(ismember(spikeData.posIdx{cell1}, ii))>0
-            ax1 = subplot(numrows,numcol,43:48);
-            hold on
-            scatter(tracking.timestamps(ii),tracking.position.y(ii),30,'m',"filled")
-        end
-        if sum(ismember(spikeData.posIdx{cell2}, ii))>0
-            ax1 = subplot(numrows,numcol,43:48);
-            hold on
-            scatter(tracking.timestamps(ii),tracking.position.y(ii),30,'w',"filled")
-        end
-
         %% Plot posterior
-        ax1 = subplot(numrows,numcol,49:54);
+        ax1 = subplot(numrows,numcol,43:48);
         [~,tsfirst] = min(abs(post_time-tracking.timestamps(startFrame)));
         [~,tscur] = min(abs(post_time-tracking.timestamps(ii)));
         if ii>startFrame
@@ -320,7 +313,7 @@ for tt = 1:length(trials) % Make separate videos for each trial
         line([tsWin(1) tsWin(2)],[105 108],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
         line([tsWin(1) tsWin(2)],[122 122],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
 
-        ax1 = subplot(numrows,numcol,55:60);
+        ax1 = subplot(numrows,numcol,49:54);
         if ii>startFrame
             imagesc(post_time(tsfirst:tscur),post_goal+1,posterior_goal(:,tsfirst:tscur))
         end        
@@ -332,20 +325,36 @@ for tt = 1:length(trials) % Make separate videos for each trial
         line([tsWin(1) tsWin(2)],[5.5 5.5],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineStyle','--')
         hold on;
         
+        %% Plot spikes
+        addpoints(h2,tracking.timestamps(ii),tracking.position.y(ii));
+        subplot(numrows,numcol,43:48);
+        set(gca,'YDir','reverse')
+        if sum(ismember(spikeData.posIdx{cell1}, ii))>0
+            ax1 = subplot(numrows,numcol,55:60);
+            hold on
+            scatter(tracking.timestamps(ii),tracking.position.y(ii),30,'m',"filled")
+        end
+        if sum(ismember(spikeData.posIdx{cell2}, ii))>0
+            ax1 = subplot(numrows,numcol,55:60);
+            hold on
+            scatter(tracking.timestamps(ii),tracking.position.y(ii),30,'w',"filled")
+        end
+
+
         M = getframe(fig);   
         writeVideo(writerObj, M);
 
     end   
-    close(writerObj)
+   close(writerObj)
 end
 
 end
 
 function plotAvgManifold(umap_name,behav_file,numrows,numcol,plotloc,A,E,figHandle,plotcol)
     
-col = [238/255 67/255 69/255;...
+col = [83/255 0/255 0/255;...
+    184/255 15/255 10/255;...
     241/255 114/255 42/255;...
-    247/255 149/255 33/255;...
     249/255 197/255 81/255;...
     143/255 189/255 107/255;...
     87/255 116/255 144/255];
@@ -385,7 +394,6 @@ else
 end
 view(A,E)
 grid off;
-title('Neural Manifold (position)')
 axis off;
 
 end
@@ -436,5 +444,6 @@ axis off
 cb = colorbar('Color','w');
 cb.Label.String = 'Frequency';
 cb.Label.Color = 'w'; % Ensure label color is set to white
+set(gca,'ColorScale','log')
 
 end

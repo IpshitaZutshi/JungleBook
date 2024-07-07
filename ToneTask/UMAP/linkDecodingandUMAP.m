@@ -12,18 +12,19 @@ sess  = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ47\Final\IZ47_230626_sess1
 cd(sess)
 
 plotindividualTrials = 0;
+speedThresh = 3;
+decodingWin = 15;
 
-posterior_goal =  ncread('causal_posterior_lickLoc_y.nc','x_position') ;
-posterior_pos =  ncread('causal_posterior_lickLoc_y.nc','y_position') ;
-post_time =  ncread('causal_posterior_lickLoc_y.nc','time') ;
-post_pos =  ncread('causal_posterior_lickLoc_y.nc','y_position_value') ;
-post_goal =  ncread('causal_posterior_lickLoc_y.nc','x_position_value') ;
-% 
-% posterior_goal =  ncread('IZ48_230714_sess28.causal_posterior_lickLoc_y.nc','x_position') ;
-% posterior_pos =  ncread('IZ48_230714_sess28.causal_posterior_lickLoc_y.nc','y_position') ;
-% post_time =  ncread('IZ48_230714_sess28.causal_posterior_lickLoc_y.nc','time') ;
-% post_pos =  ncread('IZ48_230714_sess28.causal_posterior_lickLoc_y.nc','y_position_value') ;
-% post_goal =  ncread('IZ48_230714_sess28.causal_posterior_lickLoc_y.nc','x_position_value') ;
+decodingPath = 'Z:\Homes\zz737\ipshita_data\Auditory_Task\IZ47\Final\IZ47_230626_sess15\py_data\theta_decoding_lickLoc_y\up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].nc';
+changePointName = 'Z:\Homes\zz737\ipshita_data\Auditory_Task\IZ47\Final\IZ47_230626_sess15\py_data\theta_decoding_lickLoc_y\change_point_posterior_up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].mat';
+
+posterior_goal =  ncread(decodingPath,'x_position') ;
+posterior_pos =  ncread(decodingPath,'y_position') ;
+post_time =  ncread(decodingPath,'time') ;
+post_pos =  ncread(decodingPath,'y_position_value') ;
+post_goal =  ncread(decodingPath,'x_position_value') ;
+
+load(changePointName);
 
 umap_name = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\NatureRevisions\IZ47_230626_sess15\manifold\Umap_behavior_speed_1_smooth_5_bin_0.1.csv';
 behav_file = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\NatureRevisions\IZ47_230626_sess15\manifold\IZ47_230626_sess15.position_behavior_speed_1_smooth_5_bin_0.1.mat';
@@ -33,26 +34,26 @@ A = -1.17; E = -31.94;
 % A = 23;
 % E = 1.55;
 
-%% Only extract goal decoding that is consistent for 250 ms
-[~,goal_dec] = max(posterior_goal,[],1);
-result = NaN(size(goal_dec));  % Initialize result with NaNs
-last_value = nan;
-count = 0;
-
-for i = 1:length(goal_dec)
-    if goal_dec(i) ~= last_value
-        if count >= 10
-            result(i-count:i-1) = last_value;  % Mark previous values as last_value
-        end
-        last_value = goal_dec(i);
-        count = 1;
-    else
-        count = count + 1;
-    end
-end
-if count >= 10
-    result(end-count+1:end) = last_value;  % Mark last batch as last_value
-end
+%% Only extract goal decoding that is consistent for 150 ms
+%[~,goal_dec] = max(posterior_goal,[],1);
+% result = NaN(size(goal_dec));  % Initialize result with NaNs
+% last_value = nan;
+% count = 0;
+% 
+% for i = 1:length(goal_dec)
+%     if goal_dec(i) ~= last_value
+%         if count >= decodingWin
+%             result(i-count:i-1) = last_value;  % Mark previous values as last_value
+%         end
+%         last_value = goal_dec(i);
+%         count = 1;
+%     else
+%         count = count + 1;
+%     end
+% end
+% if count >= decodingWin
+%     result(end-count+1:end) = last_value;  % Mark last batch as last_value
+% end
 
 file = dir('*.TrialBehavior.Behavior.mat');
 load(file.name)
@@ -67,6 +68,7 @@ for pp = 1:2
     
     for tt = 1:length(behavTrials.lickLoc)
         if behavTrials.linTrial(tt)==0 && behavTrials.probe(tt) == pp-1 
+
             [~,idxstart] = min(abs(post_time-behavTrials.timestamps(tt,1)));
             if post_time(idxstart)<behavTrials.timestamps(tt,1) %Take the next index
                 idxstart = idxstart+1;
@@ -75,11 +77,42 @@ for pp = 1:2
             if post_time(idxend)>behavTrials.timestamps(tt,2) %Take the previous index
                 idxend = idxend-1;
             end   
-            idxGoal = find(result(idxstart:idxend)==(behavTrials.lickLoc(tt)+1),1,'first');
-            if ~isempty(idxGoal)
-                ts_dec = [ts_dec post_time(idxGoal+idxstart-1)];
-                trial_dec = [trial_dec tt];
+
+            [~,decGoal] = max(posterior_goal(:,idxstart:idxend));
+
+            %% Get last change point for that trial
+            if sum(trial==(tt-1))>0
+                curChanges = change_point{trial==(tt-1)};
+
+                idxGoal = curChanges(end);
+                trialDecGoal = mode(decGoal(curChanges(end)+1:end));
+
+                if trialDecGoal==(behavTrials.lickLoc(tt)+1)             
+                    ts_dec = [ts_dec post_time(idxGoal+idxstart)];
+                    trial_dec = [trial_dec tt];
+                end
+
             end
+            % trialStart = behavTrials.timestamps(tt,1);
+            % trialEnd = behavTrials.timestamps(tt,2);
+            % idxVel = find(tracking.position.vy(tracking.timestamps>trialStart & tracking.timestamps<trialEnd)>speedThresh,1,'first');
+            % startTime = tracking.timestamps(find((tracking.timestamps>trialStart)==1,1,'first')+idxVel-1); 
+            % 
+            % if ~isempty(idxVel)
+            %     [~,idxstart] = min(abs(post_time-startTime));           
+            %     if post_time(idxstart)<behavTrials.timestamps(tt,1) %Take the next index
+            %         idxstart = idxstart+1;
+            %     end        
+            %     [~,idxend] = min(abs(post_time-behavTrials.timestamps(tt,2)));
+            %     if post_time(idxend)>behavTrials.timestamps(tt,2) %Take the previous index
+            %         idxend = idxend-1;
+            %     end   
+            %     idxGoal = find(result(idxstart:idxend)==(behavTrials.lickLoc(tt)+1),1,'first');
+            %     if ~isempty(idxGoal)
+            %         ts_dec = [ts_dec post_time(idxGoal+idxstart-1)];
+            %         trial_dec = [trial_dec tt];
+            %     end
+            % end
         end
     end
     
@@ -93,7 +126,7 @@ for pp = 1:2
     plot_ind = [];
     
     for tt = 1:length(TRIAL_TYPE)
-        plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & probe_ds==pp-1 & position_y_all>4 & speed_all'>2)];   
+        plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & probe_ds==pp-1 & position_y_all>4 & speed_all'>speedThresh)];   
     end
     
     gain = [122/9, 122/32 122/55.53 122/79.62 122/102.79 122/122];
@@ -125,16 +158,18 @@ for pp = 1:2
     lick_plot(isnan(lick_plot))=0; % deal with nan
     lick_plot = lick_plot(plot_ind);
     
-    % ax2 = subplot(2,4,pp);
-    % scatter3(Umap_results(plot_ind,1),Umap_results(plot_ind,2),Umap_results(plot_ind,3),5,freq_plot,'filled','MarkerFaceAlpha',1);
-    % colormap(ax2,"viridis")
-    % view(A,E)
-    % grid off;
-    % axis off;
-    % axis tight
-    % clim([2000 23000])
-    % colorbar
-    % set(gca,'ColorScale','log')
+    if pp == 1
+        ax2 = subplot(2,4,8);
+        scatter3(Umap_results(plot_ind,1),Umap_results(plot_ind,2),Umap_results(plot_ind,3),5,freq_plot,'filled','MarkerFaceAlpha',1);
+        colormap(ax2,"viridis")
+        view(A,E)
+        grid off;
+        axis off;
+        axis tight
+        clim([2000 23000])
+        %colorbar
+        set(gca,'ColorScale','log')
+    end
     
     col = [83/255 0/255 0/255;...
         184/255 15/255 10/255;...
@@ -143,7 +178,7 @@ for pp = 1:2
         143/255 189/255 107/255;...
         87/255 116/255 144/255];
     
-    ax2 = subplot(2,4,pp);
+    ax2 = subplot(2,4,2*(pp-1)+1);
     scatter3(Umap_results(plot_ind,1),Umap_results(plot_ind,2),Umap_results(plot_ind,3),5,lick_plot,'filled','MarkerFaceAlpha',1);
     colormap(ax2,col);
     view(A,E)
@@ -152,7 +187,7 @@ for pp = 1:2
     axis tight
     %colorbar
     
-    subplot(2,4,pp+2)
+    subplot(2,4,2*(pp-1)+2)
     scatter3(Umap_results(plot_ind,1),Umap_results(plot_ind,2),Umap_results(plot_ind,3),5,[0.9 0.9 0.9],'filled','MarkerFaceAlpha',1);
     view(A,E)
     grid off;
@@ -163,38 +198,29 @@ for pp = 1:2
     for ii = 1:length(ts_dec)
         [~,idxUMAP] = min(abs(timestamp_beh-ts_dec(ii)));
         colid = behavTrials.lickLoc(trial_dec(ii))+1;
-        subplot(2,4,pp+2)
-        scatter3(Umap_results(idxUMAP,1),Umap_results(idxUMAP,2),Umap_results(idxUMAP,3),35,col(colid,:),'filled');
+        subplot(2,4,2*(pp-1)+2)
+        scatter3(Umap_results(idxUMAP-1,1),Umap_results(idxUMAP-1,2),Umap_results(idxUMAP-1,3),35,col(colid,:),'filled');
     end
     %colorbar
 end
 
 %% Get decoding stats across mice
-Dec = compileGoalDecodingStats;
+Dec = compileGoalDecodingStats_changePoint('plotfig',false);
 
 t = linspace(-2,2,121);
 
 subplot(2,4,5)
-nhist(Dec.freqtoGoal,'samebins','binfactor',3,'color','sequential','proportion','smooth')
-xscale log
-xlim([2000 23000])
 
-% subplot(2,4,4)
-% fractDec = Dec.countDec./Dec.totalDec;
-% boxplot(fractDec)
-% 
-% plotAvgStd(Dec.nose,2,4,5,fig2,t',[0 0 1], 0)
-% title('Nose position')
+data = [{Dec.freqtoGoal.port2'},{Dec.freqtoGoal.port3'},{Dec.freqtoGoal.port4'},{Dec.freqtoGoal.port5'},{Dec.freqtoGoal.port6'}];
+
+Stats = groupStats(data,[],'inAxis',true,'color',col(2:end,:));
+yscale log
 
 plotAvgStd(Dec.distToGoal,2,4,6,fig2,t',[0 0 1], 0)
 title('distancetoGoal')
 
 plotAvgStd(Dec.speed,2,4,7,fig2,t',[0 0 1], 0)
 title('speed')
-
-plotAvgStd(Dec.hd,2,4,8,fig2,t',[0 0 1], 0)
-title('headdirection')
-
 
 if plotindividualTrials
     for ii = 1:length(ts_dec)
@@ -258,6 +284,7 @@ expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024
 saveas(gcf,strcat(expPath,'Figure4B_decodingUMAP.png'));
 saveas(gcf,strcat(expPath,'Figure4B_decodingUMAP.eps'),'epsc');
 saveas(gcf,strcat(expPath,'Figure4B_decodingUMAP.fig'));
+save(strcat(expPath,'Figure4B_decodingUMAP.mat'),'Stats'); 
 
 end
 

@@ -102,11 +102,16 @@ image(A(150:1350,220:2200,:))
 axis off
 
 %% Also extract decoding
-posterior_goal =  ncread('IZ48_230714_sess28.causal_posterior_lickLoc_y.nc','x_position') ;
-posterior_pos =  ncread('IZ48_230714_sess28.causal_posterior_lickLoc_y.nc','y_position') ;
-post_time =  ncread('IZ48_230714_sess28.causal_posterior_lickLoc_y.nc','time') ;
-post_pos =  ncread('IZ48_230714_sess28.causal_posterior_lickLoc_y.nc','y_position_value') ;
-post_goal =  ncread('IZ48_230714_sess28.causal_posterior_lickLoc_y.nc','x_position_value') ;
+decodingPath = 'Z:\Homes\zz737\ipshita_data\Auditory_Task\IZ48\Final\IZ48_230714_sess28\py_data\theta_decoding_lickLoc_y';
+file_name = 'up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].nc';
+posterior_goal =  ncread(strcat(decodingPath,'\',file_name),'x_position') ;
+posterior_pos =  ncread(strcat(decodingPath,'\',file_name),'y_position') ;
+post_time =  ncread(strcat(decodingPath,'\',file_name),'time') ;
+post_pos =  ncread(strcat(decodingPath,'\',file_name),'y_position_value') ;
+post_goal =  ncread(strcat(decodingPath,'\',file_name),'x_position_value') ;
+
+file_name = 'change_point_posterior_up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].mat';
+load(strcat(decodingPath,'\',file_name));
 
 %% Plot a Tone port 6 trial
 trialNum = 55;
@@ -149,6 +154,8 @@ imagesc(post_time(idxDec1:idxDec2),1:6,posterior_goal(:,idxDec1:idxDec2));
 set(gca,'YDir','normal')
 colormap(ax1,Purples)
 box off
+hold on
+plotChangePoints(fig2,numrow,numcol,26,change_point,trial,5798.5,5802.3,post_time,trialNum,posterior_goal)
 xlim([5798.5 5802.3])
 
 %% Plot a Tone port 5 trial
@@ -187,6 +194,8 @@ imagesc(post_time(idxDec1:idxDec2),1:6,posterior_goal(:,idxDec1:idxDec2));
 set(gca,'YDir','normal')
 colormap(ax1,Purples)
 box off
+hold on
+plotChangePoints(fig2,numrow,numcol,27,change_point,trial,5872,5876,post_time,trialNum,posterior_goal)
 xlim([5872 5876])
 
 %% Plot a Tone port 4 trial
@@ -225,6 +234,8 @@ imagesc(post_time(idxDec1:idxDec2),1:6,posterior_goal(:,idxDec1:idxDec2));
 set(gca,'YDir','normal')
 colormap(ax1,Purples)
 box off
+hold on
+plotChangePoints(fig2,numrow,numcol,28,change_point,trial,5860.5,5863.5,post_time,trialNum,posterior_goal)
 xlim([5860.5 5863.5])
 
 %% Plot a Tone port 3 trial
@@ -263,6 +274,8 @@ imagesc(post_time(idxDec1:idxDec2),1:6,posterior_goal(:,idxDec1:idxDec2));
 set(gca,'YDir','normal')
 colormap(ax1,Purples)
 box off
+hold on
+plotChangePoints(fig2,numrow,numcol,29,change_point,trial,5455.9,5458.9,post_time,trialNum,posterior_goal)
 xlim([5455.9 5458.9])
 
 %% Plot a Tone port 2 trial
@@ -303,6 +316,8 @@ set(gca,'YDir','normal')
 colormap(ax1,Purples)
 box off
 colorbar
+hold on
+plotChangePoints(fig2,numrow,numcol,30,change_point,trial,5551.5,5554.5,post_time,trialNum,posterior_goal)
 xlim([5551.5 5554.5])
 
 % %% Plot a Tone port 1 trial
@@ -391,5 +406,38 @@ xlim([time_seg(idxStart) time_seg(idxEnd)])
 ylim([0 size(spkMat,1)])
 caxis([2000 23000])
 colormap(ax1,viridis)
+
+end
+
+function plotChangePoints(fighandle,numrow,numcol,plotloc,change_points,trial,tsStart,tsEnd, post_time,trialNum,posterior_goal)
+
+[~,idxstart] = min(abs(post_time-tsStart));
+if post_time(idxstart)<tsStart %Take the next index
+    idxstart = idxstart+1;
+end        
+[~,idxend] = min(abs(post_time-tsEnd));
+if post_time(idxend)>tsEnd %Take the previous index
+    idxend = idxend-1;
+end   
+
+[~,decGoal] = max(posterior_goal(:,idxstart:idxend));
+
+[~, goal_dec] = max(posterior_goal, [], 1);
+
+curChanges = change_points{trial==(trialNum-1)};
+subplot(numrow,numcol,plotloc,'Parent',fighandle)
+for cr = 1:length(curChanges)
+    if cr == length(curChanges)
+        trialDecGoal = mode(decGoal(curChanges(cr)+1:end));
+        line([post_time(idxstart+curChanges(cr)-1) post_time(idxend)],[trialDecGoal trialDecGoal],'Color','m')
+    elseif cr == 1
+        trialDecGoal = mode(decGoal(curChanges(cr)+1:curChanges(cr+1)+1));
+        line([post_time(idxstart) post_time(idxstart+curChanges(cr+1)-1)],[trialDecGoal trialDecGoal],'Color','m')
+    else
+        trialDecGoal = mode(decGoal(curChanges(cr)+1:curChanges(cr+1)+1));
+        line([post_time(idxstart+curChanges(cr)-1) post_time(idxstart+curChanges(cr+1)-1)],[trialDecGoal trialDecGoal],'Color','m')
+    end
+    line([post_time(idxstart+curChanges(cr)-1) post_time(idxstart+curChanges(cr)-1)],[0 6],'Color','r','LineWidth',1.5);  
+end
 
 end
