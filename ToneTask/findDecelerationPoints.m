@@ -118,14 +118,9 @@ for tt  = 1:length(Deceleration.ts)
             (Deceleration.posY(tt)>76 && Deceleration.posY(tt) <83) || (Deceleration.posY(tt) >100 && Deceleration.posY(tt) <108) ||...
             (Deceleration.posY(tt) >116)) && ...
             ~(Deceleration.posY(tt)> portPos(curlickloc-1,1) && Deceleration.posY(tt)< portPos(curlickloc-1,2)) % The deceleration is not near the eventual lick port 
-        Deceleration.decType = [Deceleration.decType 2];
-    elseif Deceleration.posX(tt) >3 && ((Deceleration.posY(tt)>28 && Deceleration.posY(tt) <34) || (Deceleration.posY(tt)>53 && Deceleration.posY(tt)<59) || ...
-            (Deceleration.posY(tt)>76 && Deceleration.posY(tt) <83) || (Deceleration.posY(tt) >100 && Deceleration.posY(tt) <108) ||...
-            (Deceleration.posY(tt) >116)) && ...
-            ~(Deceleration.posY(tt)> portPos(curlickloc-1,1) && Deceleration.posY(tt)< portPos(curlickloc-1,2)) % The deceleration is not near the eventual lick port 
-        Deceleration.decType = [Deceleration.decType 3];
+        Deceleration.decType = [Deceleration.decType 2];   
     else
-        Deceleration.decType = [Deceleration.decType 4];
+        Deceleration.decType = [Deceleration.decType 3];
     end
 
 end

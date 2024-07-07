@@ -36,6 +36,7 @@ for ii = 1:3
 
     plotAvgStd(Summary.psthReward{ii},numrows,numcol,4,fig2,timeaxis',col{ii})
     xlim([timeaxis(1) timeaxis(end)])
+    yscale log
 end
 
 Stats.toneCells = groupStats([{avgRate(:,1)},{avgRate(:,2)},{avgRate(:,3)}],[],'doPlot',false);
@@ -88,6 +89,12 @@ for dt = 1:4
         xlim([-1 1])
     end
 end
+
+expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\MainFigures\';
+saveas(gcf,strcat(expPath,'Figure5A_deliberationAverages.png'));
+saveas(gcf,strcat(expPath,'Figure5A_deliberationAverages.eps'),'epsc');
+saveas(gcf,strcat(expPath,'Figure5A_deliberationAverages.fig'));
+save(strcat(expPath,'Figure5A_deliberationAverages.mat'),'Stats'); 
 
 end
 

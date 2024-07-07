@@ -67,8 +67,21 @@ for ii = 1:length(sess)
     % position and decoded position around a 1 second window
     for dt = 1:4
                 
-        decTS = Dec.ts(Dec.decType==dt);            
-        
+        if dt<4
+            decTS = Dec.ts(Dec.decType==dt);            
+        else
+            % If 4, randomly find timepoints when the mouse is near a port
+            numsample = sum(Dec.decType==2);
+            toneTrialidx = find(behavTrials.linTrial==0);            
+            idxLocs = find(((tracking.position.y>28 & tracking.position.y<34) | (tracking.position.y>53 & tracking.position.y<59) | ...
+            (tracking.position.y>76 & tracking.position.y <83) | (tracking.position.y >100 & tracking.position.y <108)) & ...
+            (tracking.timestamps>behavTrials.timestamps(toneTrialidx(1),1) & tracking.timestamps<behavTrials.timestamps(toneTrialidx(end),2)) & ...
+            tracking.position.vy>25);
+            subLocs = randsample(idxLocs,numsample);
+            decTS = tracking.timestamps(subLocs);
+        end
+
+
         decAvg.pos{dt} = nan(length(decTS),201);
         decAvg.goal{dt} = nan(length(decTS),201);
         decAvg.truegoal{dt} = nan(length(decTS),201);
