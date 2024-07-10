@@ -21,9 +21,9 @@ expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
 fig2  = figure;
 set(fig2,'Renderer','painters')
 set(fig2,'Color','w')
-set(fig2,'Position',[680 42 975 962]);
+set(fig2,'Position',[226 259 1652 647]);
 
-for ii = 1:7
+for ii = 1:14
     PSTHAssemblies{ii} = [];
 end
 
@@ -79,18 +79,29 @@ for ss = 1:length(sess)
         Activities = assembly_activity(Vectors,SpikeCount);
 
         %% Calculate PSTH of the assemblies
-        for ii = 1:7
+        for ii = 1:14
             assemblyTimes = [];
             psth1 = [];
             for aa = 1:size(Activities,1)
                 idx = find(Activities(aa,:) > 1.5*std(Activities(aa,:)));
                 assemblyTimes{aa} = spkData.timestamps(idx);
                 if ii< 7
-                    [stccg, t] = CCG({assemblyTimes{aa} behavTrials.timestamps(behavTrials.linTrial==0 & behavTrials.lickLoc==(ii-1),2)},[],'binSize',0.1,'duration',10,'norm','rate');                    
+                    st = behavTrials.timestamps(behavTrials.linTrial==0 & behavTrials.lickLoc==(ii-1) & behavTrials.correct==1,2);                   
+                elseif ii == 7
+                    st = behavTrials.timestamps(behavTrials.linTrial==0 & behavTrials.correct==1,2);
+                elseif ii>7 && ii <14
+                    st = behavTrials.timestamps(behavTrials.linTrial==0 & behavTrials.lickLoc==(ii-8) & behavTrials.correct==0,2);
                 else
-                    [stccg, t] = CCG({assemblyTimes{aa} behavTrials.timestamps(behavTrials.linTrial==0,2)},[],'binSize',0.1,'duration',10,'norm','rate'); 
+                    st = behavTrials.timestamps(behavTrials.linTrial==0 & behavTrials.correct==0,2);
                 end
-                psth1(aa,:) = stccg(:,2,1);     
+
+                if ~isempty(st)
+                    [stccg, t] = CCG({assemblyTimes{aa} st},[],'binSize',0.1,'duration',10,'norm','rate'); 
+                    psth1(aa,:) = stccg(:,2,1);  
+                else
+                    fillArr = nan(1,101);
+                    psth1(aa,:) = fillArr;
+                end
             end
             PSTHAssemblies{ii} = [PSTHAssemblies{ii}; psth1];
         end
@@ -104,15 +115,15 @@ end
 [maxRate,maxRateIdx] = max(PSTHAssemblies{7},[],2);
 [~,idxmax] = sort(maxRateIdx,'ascend'); 
 
-RdPu=cbrewer('seq', 'RdPu', 11);
+RdPu=cbrewer('seq', 'Greys', 11);
 
-for ii = 1:7
-    ax1 = subplot(1,7,ii);
+for ii = 1:14
+    ax1 = subplot(2,7,ii);
     norm = zscore(PSTHAssemblies{ii},[],2);
     imagesc(t,1:length(idxmax),norm(idxmax,:))
     set(gca,'YDir','normal')
     colormap(ax1,RdPu)
-    caxis([-1 5])
+    caxis([-1 4])
     colorbar
     hold on
 end

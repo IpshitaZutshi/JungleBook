@@ -205,7 +205,8 @@ for pp = 1:2
 end
 
 %% Get decoding stats across mice
-Dec = compileGoalDecodingStats_changePoint('plotfig',false);
+%Dec = compileGoalDecodingStats_changePoint('plotfig',false);
+load('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\goalDecodingStats.mat')
 
 t = linspace(-2,2,121);
 

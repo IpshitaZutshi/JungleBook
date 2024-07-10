@@ -26,8 +26,6 @@ sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Fin
   
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
 
-%sess = {'IZ47\Final\IZ47_230626_sess15'};
-
 for dt = 1:4
     AllDec.pos{dt} = [];
     AllDec.goal{dt} = [];
@@ -45,9 +43,9 @@ for ii = 1:length(sess)
     file = dir(['*spikes.cellinfo.mat']);
     load(file(1).name);
 
-    if spikes.numcells<150
-        continue
-    end
+    % if spikes.numcells<250
+    %     continue
+    % end
 
 
     % Find deceleration points
@@ -82,9 +80,15 @@ for ii = 1:length(sess)
         end
 
 
-        decAvg.pos{dt} = nan(length(decTS),201);
-        decAvg.goal{dt} = nan(length(decTS),201);
-        decAvg.truegoal{dt} = nan(length(decTS),201);
+        if dt == 1
+            decAvg.pos{dt} = nan(length(decTS),111);
+            decAvg.goal{dt} = nan(length(decTS),111);
+            decAvg.truegoal{dt} = nan(length(decTS),111);
+        else
+            decAvg.pos{dt} = nan(length(decTS),151);
+            decAvg.goal{dt} = nan(length(decTS),151);
+            decAvg.truegoal{dt} = nan(length(decTS),151);
+        end
 
         for dd = 1:length(decTS)
             
@@ -93,26 +97,19 @@ for ii = 1:length(sess)
              
             % Find the indexes in tracking, as well as decoding corresponding to a +/-1 window around the
             % timestamps
-
-            % tracking
-            [~,frameidx] = min(abs(tracking.timestamps-decTS(dd)));
-            startTime = tracking.timestamps(frameidx-30);
-            endTime = tracking.timestamps(frameidx+30);
-
             %decoding
-            [diffTimestart,idxstart] = min(abs(post_time-startTime));
-            if post_time(idxstart)<startTime %Take the next index
-                idxstart = idxstart+1;
-            end        
-
-
-            [diffTimeend,idxend] = min(abs(post_time-endTime));
-            if post_time(idxend)>endTime %Take the previous index
-                idxend = idxend-1;
-            end  
-
-            if diffTimestart>1 ||diffTimeend>1
-                continue
+            [~,idxzero] = min(abs(post_time-decTS(dd)));
+            [~,idxstart] = min(abs(post_time-(post_time(idxzero)-1)));
+            if dt ==1
+                [~,idxend] = min(abs(post_time-(post_time(idxzero)+0.1)));
+                if idxend-idxstart~=110
+                    continue
+                end
+            else
+                [~,idxend] = min(abs(post_time-(post_time(idxzero)+0.5)));
+                if idxend-idxstart~=150
+                    continue
+                end
             end
 
             [~,decGoalidx] = max(posterior_goal(:,idxstart:idxend));
@@ -123,13 +120,11 @@ for ii = 1:length(sess)
             tsOffset = [];
             for kk = idxstart:idxend
                 [~,idxTrack] = min(abs(tracking.timestamps-post_time(kk)));
-                tsOffset = [tsOffset post_time(kk)-decTS(dd)];
                 truePos = [truePos tracking.position.y(idxTrack)];
                 curGoal = [curGoal decGoalidx(1)];
                 trueGoal = [trueGoal behavTrials.lickLoc(idxTrial)+1];
             end
-            tsOffset = round(tsOffset*100)+101;
-
+            
             if isempty(truePos)
                 continue
             end
@@ -145,9 +140,9 @@ for ii = 1:length(sess)
             decGoalDiff = decGoalidx-trueGoal;  
             decGoalDiffCur = decGoalidx-curGoal; 
 
-            decAvg.truegoal{dt}(dd,tsOffset) = decGoalDiff;
-            decAvg.pos{dt}(dd,tsOffset) = decPosDiff;
-            decAvg.goal{dt}(dd,tsOffset) = decGoalDiffCur;
+            decAvg.truegoal{dt}(dd,:) = decGoalDiff;
+            decAvg.pos{dt}(dd,:) = decPosDiff;
+            decAvg.goal{dt}(dd,:) = decGoalDiffCur;
         end
     end
 
@@ -164,31 +159,27 @@ save('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\DeliberationDecodingSu
 if plotfig
 
     fig2 = figure;
-    col = {'b','k','r','m'};
+    col = {'b','m','k','r'};
 
-    t = linspace(-1,1,201);
+    
     for dt = 1:4
-        plotAvgStd(AllDec.pos{dt},3,4,dt,fig2,t',col{dt})
+        if dt == 1
+            t = linspace(-1,0.1,111);
+        else
+            t = linspace(-1,0.5,151);
+        end
+
+        plotAvgStd(AllDec.pos{dt},1,3,1,fig2,t',col{dt})
         title('Position')  
         ylim([-7 3])
-        if dt == 1
-            xlim([-1 0.3])
-        end
 
-        plotAvgStd(AllDec.goal{dt},3,4,dt+4,fig2,t',col{dt})
+        plotAvgStd(AllDec.goal{dt},1,3,2,fig2,t',col{dt})
         title('Goal')  
         ylim([-1 1])
-        if dt == 1
-            xlim([-1 0.3])
-        end
 
-        plotAvgStd(AllDec.truegoal{dt},3,4,dt+8,fig2,t',col{dt})
+        plotAvgStd(AllDec.truegoal{dt},1,3,3,fig2,t',col{dt})
         title('Relative to chosen goal')
         ylim([-1 1])
-        if dt == 1
-            xlim([-1 0.3])
-        end
-
     end
 
 end

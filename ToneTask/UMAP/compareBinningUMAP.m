@@ -9,12 +9,12 @@ col = [238/255 67/255 69/255;...
     143/255 189/255 107/255;...
     87/255 116/255 144/255];
 
-umap_name = 'behavior_speed_1_smooth_5_bin_0.1';
-file = dir('*.position_behavior_speed_1_smooth_5_bin_0.1.mat');
+umap_name = 'behavior_speed_0_smooth_5_bin_0.1_correct_only';
+file = dir('*.position_behavior_speed_0_smooth_5_bin_0.1_correct_only.mat');
 behav_file = file.name;
 
 manifoldPlot('figHandle',fig2,'umap_name',umap_name,'behav_file',behav_file,...
-    'numrow',3,'numcol',2,'rowloc',1,'colloc',1,'col',col,'TRIAL_TYPE', TRIAL_TYPE)
+    'numrow',1,'numcol',2,'rowloc',1,'colloc',1,'col',col,'TRIAL_TYPE', TRIAL_TYPE,'error',1)
 
 umap_name = 'behavior_speed_1_smooth_1_bin_0.1';
 file = dir('*.position_behavior_speed_1_smooth_1_bin_0.1.mat');

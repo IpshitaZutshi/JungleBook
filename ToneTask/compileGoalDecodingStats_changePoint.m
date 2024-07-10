@@ -15,19 +15,21 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
     % Define session data
     sess = {'IZ39\Final\IZ39_220622_sess8','IZ39\Final\IZ39_220624_sess10','IZ39\Final\IZ39_220629_sess12',...
         'IZ39\Final\IZ39_220702_sess14','IZ39\Final\IZ39_220714_sess18',...
-        'IZ39\Final\IZ39_220705_sess16','IZ39\Final\IZ39_220707_sess17',...   
+        'IZ39\Final\IZ39_220705_sess16','IZ39\Final\IZ39_220707_sess17',...   23
+        'IZ40\Final\IZ40_220705_sess15','IZ40\Final\IZ40_220707_sess16',...
+        'IZ40\Final\IZ40_220708_sess17','IZ40\Final\IZ40_220714_sess18',...27
         'IZ43\Final\IZ43_220826_sess2','IZ43\Final\IZ43_220828_sess4',...
         'IZ43\Final\IZ43_220830_sess6','IZ43\Final\IZ43_220901_sess8',...
         'IZ43\Final\IZ43_220911_sess9','IZ43\Final\IZ43_220913_sess11','IZ43\Final\IZ43_220919_sess14',...
-        'IZ43\Final\IZ43_220915_sess13','IZ43\Final\IZ43_220920_sess15',...    
+        'IZ43\Final\IZ43_220915_sess13','IZ43\Final\IZ43_220920_sess15',...    36
         'IZ44\Final\IZ44_220827_sess4', 'IZ44\Final\IZ44_220828_sess5',...
         'IZ44\Final\IZ44_220829_sess6','IZ44\Final\IZ44_220830_sess7',...
         'IZ44\Final\IZ44_220912_sess10','IZ44\Final\IZ44_220913_sess11','IZ44\Final\IZ44_220919_sess14',...
-        'IZ44\Final\IZ44_220915_sess13','IZ44\Final\IZ44_220920_sess15',...  
+        'IZ44\Final\IZ44_220915_sess13','IZ44\Final\IZ44_220920_sess15',... 45
         'IZ47\Final\IZ47_230626_sess15','IZ47\Final\IZ47_230707_sess24',...
-        'IZ47\Final\IZ47_230710_sess25','IZ47\Final\IZ47_230712_sess27',...  
+        'IZ47\Final\IZ47_230710_sess25','IZ47\Final\IZ47_230712_sess27',...49
         'IZ48\Final\IZ48_230628_sess17','IZ48\Final\IZ48_230703_sess21',...
-        'IZ48\Final\IZ48_230705_sess22','IZ48\Final\IZ48_230714_sess28'};    
+        'IZ48\Final\IZ48_230705_sess22','IZ48\Final\IZ48_230714_sess28'};   
 
      % Define paths and parameters
     expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\';
@@ -46,10 +48,10 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
 
         cd(strcat(expPath,sess{ss}))   
         [behavTrials, spikes, sessionInfo, tracking] = loadSessionData();
-
-        if spikes.numcells<150
-            continue
-        end
+        % 
+        % if spikes.numcells<150
+        %     continue
+        % end
 
         % Load decoding data
         [posterior_goal, posterior_pos, post_time, post_pos, post_goal,change_point,trial] = loadDecodingData(decodingPath, sess{ss}, decodingName,changePointName);
@@ -62,13 +64,17 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
         %% Within each trial, find the earliest time that the goal is decoded consistently    
         ts_dec = [];
         ts_dec_shuff = [];
+        ts_dec_probe = [];
+        ts_dec_error = [];
+
         trial_dec = [];
         trial_dec_shuff = [];
-        ts_dec_error = [];
+        trial_dec_probe = [];                
         trial_dec_error = [];
 
         Dec.countDec(ss,1:6) = 0 ;
         Dec.countDecError(ss,1:6) = 0 ;
+        Dec.countDecProbe(ss,1:6) = 0 ;
         Dec.countDecShuffle(ss,1:6) = 0 ;
 
         for tt = 1:6
@@ -76,6 +82,9 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
         end
         for tt = 1:6
             Dec.totalDecError(ss,tt) = sum(behavTrials.linTrial ==0 & behavTrials.probe == 0 & behavTrials.correct == 0 & behavTrials.lickLoc==tt-1);
+        end
+        for tt = 1:6
+            Dec.totalDecProbe(ss,tt) = sum(behavTrials.linTrial ==0 & behavTrials.probe == 1 & behavTrials.lickLoc==tt-1);
         end
 
         % Cycle through trials to find the first detected time 
@@ -154,6 +163,34 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
                  
                  end
 
+          elseif behavTrials.linTrial(tt)==0 && behavTrials.probe(tt) == 1
+
+                [~,idxstart] = min(abs(post_time-behavTrials.timestamps(tt,1)));
+                if post_time(idxstart)<behavTrials.timestamps(tt,1) %Take the next index
+                    idxstart = idxstart+1;
+                end        
+                [~,idxend] = min(abs(post_time-behavTrials.timestamps(tt,2)));
+                if post_time(idxend)>behavTrials.timestamps(tt,2) %Take the previous index
+                    idxend = idxend-1;
+                end   
+
+                [~,decGoal] = max(posterior_goal(:,idxstart:idxend));
+
+                %% Get change points for that trial
+                 if sum(trial==(tt-1))>0
+                    curChanges = change_point{trial==(tt-1)};
+    
+                    idxGoal = curChanges(end);
+                    trialDecGoal = mode(decGoal(curChanges(end)+1:end));
+    
+                    if trialDecGoal==(behavTrials.lickLoc(tt)+1)             
+                        ts_dec_probe = [ts_dec_probe post_time(idxGoal+idxstart)];
+                        trial_dec_probe = [trial_dec_probe tt];
+                        Dec.countDecProbe(ss,behavTrials.lickLoc(tt)+1) = Dec.countDecProbe(ss,behavTrials.lickLoc(tt)+1)+1;
+                    end
+                 
+                 end
+
             end
         end
 
@@ -163,17 +200,21 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
         Dec.mouseID = [Dec.mouseID;str2double(sess{ss}(3:4))];
         totalTrials = sum(behavTrials.linTrial==0 & behavTrials.probe == 0 & behavTrials.correct == 0);
         Dec.propDecodedError = [Dec.propDecodedError; length(ts_dec_error)./totalTrials];
+        totalTrials = sum(behavTrials.linTrial==0 & behavTrials.probe == 1);
+        Dec.propDecodedProbe = [Dec.propDecodedProbe; length(ts_dec_probe)./totalTrials];
         
 
         %% Relate this decoding to frequency, speed etc    
     
         speed_goal = [];
+        acc_goal = [];
         hd_goal = [];
         nose_x = [];
         distToGoal = [];
         timetoGoal = [];
         timetoGoalShuff = [];
         timetoGoalError = [];
+        timetoGoalProbe = [];
         decFreq =[];
     
         portlabel = {'port1','port2','port3','port4','port5','port6'};
@@ -182,9 +223,12 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
             portdistToGoal.(portlabel{ff}) = [];
         end
     
+        acc = gradient(tracking.position.v)./0.033;
+
         for ii = 1:length(ts_dec)
             [~,idxCurGoal] = min(abs(tracking.timestamps-ts_dec(ii)));
-            speed_goal(ii,:) = tracking.position.vy(idxCurGoal-tWin:idxCurGoal+tWin);
+            speed_goal(ii,:) = tracking.position.v(idxCurGoal-tWin:idxCurGoal+tWin);
+            acc_goal(ii,:) = acc(idxCurGoal-tWin:idxCurGoal+tWin);
             pos = tracking.position.y(idxCurGoal-tWin:idxCurGoal+tWin);
             gainid = behavTrials.lickLoc(trial_dec(ii))+1;
             distToGoal(ii,:) = (1/gain(gainid))*122-pos;
@@ -212,6 +256,7 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
         end
     
         Dec.speed = [Dec.speed; nanmean(speed_goal,1)];
+        Dec.acc = [Dec.acc; nanmean(acc_goal,1)];
         Dec.distToGoal = [Dec.distToGoal; distToGoal];
         Dec.timetoGoal = [Dec.timetoGoal; timetoGoal];
         Dec.timetoGoalShuff = [Dec.timetoGoalShuff; timetoGoalShuff];
@@ -227,6 +272,11 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
         end
         Dec.timetoGoalError = [Dec.timetoGoalError; timetoGoalError];
         
+        for ii = 1:length(ts_dec_probe)
+            timetoGoalProbe(ii,1) = behavTrials.timestamps(trial_dec_probe(ii),2) - ts_dec_probe(ii);
+        end
+        Dec.timetoGoalProbe = [Dec.timetoGoalProbe; timetoGoalProbe];
+
         % Only do this for the newer mice
         if str2double(sess{ss}(3:4))==47 || str2double(sess{ss}(3:4))==48
             Dec.hd = [Dec.hd; hd_goal];
@@ -234,6 +284,8 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
         end
             
     end
+
+    save('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\goalDecodingStats.mat', 'Dec'); 
 
     if plotfig
     
@@ -247,11 +299,11 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
         143/255 189/255 107/255;...
         87/255 116/255 144/255];
 
-        % subplot(3,3,1)
-        % Stats.propDecoded = groupStats([{Dec.propDecoded},{Dec.propDecodedShuff},{Dec.propDecodedError}],[],'inAxis',true);
-        % 
+        subplot(3,3,1)
+        Stats.propDecoded = groupStats([{Dec.propDecoded},{Dec.propDecodedShuff},{Dec.propDecodedError}, {Dec.propDecodedProbe}],[],'inAxis',true);
+
         subplot(3,3,2)
-        Stats.propDecoded = groupStats([{Dec.timetoGoal},{Dec.timetoGoalShuff},{Dec.timetoGoalError}],[],'inAxis',true);
+        Stats.propDecoded = groupStats([{Dec.timetoGoal},{Dec.timetoGoalShuff},{Dec.timetoGoalError},{Dec.timetoGoalProbe}],[],'inAxis',true);
     
         subplot(3,3,3)
         data = [{Dec.freqtoGoal.port2'},{Dec.freqtoGoal.port3'},{Dec.freqtoGoal.port4'},{Dec.freqtoGoal.port5'},{Dec.freqtoGoal.port6'}];
@@ -267,15 +319,15 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
         plotAvgStd(Dec.speed,3,3,6,fig2,t',[0 0 1], 0)
         title('speed')
 
-        plotAvgStd(Dec.hd,3,3,7,fig2,t',[0 0 1], 0)
-        title('headdirection')
+        plotAvgStd(Dec.acc,3,3,7,fig2,t',[0 0 1], 0)
+        title('Acceleration')
 
         plotAvgStd(Dec.nose,3,3,8,fig2,t',[0 0 1], 0)
         title('Nose position')
     
-        % subplot(3,3,9)
-        % data = [{Dec.propDecoded(Dec.mouseID==39)},{Dec.propDecoded(Dec.mouseID==43)},{Dec.propDecoded(Dec.mouseID==44)},{Dec.propDecoded(Dec.mouseID==47)},{Dec.propDecoded(Dec.mouseID==48)}];
-        % Stats.mouseID = groupStats(data,[],'inAxis',true);
+        subplot(3,3,9)
+        data = [{Dec.propDecoded(Dec.mouseID==39)},{Dec.propDecoded(Dec.mouseID==40)},{Dec.propDecoded(Dec.mouseID==43)},{Dec.propDecoded(Dec.mouseID==44)},{Dec.propDecoded(Dec.mouseID==47)},{Dec.propDecoded(Dec.mouseID==48)}];
+        Stats.mouseID = groupStats(data,[],'inAxis',true);
     end
 
 end
@@ -283,6 +335,7 @@ end
 function Dec = initializeDecStruct()
     % Initialize Dec structure with empty fields
     Dec.speed = [];
+    Dec.acc = [];
     Dec.hd = [];
     Dec.nose = [];    
     Dec.distToGoal = [];
@@ -290,11 +343,13 @@ function Dec = initializeDecStruct()
     Dec.timetoGoal = [];
     Dec.timetoGoalShuff = [];
     Dec.timetoGoalError = [];
+    Dec.timetoGoalProbe = [];
 
     Dec.decFreq = [];
     Dec.propDecoded = [];
     Dec.propDecodedShuff = [];
     Dec.propDecodedError = [];
+    Dec.propDecodedProbe = [];
     Dec.mouseID = [];
 
     portlabel = {'port1','port2','port3','port4','port5','port6'};

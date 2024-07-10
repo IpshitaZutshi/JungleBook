@@ -90,13 +90,7 @@ for ii = 1:length(sess)
         % deceleration
         if cellType == 1 && (toneField == 1) && (toneCorr > 0.1) && idxMax>40
             for dd = 1:3 % Extract end licks, and "middle" licks
-                if dd==1
-                    st = Dec.ts(Dec.decType==1);
-                elseif dd == 2
-                    st = Dec.ts(Dec.decType==2);
-                else
-                    st = Dec.ts(Dec.decType>=3);
-                end
+                st = Dec.ts(Dec.decType==dd);
 
                 if ~isempty(st)
                     [stccg, tPSTH] = CCG({spikes.times{kk} st},[],'binSize',0.05,'duration',2,'norm','rate');                
@@ -121,9 +115,7 @@ save('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\DeliberationPSTHSummar
 if plotfig
     fig2 = figure;
     
-    col = [83/255 0/255 0/255;...
-        184/255 15/255 10/255;...
-        241/255 114/255 42/255];
+    col = {'b','m','k'};
     
     spec=cbrewer('seq', 'Blues', 20);
     spec(spec>1) = 1;
@@ -140,7 +132,7 @@ if plotfig
         caxis([-1 3])
         xlim([tPSTH(1) tPSTH(end)])
     
-        plotAvgStd(Summary.psthReward{ii},1,4,4,fig2,tPSTH,col(ii,:))
+        plotAvgStd(Summary.psthReward{ii},1,4,4,fig2,tPSTH,col{ii})
     end
 end
 

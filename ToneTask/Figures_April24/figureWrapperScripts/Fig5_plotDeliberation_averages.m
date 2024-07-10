@@ -15,9 +15,9 @@ load('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\DeliberationPSTHSummar
 spec=cbrewer('seq', 'Blues', 20);
 spec(spec>1) = 1;
 spec(spec<0) = 0;
-col = {'b','k','m'};
+col = {'b','m','k'};
 timeaxis = linspace(-1,1,size(Summary.psthReward{1},2));
-idxT = timeaxis<=0.3 & timeaxis>=-0.3;
+idxT = timeaxis<=0 & timeaxis>=-0.1;
 
 [maxRate,maxRateIdx] = max(Summary.psthReward{1},[],2);
 [~,idxmax] = sort(maxRateIdx,'ascend'); 
@@ -29,24 +29,24 @@ for ii = 1:3
     imagesc(timeaxis, 1:size(Summary.psthReward{ii},1),norm(idxmax,:))
     colormap(ax1,spec)
     caxis([-1 2])
-    xlim([timeaxis(1) timeaxis(end)])
+    xlim([-1 0.5])
 
     a = Summary.psthReward{ii}(:,idxT);
     avgRate(:,ii) = mean(a,2);
 
     plotAvgStd(Summary.psthReward{ii},numrows,numcol,4,fig2,timeaxis',col{ii})
-    xlim([timeaxis(1) timeaxis(end)])
+    xlim([-1 0.5])
     yscale log
 end
 
-Stats.toneCells = groupStats([{avgRate(:,1)},{avgRate(:,2)},{avgRate(:,3)}],[],'doPlot',false);
+Stats.toneCells = groupStats([{avgRate(:,1)},{avgRate(:,2)},{avgRate(:,3)}],[],'repeatedMeasures',true,'doPlot',false);
 
 %% Show examples of a single session (IZ47_sess15) of overlays on the UMAP
 
 umap_name = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\NatureRevisions\IZ47_230626_sess15\manifold\Umap_behavior_speed_1_smooth_5_bin_0.1.csv';
 behav_file = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\NatureRevisions\IZ47_230626_sess15\manifold\IZ47_230626_sess15.position_behavior_speed_1_smooth_5_bin_0.1.mat';
 A = -1.17; E = -31.94;
-framelag = [-30 0 10];
+framelag = [-30 0 15];
 
 sess  = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ47\Final\IZ47_230626_sess15';
 cd(sess)
@@ -67,34 +67,27 @@ end
 %% Show averages of goal decoding jumps between the different conditions.
 %AllDec = linkDecodingtoDeceleration('plotfig',false);
 load('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\DeliberationDecodingSummary.mat')
-col = {'b','k','r','m'};
+col = {'b','m','k','r'};
 
 t = linspace(-1,1,201);
 for dt = 1:4
     plotAvgStd(AllDec.pos{dt},numrows,numcol,9,fig2,t',col{dt})
     title('Position')  
     ylim([-7 3])
-    if dt == 1
-        xlim([-1 0.3])
-    else
-        xlim([-1 1])
-    end
+    xlim([-1 0.5])
 
     plotAvgStd(AllDec.goal{dt},numrows,numcol,10,fig2,t',col{dt})
     title('Goal')  
     ylim([-1 1])
-    if dt == 1
-        xlim([-1 0.3])
-    else
-        xlim([-1 1])
-    end
+    xlim([-1 0.5])
+    
 end
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\MainFigures\';
-saveas(gcf,strcat(expPath,'Figure5A_deliberationAverages.png'));
-saveas(gcf,strcat(expPath,'Figure5A_deliberationAverages.eps'),'epsc');
-saveas(gcf,strcat(expPath,'Figure5A_deliberationAverages.fig'));
-save(strcat(expPath,'Figure5A_deliberationAverages.mat'),'Stats'); 
+saveas(gcf,strcat(expPath,'Figure5B_deliberationAverages.png'));
+saveas(gcf,strcat(expPath,'Figure5B_deliberationAverages.eps'),'epsc');
+saveas(gcf,strcat(expPath,'Figure5B_deliberationAverages.fig'));
+save(strcat(expPath,'Figure5B_deliberationAverages.mat'),'Stats'); 
 
 end
 
@@ -116,7 +109,7 @@ end
 
 % Plot manifold in gray
 ax1 = subplot(numrows,numcol,plotloc,'Parent',fighandle);
-scatter3(Umap_results(plot_ind,1),Umap_results(plot_ind,2),Umap_results(plot_ind,3),5,[0.9 0.9 0.9],'filled','MarkerFaceAlpha',1);
+scatter3(Umap_results(plot_ind,1),Umap_results(plot_ind,2),Umap_results(plot_ind,3),3,[0.9 0.9 0.9],'filled','MarkerFaceAlpha',1);
 view(A,E)
 grid off;
 axis off;
@@ -134,8 +127,8 @@ for dt = 1:length(decTS)
     plot_ind_pos = zeros(1,length(position_y_all));
     plot_ind_pos(startidx:1:endidx) = 1;
     plot_ind_final = plot_ind_pos & position_y_all>1 & speed_all' >1;
-    tsAxis = linspace(startTime,endTime,sum(plot_ind_final));
-    scatter3(Umap_results(plot_ind_final,1),Umap_results(plot_ind_final,2),Umap_results(plot_ind_final,3),5,tsAxis','filled');    
+    tsAxis = linspace(1,sum(plot_ind_final),sum(plot_ind_final));
+    scatter3(Umap_results(plot_ind_final,1),Umap_results(plot_ind_final,2),Umap_results(plot_ind_final,3),3,tsAxis','filled');    
     colormap(ax1,'magma');    
 end
 colorbar

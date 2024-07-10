@@ -213,12 +213,14 @@ else
     plot_ind_pos = zeros(1,length(freq_plot));
     plot_ind_pos(startidx:1:endidx) = 1;
     plot_ind = plot_ind_pos & position_y_all>poscutOff & speed_all' >speedThresh;
-    %tsAxis = linspace(tsWin(1),tsWin(2),length(plot_ind));
-    scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),dotSize,freq_plot(plot_ind),'filled');    
+    tsAxis = linspace(tsWin(1),tsWin(2),sum(plot_ind));
+    %scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),dotSize,freq_plot(plot_ind),'filled');    
+    scatter3(Umap_results(plot_ind,dim1),Umap_results(plot_ind,dim2),Umap_results(plot_ind,dim3),dotSize,tsAxis','filled');    
     %colormap jet
-    colormap(ax1,'viridis');
-    caxis([2000 23000])
-    set(gca,'colorscale','log')
+    %colormap(ax1,'viridis');
+    colormap(ax1,'magma');
+    % caxis([2000 23000])
+    % set(gca,'colorscale','log')
 end
 end
 

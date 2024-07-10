@@ -115,32 +115,22 @@ plotwithinTrialUMAP(decTS,tracking,fig2,numrows,numcol,38,framelag)
 combDec = combineDecelerationPoints('plotfig',false);
 
 tAxis = linspace(-1,1,61);
-col = {'b','k','m'};
+col = {'b','m','k'};
 for ii = 1:3
-    if ii == 3
-        plotAvgStd(combDec.velPSTH(combDec.decType>=ii,:),numrows,numcol,17,fig2,tAxis',col{ii})
-        hold on
-        title('Speed')    
-    
-        plotAvgStd(combDec.accPSTH(combDec.decType>=ii,:),numrows,numcol,18,fig2,tAxis',col{ii})  
-        hold on
-        title('Acceleration')
-    else
-        plotAvgStd(combDec.velPSTH(combDec.decType==ii,:),numrows,numcol,17,fig2,tAxis',col{ii})
-        hold on
-        title('Speed')    
-    
-        plotAvgStd(combDec.accPSTH(combDec.decType==ii,:),numrows,numcol,18,fig2,tAxis',col{ii})  
-        hold on
-        title('Acceleration')
-    end
+    plotAvgStd(combDec.velPSTH(combDec.decType==ii,:),numrows,numcol,17,fig2,tAxis',col{ii})
+    hold on
+    title('Speed')    
+
+    plotAvgStd(combDec.accPSTH(combDec.decType==ii,:),numrows,numcol,18,fig2,tAxis',col{ii})  
+    hold on
+    title('Acceleration')
 end
 
 subplot(numrows,numcol,[25 26])
 scatter(combDec.timetoLick1(combDec.decType==1), combDec.posY(combDec.decType==1), 5,'b.')
 hold on
 scatter(combDec.timetoLick1(combDec.decType==2), combDec.posY(combDec.decType==2), 5,'k.')
-scatter(combDec.timetoLick1(combDec.decType>=3), combDec.posY(combDec.decType>=3), 5,'m.')
+scatter(combDec.timetoLick1(combDec.decType==3), combDec.posY(combDec.decType==3), 5,'m.')
 xlabel('time')
 ylabel('Position')
 
@@ -148,7 +138,7 @@ subplot(numrows,numcol,[33 34 41 42])
 scatter(combDec.posX(combDec.decType==1), combDec.posY(combDec.decType==1), 5,'b.')
 hold on
 scatter(combDec.posX(combDec.decType==2), combDec.posY(combDec.decType==2), 5,'k.')
-scatter(combDec.posX(combDec.decType>=3), combDec.posY(combDec.decType>=3), 5,'m.')
+scatter(combDec.posX(combDec.decType==3), combDec.posY(combDec.decType==3), 5,'m.')
 xlabel('x position')
 ylabel('y position')
 

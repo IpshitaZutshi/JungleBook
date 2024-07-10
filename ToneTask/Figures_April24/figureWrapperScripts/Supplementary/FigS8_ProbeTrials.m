@@ -98,7 +98,7 @@ load('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\probeTrialAssemblies.m
 [~,maxPSTH]  = max(psth_nonprobe,[],2);
 [~,sortidx] = sort(maxPSTH,'descend');
 
-RdPu=cbrewer('seq', 'RdPu', 11);
+RdPu=cbrewer('seq', 'Greys', 11);
 
 ax1 = subplot(numrows,numcol, 4);
 imagesc(t,1:size(psth_nonprobe,1),zscore(psth_nonprobe(sortidx,:),[],2))

@@ -315,7 +315,7 @@ t = linspace(-3, 3, 61);
 ax = subplot(2,5,[3 4]);
 imagesc(t,1:length(sortidx),zscore(psth1(sortidx,:),[],2))
 set(gca,'YDir','normal')
-RdPu=cbrewer('seq', 'RdPu', 11);
+RdPu=cbrewer('seq', 'Greys', 11);
 colormap(ax,RdPu)
 caxis([-1 5])
 colorbar
@@ -323,6 +323,11 @@ hold on
 line([0 0],[1 length(sortidx)],'Color','k','LineWidth',1.5)
 line([t(1) t(end)],[21 21])
 line([t(1) t(end)],[10 10])
+
+subplot(2,5,[8 9])
+plot(t, psth1(22,:),'Color','m','LineWidth',1.5)
+hold on
+plot(t, psth1(30,:),'Color','k','LineWidth',1.5)
 
 % Fraction of tone/place
 subplot(2,5,5);
@@ -342,7 +347,7 @@ zero_rows = all(AllPlaceWt == 0, 2);
 AllPlaceWt = AllPlaceWt(~zero_rows, :);
 AllToneWt = AllToneWt(~zero_rows, :);
 
-subplot(2,5,8)
+subplot(2,5,10)
 meanpsth = nanmean(AllPlaceWt,1);
 stdpsth = nanstd(AllPlaceWt,1)./sqrt(size(AllPlaceWt,1));
 lArr  = meanpsth-stdpsth;
@@ -364,27 +369,19 @@ hi = line(tBins,meanpsth,'LineWidth',1,'Color','m');
 ylim([-0.4 1.3])
 xlim([-2 0.2])
 line([0 0],[-0.4 1.3],'Color','r','LineWidth',1.2)
+for ii = 1:22
+    line([tBins(ii) tBins(ii)],[-0.5 1.3],'Color','k','LineWidth',0.5)
+end
 box off
 
 % Quantify each bin
-data1 = AllPlaceWt(:,12);
-data2 = AllToneWt(:,12);
+for ii = 1:22
+    data1 = AllPlaceWt(:,ii);
+    data2 = AllToneWt(:,ii);
 
-subplot(2,5,9)
-Summary.bin7assembly = groupStats([{data1} {data2}],[],'repeatedMeasures',true,'inAxis',true,'Color',[0 0 0;1 0 1]);
-ylim([-1 3])
-ylabel('Sum of weights')
-title('T = -0.8')
-box off
-
-data1 = AllPlaceWt(:,19);
-data2 = AllToneWt(:,19);
-subplot(2,5,10)
-Summary.bin14assembly = groupStats([{data1} {data2}],[],'repeatedMeasures',true,'inAxis',true,'Color',[0 0 0;1 0 1]);
-ylim([-1 3])
-ylabel('Sum of weights')
-title('T = -0.1')
-box off
+    Summary.bin{ii} = groupStats([{data1} {data2}],[],'repeatedMeasures',true,'doPlot',false);
+    Summary.pVal(ii) = Summary.bin{ii}.wilconxonSignedRank.p;
+end
 
 % Save figure
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\MainFigures\';

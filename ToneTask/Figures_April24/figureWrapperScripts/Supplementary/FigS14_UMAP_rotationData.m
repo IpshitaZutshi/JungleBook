@@ -60,6 +60,7 @@ saveas(gcf,strcat(expPath,'SupFigure14_UMAP_rotation.eps'),'epsc');
 saveas(gcf,strcat(expPath,'SupFigure14_UMAP_rotation.fig'));
 end
 
+
 function projectTurnsonManifold(Umap_results,man_ts,points_ts,direction,fighandle,numrow,numcol,rowloc,colloc)
 
 for ii = 1:length(points_ts)
