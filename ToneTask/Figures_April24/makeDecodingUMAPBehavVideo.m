@@ -1,6 +1,5 @@
 function makeDecodingUMAPBehavVideo
 
-%sess  = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ47\Final\IZ47_230707_sess24';
 sess  = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ47\Final\IZ47_230626_sess15';
 cd(sess)
 file = dir('*.thetaLFP.mat');
@@ -15,7 +14,7 @@ load(file.name)
 RdPu=cbrewer('seq', 'RdPu', 11);
 Purples=cbrewer('seq', 'PuBu', 11);
 
-decodingPath = 'Z:\Homes\zz737\ipshita_data\Auditory_Task\IZ47\Final\IZ47_230626_sess15\py_data\theta_decoding_lickLoc_y\up_samp_binsize[0.01]movement_var[1000000]sticky_p[0.999].nc';
+decodingPath = 'Z:\Homes\zz737\ipshita_data\Auditory_Task\IZ47\Final\IZ47_230626_sess15\py_data\theta_decoding_lickLoc_y\up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].nc';
 
 posterior_goal =  ncread(decodingPath,'x_position') ;
 posterior_pos =  ncread(decodingPath,'y_position') ;
@@ -24,20 +23,17 @@ post_pos =  ncread(decodingPath,'y_position_value') ;
 post_goal =  ncread(decodingPath,'x_position_value') ;
 
 cell1 = 86;%107;%45;
-cell2 = 54;%166;%275;%218;
+cell2 = 166;%54;%166;%275;%218;
 
-trials = [14];%108 8 4 28 33 43 53];%[104 8];%[38 41];%[25 26 66]; % direct-ish, deliberate-ish
+trials = [4 8 14 28 33 43 53 104];
 
-%topVid = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ47\Final\IZ47_230707_sess24\IZ47_230707_111229\test22023-07-07T11_15_10';
 topVid = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ47\Final\IZ47_230626_sess15\IZ47_230626_160943\test22023-06-26T16_11_06';
 videoObjTop = VideoReader([topVid '.avi']);   % get video
 
-%frontVid = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ47\Final\IZ47_230707_sess24\IZ47_230707_111229\front2023-07-07T11_15_09';
 frontVid = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ47\Final\IZ47_230626_sess15\IZ47_230626_160943\front2023-06-26T16_11_06';
 videoObjFront = VideoReader([frontVid '.avi']);   % get video
 
 saveLoc = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\';
-%saveName = 'IZ47_230707_sess24'; 
 saveName = 'IZ47_230626_sess15';
 
 % Load DLC
@@ -46,16 +42,10 @@ opts = detectImportOptions(csvFile, ...
         'NumHeaderLines', 3, 'VariableNamingRule', 'preserve');
 DLC = readtable(csvFile, opts);
 
-
-%A = -160.3693;  E = -15.0789; % For the 20 ms bin maps
-% umap_name = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\NatureRevisions\IZ47_230707_sess24\manifold\Umap_behavior_speed_1_smooth_5_bin_0.02.csv';
-% behav_file = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\NatureRevisions\IZ47_230707_sess24\manifold\IZ47_230707_sess24.position_behavior_speed_1_smooth_5_bin_0.02.mat';
 umap_name = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\NatureRevisions\IZ47_230626_sess15\manifold\Umap_behavior_speed_1_smooth_5_bin_0.1.csv';
 behav_file = 'Z:\Buzsakilabspace\LabShare\WinnieYang\Ipshita\NatureRevisions\IZ47_230626_sess15\manifold\IZ47_230626_sess15.position_behavior_speed_1_smooth_5_bin_0.1.mat';
 
-%A = -93.25; E = -84.0809; % For the 100 ms, smooth_5 maps;
-A = -9;E = 137;%-43;%
-% -176; E = 20;
+A = -1.17; E = -31.94;
 
 numrows = 10;
 numcol  = 6;
@@ -73,7 +63,7 @@ for tt = 1:length(trials) % Make separate videos for each trial
     tsWin = [tracking.timestamps(startFrame) tracking.timestamps(endFrame)];
 
     fig = figure;
-    %set(fig,'Position',[1935 40 775 955])
+    set(fig,'Position',[1935 40 775 955])
     set(fig,'Color','k')
     
     subplot(numrows,numcol,[1 7 13 19]) %Labeled top video from deeplabcut
@@ -207,7 +197,7 @@ for tt = 1:length(trials) % Make separate videos for each trial
         frame = read(videoObjTop,ii);
         % frame = imread(strcat(topvidFrames,'file',num2str(ii),'.png'));
         imagesc(frame)  
-        axis off
+        axis off        
 
         %% Current nose position & direction 
         x3 = DLC.Var2(ii);
@@ -253,6 +243,7 @@ for tt = 1:length(trials) % Make separate videos for each trial
         [~,goalDec] = max(posterior_goal(:,tsnow));
         %h5 = scatter(tracking.position.x(ii),goalLoc(goalDec),60,'y','filled');
         h5 = scatter(14,goalLoc(goalDec),60,'y','filled');
+        title(strcat('Trial: ',num2str(trials(tt))))
 
         % 
         % frame = read(videoObjTop,ii);
