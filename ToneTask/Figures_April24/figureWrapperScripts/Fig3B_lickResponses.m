@@ -8,15 +8,16 @@ set(fig2,'Position',[680 42 975 962]);
 %rows = 22, columns = 6
 numrows = 13;
 numcol = 12;
-useMedian = 0;
-usePGAM = 0;
+useMedian = 1;
+usePGAM =0;
 
 if ~usePGAM
     %Summary = examinePokePSTHs('plotfig',false);
     load('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\LickPSTHSummary.mat')
 else
-    %Summary = examinePokePSTHs_usingPGAM('plotfig',false);    
-    load('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\LickPSTHSummaryPGAM.mat')
+    %Summary = examinePokePSTHs_usingPGAM('plotfig',false);   
+    %load('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\LickPSTHSummary.mat')
+    %load('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\LickPSTHSummaryPGAM.mat')
 end
 
 col = [83/255 0/255 0/255;...
@@ -239,12 +240,14 @@ a = selectedPSTH(:,idxT);
 avgRate(:,5) = mean(a,2);%
 if ~usePGAM
     plotAvgStd(selectedPSTH,numrows,numcol,plotloc,fig2,timeaxis',col(5,:),useMedian)
-    ylim([2 10])
+    line([0 0],[0 5],'Color','r')
+    ylim([0 5])
+    yticks([2 3 4 5 6])
 else
     plotAvgStd(norm,numrows,numcol,plotloc,fig2,timeaxis',col(5,:),useMedian)
-    ylim([-0.5 1])
+    ylim([-1 1.5])
 end
-
+box off
 plotloc = [7+8*numcol 8+8*numcol 7+9*numcol 8+9*numcol];
 subplot(numrows,numcol,plotloc)
 Stats.lickType = groupStats([{avgRate(:,1)},{avgRate(:,2)},{avgRate(:,3)},{avgRate(:,4)},{avgRate(:,5)}],[],'Color',col,'inAxis',true,'labelSummary',false);
@@ -295,16 +298,17 @@ else
     plotAvgStd(norm,numrows,numcol,plotloc,fig2,timeaxis',[70/255 148/255 73/255],useMedian)
 end
 hold on
+
 selectedPSTH = Summary.psthReward.lickTypes{7};
 norm = zscore(selectedPSTH,[],2);
 if ~usePGAM
     plotAvgStd(selectedPSTH,numrows,numcol,plotloc,fig2,timeaxis',[175/243 54/243 60/243],useMedian)
-    line([0 0],[2 7],'Color','r')
-    ylim([2 10])
+    line([0 0],[0 5],'Color','r')
+    ylim([0 5])
 else
     plotAvgStd(norm,numrows,numcol,plotloc,fig2,timeaxis',[175/243 54/243 60/243],useMedian)
     line([0 0],[-1 1.5],'Color','r')
-    ylim([-0.5 1]) 
+    ylim([-1 1.5]) 
 end
 box off
 title('Corr/incorr choice')
@@ -326,18 +330,18 @@ Stats.correctIncorrect = groupStats([{avgRate(:,1)},{avgRate(:,2)}],[],'doPlot',
 
 %% Distribution across choice ports for choice cells
 
-if ~usePGAM
+%if ~usePGAM
     col = [83/255 0/255 0/255;...
         184/255 15/255 10/255;...
         241/255 114/255 42/255;...
         249/255 197/255 81/255;...
         143/255 189/255 107/255;...
-        87/255 116/255 144/255];
-else
-    col = [56/243 61/243 150/243;...
-        52/243 52/243 52/243;...
-        187/243 86/243 149/243];
-end
+        87/255 116/255 144/255];%
+%else
+%    col = [56/243 61/243 150/243;...
+%        52/243 52/243 52/243;...
+%        187/243 86/243 149/243];
+%end
 
 idxT = timeaxis<=0.3 & timeaxis>=-0.3;
 
@@ -345,11 +349,11 @@ selectedPSTH = Summary.psthReward.lickTypes{2};
 [maxRate,maxRateIdx] = max(selectedPSTH,[],2);
 [~,idxmax] = sort(maxRateIdx,'ascend');  
 
-if ~usePGAM
+%if ~usePGAM
     lickT = [10 11 12 13 14 15];
-else   
-    lickT = [2 1 5];
-end
+%else   
+%    lickT = [2 1 5];
+%end
 
 for tt = 1:length(lickT)
     normPSTH = zscore(Summary.psthReward.lickTypes{lickT(tt)},[],2);
@@ -373,20 +377,20 @@ for tt = 1:length(lickT)
     if ~usePGAM
         plotAvgStd(temp,numrows,numcol,plotloc,fig2,timeaxis',col(tt,:),useMedian)    
         line([0 0],[2 7],'Color','r')
-        ylim([2 10])        
+        ylim([0 5])        
     else
         plotAvgStd(norm,numrows,numcol,plotloc,fig2,timeaxis',col(tt,:),useMedian)    
         line([0 0],[-1 1.5],'Color','r')
         ylim([-0.5 1]) 
     end
     xlim([-2 2])  
-    yscale log
+    %yscale log
     box off
-    line([0 0],[2 7],'Color','r')
+    line([0 0],[2 4],'Color','r')
     
     norm = normPSTH(:,idxT);
     tempRate  = temp(:,idxT);
-    avgRateTemp{tt} = log10(median(tempRate,2));
+    avgRateTemp{tt} = mean(tempRate,2);%log10(median(tempRate,2));
     
     for ss = 1:max(Summary.sessID)
         idxss = Summary.sessID==ss;       
@@ -397,30 +401,30 @@ end
 
 plotloc = [11+8*numcol 12+8*numcol 11+9*numcol 12+9*numcol];
 subplot(numrows,numcol,plotloc)
-if ~usePGAM
+%if ~usePGAM
     Stats.portFract = groupStats([{numProp(:,1)},{numProp(:,2)},{numProp(:,3)},{numProp(:,4)},{numProp(:,5)},{numProp(:,6)}],[],'Color',col,'inAxis',true,'labelSummary',false,'repeatedMeasures',true);
     Stats.portRate= groupStats(avgRateTemp,[],'Color',col,'doPlot',false,'labelSummary',false,'repeatedMeasures',true);
-else
+%else
   %  Stats.portFract = groupStats([{numProp(:,1)},{numProp(:,2)},{numProp(:,3)},{numProp(:,4)},{numProp(:,5)},{numProp(:,6)},{numProp(:,7)}],[],'Color',col,'inAxis',true,'labelSummary',false);
-   Stats.portFract = groupStats([{numProp(:,1)},{numProp(:,2)},{numProp(:,3)}],[],'Color',col,'inAxis',true,'labelSummary',false);
-end
+%   Stats.portFract = groupStats([{numProp(:,1)},{numProp(:,2)},{numProp(:,3)}],[],'Color',col,'inAxis',true,'labelSummary',false);
+%end
 
 box off
 
 % Save figure
 
 expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\MainFigures\';
-if ~usePGAM    
+%if ~usePGAM    
     saveas(gcf,strcat(expPath,'Figure3B_lickResponses.png'));
     saveas(gcf,strcat(expPath,'Figure3B_lickResponses.eps'),'epsc');
     saveas(gcf,strcat(expPath,'Figure3B_lickResponses.fig'));
     save(strcat(expPath,'Figure3B_lickResponses.mat'),'Stats'); 
-else
-    saveas(gcf,strcat(expPath,'Figure3B_lickResponsesPGAM.png'));
-    saveas(gcf,strcat(expPath,'Figure3B_lickResponsesPGAM.eps'),'epsc');
-    saveas(gcf,strcat(expPath,'Figure3B_lickResponsesPGAM.fig'));
-    save(strcat(expPath,'Figure3B_lickResponsesPGAM.mat'),'Stats'); 
-end
+% else
+%     saveas(gcf,strcat(expPath,'Figure3B_lickResponsesPGAM.png'));
+%     saveas(gcf,strcat(expPath,'Figure3B_lickResponsesPGAM.eps'),'epsc');
+%     saveas(gcf,strcat(expPath,'Figure3B_lickResponsesPGAM.fig'));
+%     save(strcat(expPath,'Figure3B_lickResponsesPGAM.mat'),'Stats'); 
+% end
 
 end
 
@@ -434,13 +438,26 @@ function plotAvgStd(array,numrows,numcol,subplotlocation,figureHandle,xAxis,col,
         uArr = meanpsth+stdpsth;
     else
         meanpsth = nanmedian(array,1);
-        a = quantile(array,4,1);
-        lArr  = meanpsth-a(2,:);
-        uArr = meanpsth+a(3,:);
+        % Bootstrapping to estimate variability of the median
+        n_bootstraps = 1000;
+        bootstrap_medians = zeros(n_bootstraps, size(array, 2));
+        
+        for i = 1:n_bootstraps
+            resample_indices = randi([1, size(array, 1)], size(array, 1), 1);  % Generate random indices with replacement
+            bootstrap_sample = array(resample_indices, :);  % Create bootstrap sample
+            bootstrap_medians(i, :) = nanmedian(bootstrap_sample);  % Compute median of the bootstrap sample
+        end
+        
+        % Compute the 2.5th and 97.5th percentiles for the bounds
+        lArr = prctile(bootstrap_medians, 2.5);
+        uArr = prctile(bootstrap_medians, 97.5);
+
     end
+
     fill([xAxis; flipud(xAxis)],[lArr'; flipud(uArr')],col,'linestyle','none','FaceAlpha',0.5);                    
     hold on
     hi = line(xAxis,meanpsth,'LineWidth',1,'Color',col);
-    yscale log
+    %yscale log
 
 end
+

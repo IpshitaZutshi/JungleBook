@@ -63,8 +63,8 @@ ylabel(strcat('cellID',num2str(length(idxmax))))
 xticks([])
 a = selectedPSTH(:,idxT);
 avgRate(:,1) = mean(a,2);%
-plotAvgStd(selectedPSTH,numrows,numcol,7,fig2,timeaxis','m',0)
-ylim([2 10])
+plotAvgStd(norm,numrows,numcol,7,fig2,timeaxis','m',1)
+ylim([-1 1.5])
 
 ax1 = subplot(numrows, numcol, 6);
 selectedPSTH = Summary.psthReward.lickTypes{16};
@@ -80,8 +80,8 @@ ylabel(strcat('cellID',num2str(length(idxmax))))
 xticks([])
 a = selectedPSTH(:,idxT);
 avgRate(:,2) = mean(a,2);%
-plotAvgStd(selectedPSTH,numrows,numcol,7,fig2,timeaxis','k',0)
-ylim([2 10])
+plotAvgStd(norm,numrows,numcol,7,fig2,timeaxis','k',1)
+ylim([-1 1.5])
 
 subplot(numrows,numcol,8)
 Stats.firstVssampleLicks = groupStats([{avgRate(:,1)},{avgRate(:,2)}],[],'inAxis',true,'repeatedMeasures',true);
@@ -105,13 +105,26 @@ function plotAvgStd(array,numrows,numcol,subplotlocation,figureHandle,xAxis,col,
         uArr = meanpsth+stdpsth;
     else
         meanpsth = nanmedian(array,1);
-        a = quantile(array,4,1);
-        lArr  = meanpsth-a(2,:);
-        uArr = meanpsth+a(3,:);
+        % Bootstrapping to estimate variability of the median
+        n_bootstraps = 1000;
+        bootstrap_medians = zeros(n_bootstraps, size(array, 2));
+        
+        for i = 1:n_bootstraps
+            resample_indices = randi([1, size(array, 1)], size(array, 1), 1);  % Generate random indices with replacement
+            bootstrap_sample = array(resample_indices, :);  % Create bootstrap sample
+            bootstrap_medians(i, :) = nanmedian(bootstrap_sample);  % Compute median of the bootstrap sample
+        end
+        
+        % Compute the 2.5th and 97.5th percentiles for the bounds
+        lArr = prctile(bootstrap_medians, 2.5);
+        uArr = prctile(bootstrap_medians, 97.5);
+
     end
+
     fill([xAxis; flipud(xAxis)],[lArr'; flipud(uArr')],col,'linestyle','none','FaceAlpha',0.5);                    
     hold on
     hi = line(xAxis,meanpsth,'LineWidth',1,'Color',col);
-    yscale log
+   % yscale log
 
 end
+

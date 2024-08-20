@@ -161,6 +161,7 @@ for ii = 1%:2
     selectedlinMap = Summary.AlllinMapInit(idxMaps{ii},:);
     selectedlinMapEnd = Summary.AlllinMapEnd(idxMaps{ii},:);
     selectedspaceMap = Summary.AllspaceMapAvg(idxMaps{ii},:);%Summary.AllspaceMap(idxMaps{ii},:);
+    selectedtoneMap = Summary.AlltoneMap(idxMaps{ii},:);
     selectedsessID = Summary.AllsessID(idxMaps{ii});
     selectedcellID = Summary.AllcellID(idxMaps{ii});
 
@@ -170,6 +171,7 @@ for ii = 1%:2
     normlinMap = (selectedlinMap-nanmean(selectedlinMap,2))./nanstd(selectedlinMap,[],2);
     normlinMapEnd = (selectedlinMapEnd-nanmean(selectedlinMapEnd,2))./nanstd(selectedlinMapEnd,[],2);
     normspaceMap = (selectedspaceMap-nanmean(selectedspaceMap,2))./nanstd(selectedspaceMap,[],2);
+    normtoneMap = (selectedtoneMap-nanmean(selectedtoneMap,2))./nanstd(selectedtoneMap,[],2);
       
     % if ii ==1            
     %     [~,sortidx] = sort(idxLin,'ascend');

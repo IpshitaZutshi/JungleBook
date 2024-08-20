@@ -24,7 +24,7 @@ sess  = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ47\Final\IZ47_230626_sess1
 cd(sess)
 plotPosPhaseCCG(86,166,[],numrows, numcol, 7, fig2,40)
 
-compiledthetaComp = compileThetaCompression;
+%compiledthetaComp = compileThetaCompression;
 load('Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\thetaCompression.mat')
 
 %% Theta sequences in the spatial domain

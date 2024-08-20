@@ -219,6 +219,7 @@ else
     %colormap jet
     %colormap(ax1,'viridis');
     colormap(ax1,'magma');
+    colorbar
     % caxis([2000 23000])
     % set(gca,'colorscale','log')
 end

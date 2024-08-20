@@ -24,7 +24,7 @@ if plotAvgs
         87/255 116/255 144/255];
     
     subplot(numrows,numcol,1)
-    Stats.propDecoded = groupStats([{Dec.propDecoded},{Dec.propDecodedShuff},{Dec.propDecodedError}, {Dec.propDecodedProbe}],[],'inAxis',true);
+    Stats.propDecoded = groupStats([{Dec.propDecoded},{Dec.propDecodedShuff},{Dec.propDecodedError}],[],'inAxis',true,'repeatedMeasures',true);
     
     subplot(numrows,numcol,2)
     Stats.timetoDecode = groupStats([{Dec.timetoGoal},{Dec.timetoGoalError}],[],'inAxis',true);
@@ -47,6 +47,7 @@ if plotAvgs
     saveas(gcf,strcat(expPath,'SupFigure15_DecodingAverages.png'));
     saveas(gcf,strcat(expPath,'SupFigure15_DecodingAverages.eps'),'epsc');
     saveas(gcf,strcat(expPath,'SupFigure15_DecodingAverages.fig'));
+    save(strcat(expPath,'SupFigure15_DecodingAverages.mat'),'Stats'); 
 end
 
 %% Plot examples of decoding

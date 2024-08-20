@@ -83,7 +83,7 @@ col = [52/243 52/243 52/243;...
 
 % Task
 idxSess = Summary.AllsessType==1 & Summary.AllcellType == 1 ...
-    & (Summary.AlllinField | Summary.AllspaceField | Summary.AlllinEndField) & ~Summary.AlltoneField;
+    & (Summary.AlllinField | Summary.AllspaceField | Summary.AlllinEndField);% & ~Summary.AlltoneField;
 data{1} = Summary.AlllinCorr(idxSess);
 data{3} = Summary.AlltoneNoToneCorr(idxSess);
 data{4} = Summary.AlltonelinEndCorr(idxSess);

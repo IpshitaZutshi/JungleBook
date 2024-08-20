@@ -225,8 +225,8 @@ for ss = 1:length(sess)
             %Weight of assemblies
             pWt = sum(Vectors(logical(placeCell),toKeep(tt)));  
             tWt = sum(Vectors(logical(toneCell),toKeep(tt)));  
-            placeWt(idxLoc) = nanmean([pWt placeWt(idxLoc)]);
-            toneWt(idxLoc) = nanmean([tWt toneWt(idxLoc)]);
+            placeWt(idxLoc) = max([pWt placeWt(idxLoc)]);
+            toneWt(idxLoc) = max([tWt toneWt(idxLoc)]);
         end
         
         AllPlaceWt(ss,:) = placeWt;
