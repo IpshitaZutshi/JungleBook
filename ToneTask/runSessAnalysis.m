@@ -41,16 +41,16 @@ for ii = 1:length(sess)
     disp(strcat(expPath,sess{ii}))
     basepath = pwd;    
     sessionInfo = bz_getSessionInfo;
-    % 
-    % lfp = bz_GetLFP(lfpChan(ii), 'noprompts',true);
-    % passband = [6 12];
-    % [b, a] = butter(3,[passband(1)/(lfp.samplingRate/2) passband(2)/(lfp.samplingRate/2)],'bandpass'); % order 3
-    % lfp.filtered = FiltFiltM(b,a,double(lfp.data(:,1)));
-    % lfp.thetapower = fastrms(lfp.filtered,ceil(lfp.samplingRate./passband(1)));  % approximate power is frequency band
-    % hilb = hilbert(lfp.filtered);
-    % lfp.thetaphase = mod(angle(hilb),2*pi);
-    % 
-    % save([sessionInfo.FileName '.thetaLFP.mat'],'lfp'); 
+
+    lfp = bz_GetLFP(lfpChan(ii), 'noprompts',true);
+    passband = [6 12];
+    [b, a] = butter(3,[passband(1)/(lfp.samplingRate/2) passband(2)/(lfp.samplingRate/2)],'bandpass'); % order 3
+    lfp.filtered = FiltFiltM(b,a,double(lfp.data(:,1)));
+    lfp.thetapower = fastrms(lfp.filtered,ceil(lfp.samplingRate./passband(1)));  % approximate power is frequency band
+    hilb = hilbert(lfp.filtered);
+    lfp.thetaphase = mod(angle(hilb),2*pi);
+
+    save([sessionInfo.FileName '.thetaLFP.mat'],'lfp'); 
 
     % file = dir([basepath filesep '*.spikeData.cellInfo.mat']);
     % data = load(file.name);  

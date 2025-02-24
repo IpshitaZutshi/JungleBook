@@ -78,6 +78,7 @@ else
     solChoice = digitalIn.ints{6}(1,~solBase);
 end
 
+
 a = digitalIn.dur{4}>0.001;
 b = digitalIn.dur{5}>0.001;
 arm = [zeros(sum(a),1);ones(sum(b),1)];
@@ -124,14 +125,15 @@ for ii = 1:size(behavTrials.timestamps,1)
     end
     % Check if it was a stim trial, and if so, stimdur and when was
     % delivered % to add - when was it delivered
-    digiChan = 1;
+    digiChan = 14;
     if ~isempty(digitalIn.ints{digiChan})
         stimTS = digitalIn.ints{digiChan}(1,:);
         idx = stimTS>curTrialTime(1) & stimTS<curTrialTime(2);
         %idx = 0;
         if sum(idx)>0
             behavTrials.stim(ii) = 1;
-            behavTrials.stimDur(ii) = digitalIn.dur{digiChan}(idx);
+            a = digitalIn.dur{digiChan}(idx);
+            behavTrials.stimDur(ii) = a(1);
         else
             behavTrials.stim(ii) = 0;
             behavTrials.stimDur(ii) = nan;
@@ -204,6 +206,17 @@ if plotfig
     mkdir('Behavior');
     saveas(gcf,'Behavior\cueBehavior.png');
 end
+
+% Always skip the first trial
+behavTrials.timestamps = behavTrials.timestamps(2:end,:);
+behavTrials.cue = behavTrials.cue(2:end);
+behavTrials.cueDur = behavTrials.cueDur(2:end);
+behavTrials.delayDur = behavTrials.delayDur(2:end);
+behavTrials.choiceTS = behavTrials.choiceTS(2:end);
+behavTrials.choice = behavTrials.choice(2:end);
+behavTrials.correct = behavTrials.correct(2:end);
+behavTrials.stim = behavTrials.stim(2:end);
+behavTrials.stimDur = behavTrials.stimDur(2:end);
 
 if saveMat
     C = strsplit(pwd,'\');

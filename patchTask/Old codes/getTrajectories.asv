@@ -1,0 +1,67 @@
+function [trajectory_numbers_direction, trajectory_numbers_no_direction] = getTrajectories(lickedPorts)
+
+ports = 1:7;  
+
+%% IGNORE DIRECTION
+% eQUIVALENT TO finding combinations    combs2 = nchoosek(ports, 2);
+%{
+num_combinations_no_direction = 0;  % Initialize the counter
+for i = 1:length(ports)-1
+    for j = i+1:length(ports)
+        num_combinations_no_direction = num_combinations_no_direction + 1;
+        combinations_no_direction(num_combinations_no_direction, :) = [ports(i), ports(j)];
+        combination_numbers_no_direction(num_combinations_no_direction) = num_combinations_no_direction;
+    end
+end
+%}
+
+combinations = nchoosek(ports, 2);
+% lickedPorts = behavTrials.port;
+trajectory_numbers_no_direction = zeros(length(lickedPorts), 1); 
+
+for k = 2:length(lickedPorts) 
+    previous_lick = lickedPorts(k-1);
+    current_lick = lickedPorts(k);
+    
+    sorted_pair = sort([previous_lick, current_lick]);
+    for n = 1:length(combinations)
+        if combinations(n, 1) == sorted_pair(1) && ...
+           combinations(n, 2) == sorted_pair(2);
+           trajectory_numbers_no_direction(k) = combination_numbers_no_direction(n);
+           break;
+        end
+    end
+end
+
+
+
+%%TAKE INTO ACCOUNT DIRECTION
+combinations_two_directions = [];
+combination_numbers_two_directions = [];
+
+num_combinations_two_directions = 0; % doing permutations
+for i = 1:length(ports)
+    for j = 1:length(ports)
+        if i ~= j  % Exclude self-loops
+            num_combinations_two_directions = num_combinations_two_directions + 1;
+            combinations_two_directions(num_combinations_two_directions, :) = [ports(i), ports(j)];
+            combination_numbers_two_directions(num_combinations_two_directions) = num_combinations_two_directions;
+        end
+    end
+end
+
+trajectory_numbers_direction = zeros(1, length(lickedPorts));
+
+for k = 2:length(lickedPorts)
+    previous_lick = lickedPorts(k-1);
+    current_lick = lickedPorts(k);
+    
+    for n = 1:size(combinations_two_directions, 1)
+        if combinations_two_directions(n, 1) == previous_lick && ...
+           combinations_two_directions(n, 2) == current_lick;
+            trajectory_numbers_direction(k) = combination_numbers_two_directions(n);
+            break;
+        end
+    end
+end
+end

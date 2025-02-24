@@ -1,4 +1,4 @@
-function Dec = compileGoalDecodingStats_changePoint(varargin)
+function Dec = compileGoalDecodingStats_changePoint_avgspeed(varargin)
 
     p = inputParser;
     addParameter(p,'plotfig',true);
@@ -319,8 +319,11 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
         plotAvgStd(Dec.speed,3,3,6,fig2,t',[0 0 1], 0)
         title('speed')
 
-        plotAvgStd(Dec.acc,3,3,7,fig2,t',[0 0 1], 0)
-        title('Acceleration')
+        idxT1 = 59;
+        %idxT2 = 61;
+        idxT3 = 63;
+        subplot(3,3,7)
+        Stats.speed = groupStats({Dec.speed(:,idxT1),Dec.speed(:,idxT3)},[],'inAxis',true,'repeatedMeasures',true);
 
         plotAvgStd(Dec.nose,3,3,8,fig2,t',[0 0 1], 0)
         title('Nose position')
@@ -330,7 +333,15 @@ function Dec = compileGoalDecodingStats_changePoint(varargin)
         Stats.mouseID = groupStats(data,[],'inAxis',true);
     end
 
+expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\Compiled\Figures_April2024\Revision2\';
+saveas(gcf,strcat(expPath,'changePoint_speed.png'));
+saveas(gcf,strcat(expPath,'changePoint_speed.eps'),'epsc');
+saveas(gcf,strcat(expPath,'changePoint_speed.fig'));
+save(strcat(expPath,'changePoint_speed.mat'),'Stats');
+
 end
+
+
 
 function Dec = initializeDecStruct()
     % Initialize Dec structure with empty fields

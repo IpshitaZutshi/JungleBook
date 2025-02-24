@@ -107,7 +107,7 @@ if ischar(analysisList)
         if isempty(analogEv)
             analysisList([2 3 6]) = 0;
         end
-    else
+    else 
         error('Analysis list format not recognized!');
     end
 end
@@ -152,24 +152,7 @@ for ii = 1:size(allpath,2)
     end
 end
 
-%% Loading metadata
-try
-    session = sessionTemplate(pwd,'showGUI',false); % 
-    session.channels = 1:session.extracellular.nChannels;    
-    save([basepath filesep session.general.name,'.session.mat'],'session','-v7.3');
-catch
-    warning('it seems that CellExplorer is not on your path');
-end
 
-if ~isempty(analysisPath)
-    cd(analysisPath);
-    mkdir(session.general.name);
-    copyfile(basepath,[analysisPath,'\',session.general.name]);
-    disp('Copying files to analysis path folder...');
-    cd([analysisPath,'\',session.general.name]);
-    disp('Copied files. Peforming preprocessSession...')
-end
-    
 %% Concatenate sessions
 cd(allpath{1});
 allSess = dir('*_sess*');
@@ -184,6 +167,16 @@ for ii = 1:size(allSess,1)
     % Concatenate sessions
     bz_ConcatenateDats(pwd,0,1);
 
+end
+
+%% Loading metadata
+try
+    session = sessionTemplate(pwd,'showGUI',false); % 
+    session.channels = 1:session.extracellular.nChannels;    
+    %session.channelTags.Bad.channels = [24:38 48:63];
+    save([session.general.name,'.session.mat'],'session','-v7.3');
+catch
+    warning('it seems that CellExplorer is not on your path');
 end
 
 %% Get analog and digital pulses
@@ -219,6 +212,17 @@ for ii = 1:size(allSess,1)
 
 end
 
+%% LFP
+[sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true); sessionInfo.rates.lfp = 1250;  save(strcat(sessionInfo.session.name,'.sessionInfo.mat'),'sessionInfo');
+if isempty(dir('*.lfp'))
+    try 
+        bz_LFPfromDat(pwd,'outFs',1250); % generating lfp
+    catch
+        disp('Problems with bz_LFPfromDat, resampling...');
+        ResampleBinary(strcat(sessionInfo.session.name,'.dat'),strcat(sessionInfo.session.name,'.lfp'),...
+            sessionInfo.nChannels,1,sessionInfo.rates.wideband/sessionInfo.rates.lfp);
+    end
+end
 
 %% Kilosort all sessions
 disp('Spike sort all sessions...');
@@ -240,6 +244,7 @@ for ii = size(allSess,1):-1:1
             end
         end
     end
+
 end
 
 % %% BatchAnalysis

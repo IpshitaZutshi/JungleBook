@@ -1,7 +1,7 @@
 function [tracking] = getToneTracking(varargin)
 
 % Gets position tracking for each sub-session and concatenate all of them so they are 
-% aligned with LFP and spikes. Default is using the analog input from Bonsai detected position. 
+% aligned with LFP and spikes.  
 %
 %% USAGE
 %

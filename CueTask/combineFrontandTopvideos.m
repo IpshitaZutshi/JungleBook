@@ -51,7 +51,7 @@ fs = round(1000./mode(diff(TS)));
 
 %% open the video writer
 fig = figure;
-set(fig,'Position',[1935 53 1890 939])
+set(fig,'Position',[990 333 807 564])
 set(fig,'Color','k')
 
 subplot(3,3,[1 4 7]);
@@ -67,18 +67,18 @@ writerObj.FrameRate = fs;
 open(writerObj);
 
 %% Align frames
-for ii = 1800:length(TS2) % Generally TS2 has fewer frames that TS, so align TS to TS2
+for ii = 18000:length(TS2) % Generally TS2 has fewer frames that TS, so align TS to TS2
     %Find TS index closest to current TS2 frame
     [~,idx] = min(abs(TS-TS2(ii)));
     frame2 = read(videoObj2,ii);
     frame1 = read(videoObj,idx);
 
     subplot(3,3,[1 4 7]);
-    imagesc(frame1(50:950,150:end,:))  
+    imagesc(frame1(120:960,580:840,:))  
     axis off
 
     subplot(3,3,[2 3 5 6 8 9]);
-    imagesc(frame2)  
+    imagesc(frame2(200:770,1:900,:)) 
     camroll(90)
     axis off 
 
