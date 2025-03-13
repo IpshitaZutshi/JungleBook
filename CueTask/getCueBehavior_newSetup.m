@@ -203,8 +203,8 @@ if plotfig
 %     title(num2str(numCue))
 %     xlim([0 4])
         
-    mkdir('Behavior');
-    saveas(gcf,'Behavior\cueBehavior.png');
+    % mkdir('Behavior');
+    % saveas(gcf,'Behavior\cueBehavior.png');
 end
 
 % Always skip the first trial

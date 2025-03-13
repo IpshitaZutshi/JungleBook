@@ -264,6 +264,11 @@ xt = linspace(0,size(pos,1)/fs,size(pos,1));            % kalman filter
 art = find(sum(abs(diff([x y]))>artifactThreshold,2))+1;
 art = [art - 2 art - 1 art art + 1 art + 2];
 x(art(:)) = NaN; y(art(:)) = NaN;
+
+% Label positions beyond 123 cm as nan. 
+art = find(y>122);
+x(art) = NaN; y(art) = NaN;
+
 F = fillmissing([x y],'linear');
 x = F(:,1); y = F(:,2);
 

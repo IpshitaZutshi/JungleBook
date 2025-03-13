@@ -5,25 +5,30 @@
 % data for the entire behavior session.
 
 basepath = pwd;
-photometry_file = dir(fullfile(basepath, '*PhotometryBehavDS.mat'));
 behaviorFile = dir(fullfile(basepath, '*.TrialBehavior.mat'));
-
+%{
 mode = 1; % 0 for downsampled, 1 for regular
 %this allows me to easily siwtch btwn down sampled and regular
 % N7 session 12 looks good downsamples but not regular
 if mode == 0
-    photom_var = photometry_ds;
     sampling_rate = 30;
     trackFile = dir(fullfile(basepath, '*TrackingDS.mat'));
+    photometry_file = dir(fullfile(basepath, '*PhotometryBehavDS.mat'));
+    load(photometry_file.name);
+    load(trackFile.name);
+    photom_var = photometry_ds;
+    track_var = tracking_ds;
 else
-    photom_var = photometry;
     sampling_rate = 130; % sampling rate of photometry set up - 130
     trackFile = dir(fullfile(basepath, '*Tracking.Behavior.mat'));
+    photometry_file = dir(fullfile(basepath, '*PhotometryBehav.mat'));
+    load(photometry_file.name);
+    load(trackFile.name);
+    photom_var = photometry;
+    track_var = tracking.position;
 end
 
-load(photometry_file.name);
 load(behaviorFile.name);
-load(trackFile.name);
 
 % used to be patch_behav
 
@@ -41,28 +46,24 @@ for i = 1:length(behavTrials.timestamps)
 end
 
 
-% synchronize
-%sync = getSyncPhotometry(photometryData);
-
-
-
-
 %% Plot photometry with behavior
-
+%{
+darkerGreen = [0.1098    0.6000    0.2392];
 hold on
-figure(1)
-plot(photom_var.timestamps, photom_var.grabDA_z, 'g'); %plot(photometry(:,1), photometry(:,2), 'g');
+figure
+plot(photom_var.timestamps, photom_var.grabDA_z, 'Color', darkerGreen, 'LineWidth', 2); 
 ylabel('z score');
 xlabel('time');
 xlim([photom_var.timestamps(1), photom_var.timestamps(length(photom_var.timestamps(~isnan(photom_var.timestamps))))]);
 for j = 1:length(rewarded_times)
-    xline(rewarded_times(j, 1), '-b');
+    xline(rewarded_times(j, 1), '-b', 'LineWidth', 2);
 end
 for k = 1:length(nonrewarded_times)
-    xline(nonrewarded_times(k, 1), '-r');
+    xline(nonrewarded_times(k, 1), '-r', 'LineWidth', 2);
 end
 hold off
 
+%}
 
 
 
@@ -146,20 +147,35 @@ title('Average Z-score Around Non-rewarded Licks');
 grid on;
 hold off
 
+% plot together 
+cusGreen = [0.7176    0.9412    0.1020];
+cusBlue = [ 0.2392    0.2863    0.9608];
+figure;
+hold on
+plot(time, med_z_reward, 'g', 'LineWidth', 2);
+fill([time,fliplr(time)], [(reward_CI95(1,:)+avg_z_reward),fliplr((reward_CI95(2,:)+avg_z_reward))], cusGreen, 'EdgeColor','none', 'FaceAlpha',0.25)
+grid on;
+
+plot(time, med_z_no_reward, 'Color', cusBlue, 'LineWidth', 2);
+fill([time,fliplr(time)], [(nonreward_CI95(1,:)+avg_z_no_reward),fliplr((nonreward_CI95(2,:)+avg_z_no_reward))], 'b', 'EdgeColor','none', 'FaceAlpha',0.25)
+xlabel('time (s)');
+ylabel('avg z-score');
+title('Average Z-score Around Licks');
+hold off
 
 
 %% Plot dopamine on track
 
-xq = linspace(min(tracking_ds.x), max(tracking_ds.x), 100); 
-yq = linspace(min(tracking_ds.y), max(tracking_ds.y), 100); 
+xq = linspace(min(track_var.x), max(track_var.x), 100); 
+yq = linspace(min(track_var.y), max(track_var.y), 100); 
 [Xq, Yq] = meshgrid(xq, yq); 
 
 % Interpolate dopamine values onto grid 
-Dq = griddata(tracking_ds.x, tracking_ds.y, photometry_ds.grabDA_z, Xq, Yq, 'cubic'); % use 'cubic' or 'linear' interpolation 
+Dq = griddata(track_var.x, track_var.y, photom_var.grabDA_z, Xq, Yq, 'cubic'); % use 'cubic' or 'linear' interpolation 
 
 % p values
-grabDA_p = arrayfun(@(x) 2*(1-normcdf(abs(x))), photometry_ds.grabDA_z);
-Pq = griddata(tracking_ds.x, tracking_ds.y, grabDA_p, Xq, Yq, 'cubic');
+grabDA_p = arrayfun(@(x) 2*(1-normcdf(abs(x))), photom_var.grabDA_z);
+Pq = griddata(track_var.x, track_var.y, grabDA_p, Xq, Yq, 'cubic');
 
 threshold = 0.1;
 Pq(Pq > threshold) = 1;
@@ -171,9 +187,9 @@ cmap = [0.980392156862745, 0.360784313725490, 0.137254901960784;
     0.709803921568627, 0.909803921568627, 0.960784313725490];
     %0.8, 0.8, 0.8];
 
-figure(3)
+figure;
 subplot(1, 2, 1)
-imagesc([min(tracking_ds.x), max(tracking_ds.x)], [min(tracking_ds.y), max(tracking_ds.y)], Dq); 
+imagesc([min(track_var.x), max(track_var.x)], [min(track_var.y), max(track_var.y)], Dq); 
 set(gca, 'YDir', 'normal'); 
 colormap(subplot(1, 2, 1), "parula")
 colorbar; 
@@ -182,7 +198,7 @@ ylabel('Y position');
 title('grabDA z score');
 
 subplot(1, 2, 2)
-imagesc([min(tracking_ds.x), max(tracking_ds.x)], [min(tracking_ds.y), max(tracking_ds.y)], Pq); 
+imagesc([min(track_var.x), max(track_var.x)], [min(track_var.y), max(track_var.y)], Pq); 
 set(gca, 'YDir', 'normal'); 
 colormap(subplot(1, 2, 2), cmap);
 colorbar('Ticks', [-1, 1], 'TickLabels', {'p <= 0.1', 'p > 0.1'}); 
@@ -190,8 +206,8 @@ xlabel('X position');
 ylabel('Y position'); 
 title('p value');
 
-figure(4)
-plot(tracking_ds.speed, photometry_ds.grabDA_z);
+figure;
+plot(track_var.speed, photom_var.grabDA_z);
 xlabel('Speed'); 
 ylabel('grabDA z score'); 
 
@@ -265,7 +281,7 @@ CI95 = tinv([0.025 0.975], N-1);                    % Calculate 95% Probability 
 unexpected_CI95 = bsxfun(@times, reward_SEM, CI95(:));  % Calculate 95% Confidence Intervals Of All Experiments At Each Value Of exw
 
 %% Plot  average photometry level around unexpected rewarded licks
-figure(5);
+figure;
 hold on
 plot(time, med_z_unexpected, 'g', 'LineWidth', 2);
 fill([time,fliplr(time)], [(unexpected_CI95(1,:)+avg_z_unexpected),fliplr((unexpected_CI95(2,:)+avg_z_unexpected))], 'b', 'EdgeColor','none', 'FaceAlpha',0.25)
@@ -300,72 +316,85 @@ avg_dur_nonreward = median(durs_nonreward(2:end));
 
 
 x=1;
+%}
 
-%{
 
 %% Analyze sleep photometry
 
 % synchronize time stamps for sleep session
-sleep_sync = getSyncPhotometry(photometryData);
+%sleep_sync = getSyncPhotometry(photometryData);
+
+% if saveMat
+%     C = strsplit(pwd,'\');
+%     save([basepath filesep C{end} '.SleepPhotomSynced.mat'],'sleep_sync');
+% end
 
 % make this a fxn
 %function [avg] = avgAcrossEvents(event)
 
+window = 1; % window of time around lick to average
+samples = window*sampling_rate;
 
 % need to find end timestamp of first sleep session. will write code for
 % this, but for right now can just use MergePoints
 
-sleep_end = 9301.3; % time stamp of end of sleep session
-ripple_end_pt = ripples.peaks(ripples.peaks <= sleep_end);
-ripple_matrix = nan(length(ripple_end_pt), (samples*2)+1); % ripples
+sleep_start = 8335; % start of sleep session
+sleep_end = 8445; % time stamp of end of sleep session 
+ripple_period = ripples.peaks(ripples.peaks <= sleep_end & ripples.peaks >= sleep_start);
+ripple_matrix = nan(length(ripple_period), (samples*2)+1); % ripples
 
 % average photometry data within a specified time window around ripples
-for j = 1:length(ripple_end_pt)
-    %curr_reward_time = rewarded_times(j);
-    [~, ripple_idx] = min(abs(sleep_sync(:,1) - ripple_end_pt(j)));
+adjusted_ts = sleep_sync.timestamps + sleep_start;
+for j = 1:length(ripple_period)
+    [~, ripple_idx] = min(abs(adjusted_ts - ripple_period(j)));
     start_idx = ripple_idx - samples;
     end_idx = ripple_idx + samples;
-    if start_idx >= 1 && end_idx <= height(sleep_sync(:,1))
-        ripple_matrix(j, :) = sleep_sync(start_idx:end_idx, 2);
-
+    if start_idx >= 1 && end_idx <= height(adjusted_ts)
+        ripple_matrix(j, :) = sleep_sync.grabDA_z(start_idx:end_idx);
     end
 end
+
+ripple_matrix(any(isnan(ripple_matrix), 2), :) = [];
 
 median_ripple = median(ripple_matrix, 1); % median at each timepoint
 time = linspace(-window, window, ((samples*2)+1));
 
 % calculate confidence intervals
-N = height(ripple_matrix);                          % Number of eExperimentsn In Data Set
+N = height(ripple_matrix);                          % Number of Experiments In Data Set
 avg_ripple = mean(ripple_matrix, 1);              % Mean Of All Experiments At Each Value Of ,x 
 ripple_SEM = std(ripple_matrix, 1)/sqrt(N);         % Compute rStandard Error Of The Meane Of All Experiments At Each Value Of wxa
 CI95 = tinv([0.025 0.975], N-1);                    % Calculate 95% Probability Intervals Of t-Distribution
 ripple_CI95 = bsxfun(@times, ripple_SEM, CI95(:));  % Calculate 95% Confidence Intervals Of All Experiments At Each Value Of exw
-
+smooth_CI95 = smoothdata(ripple_CI95, 2);
 
 
 %% Plot photometry against ripples
 
-figure(3);
+figure;
 plot(time, median_ripple, 'g', 'LineWidth', 2);
 hold on
-fill([time,fliplr(time)], [(ripple_CI95(1,:)+avg_ripple),fliplr((ripple_CI95(2,:)+avg_ripple))], 'b', 'EdgeColor','none', 'FaceAlpha',0.25)
+fill([time,fliplr(time)], [(ripple_CI95(1,:)+median_ripple),fliplr((ripple_CI95(2,:)+median_ripple))], 'b', 'EdgeColor','none', 'FaceAlpha',0.25)
+xline(0, '--r', 'LineWidth', 1)
 xlabel('time (s)');
 ylabel('avg z-score');
 title('Average Z-score Around Ripples');
 grid on;
 hold off
 
+smoothed = smoothdata(median_ripple);
+plot(time, smoothed, 'g', 'LineWidth', 2);
+fill([time,fliplr(time)], [(smooth_CI95(1,:)+smoothed),fliplr((smooth_CI95(2,:)+smoothed))], 'b', 'EdgeColor','none', 'FaceAlpha',0.25)
 
 
-figure(4);
+
+figure;
 plot(sleep_sync(:,1), sleep_sync(:,2), 'g', 'LineWidth', 2);
 
 
-
-
-
-
-
+ripple_durs = zeros(length(ripple_period), 1);
+for k = 2:length(ripple_period)
+    ripple_durs(k) = ripple_period(k)-ripple_period(k-1);
+end
 
 
 
@@ -386,7 +415,7 @@ title('behavior DA');
 
 
 
-%}
+
 
 
 

@@ -23,7 +23,12 @@ file = dir('*.TrialBehavior.mat');
 load(file.name)
 
 file = dir('*.PhotometryBehav.mat'); 
-load(file.name)
+if ~isempty(file)
+    load(file.name)
+    photometry_exists = 1; % 1 if it does, 0 if it doesn't
+else
+    photometry_exists = 0;
+end
 
 beh_interval = [tracking.timestamps(1), tracking.timestamps(end)]; 
 speed_lim = 1;
@@ -96,11 +101,13 @@ trajectory_dir_ds =interp1(tracking.timestamps,trajectoryDirMask,timestamp,'near
 trajectory_ds = interp1(tracking.timestamps,trajectoryMask,timestamp,'nearest');
 licks_ds = interp1(tracking.timestamps,licksMask,timestamp,'nearest');
 
-photometry_ds.sampling_rate = photometry.sampling_rate;
-photometry_ds.timestamps = interp1(photometry.timestamps, photometry.timestamps, timestamp, 'nearest');
-photometry_ds.grabDA_z = interp1(photometry.timestamps, photometry.grabDA_z, timestamp, 'nearest');
-photometry_ds.grabDA_df = interp1(photometry.timestamps, photometry.grabDA_df, timestamp, 'nearest');
-photometry_ds.grabDA_raw = interp1(photometry.timestamps, photometry.grabDA_raw, timestamp, 'nearest');
+if photometry_exists == 1
+    photometry_ds.sampling_rate = photometry.sampling_rate;
+    photometry_ds.timestamps = interp1(photometry.timestamps, photometry.timestamps, timestamp, 'nearest');
+    photometry_ds.grabDA_z = interp1(photometry.timestamps, photometry.grabDA_z, timestamp, 'nearest');
+    photometry_ds.grabDA_df = interp1(photometry.timestamps, photometry.grabDA_df, timestamp, 'nearest');
+    photometry_ds.grabDA_raw = interp1(photometry.timestamps, photometry.grabDA_raw, timestamp, 'nearest');
+end
 
 
 % maybe i should put the tracking back in a structure
@@ -135,10 +142,12 @@ direction = speed_dir > 0;
 speed_all = speed_dsa';
 timestamp_beh = timestamp_beh(speed_ds >= speed_lim);
 
-photometry_ds.timestamps = photometry_ds.timestamps(speed_ds >= speed_lim);
-photometry_ds.grabDA_z = photometry_ds.grabDA_z(speed_ds >= speed_lim);
-photometry_ds.grabDA_df = photometry_ds.grabDA_df(speed_ds >= speed_lim);
-photometry_ds.grabDA_raw = photometry_ds.grabDA_raw(speed_ds >= speed_lim);
+if photometry_exists == 1
+    photometry_ds.timestamps = photometry_ds.timestamps(speed_ds >= speed_lim);
+    photometry_ds.grabDA_z = photometry_ds.grabDA_z(speed_ds >= speed_lim);
+    photometry_ds.grabDA_df = photometry_ds.grabDA_df(speed_ds >= speed_lim);
+    photometry_ds.grabDA_raw = photometry_ds.grabDA_raw(speed_ds >= speed_lim);
+end
 
 
 spike_counts = [];
@@ -162,7 +171,9 @@ tracking_ds.timestamp = timestamp_beh;
 
 %% Save
 save([currentFolderName, '.data.mat'], 'data', 'timestamp')
-save([currentFolderName, '.PhotometryBehavDS.mat'], 'photometry_ds')
+if photometry_exists == 1
+    save([currentFolderName, '.PhotometryBehavDS.mat'], 'photometry_ds')
+end
 save([currentFolderName, 'TrackingDS'], 'tracking_ds')
 
 save([currentFolderName,'.position_behavior_speed.mat'],'timestamp_beh','trial_num_ds','licked_port_ds','outcome_ds',...

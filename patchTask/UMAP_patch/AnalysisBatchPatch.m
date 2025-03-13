@@ -38,5 +38,5 @@ SleepScoreMaster(pwd,'stickytrigger',true,'rejectChannels',badChannels); % try t
 
 
 %% 5. Cell Explorer
-%cell_metrics = ProcessCellMetrics('manualAdjustMonoSyn',false,'forceReload',true,'submitToDatabase',false,'showGUI',false);
+cell_metrics = ProcessCellMetrics('manualAdjustMonoSyn',false,'forceReload',true,'submitToDatabase',false,'showGUI',false);
 

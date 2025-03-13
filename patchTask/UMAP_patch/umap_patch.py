@@ -18,7 +18,7 @@ import umap
 from umap import UMAP
 #import matplotlib as plt
 
-basepath = r'Z:\Buzsakilabspace\LabShare\ZutshiI\patchTask\N7\N7_241216_sess23'
+basepath = r'Z:\Buzsakilabspace\LabShare\ZutshiI\patchTask\N7\N7_241205_sess17'
 
 spikes_file = glob.glob(basepath + '/*.data.mat')
 behav_file = glob.glob(basepath + '/*.position_behavior_speed.mat')

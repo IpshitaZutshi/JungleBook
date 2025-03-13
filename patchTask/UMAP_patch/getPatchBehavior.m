@@ -132,7 +132,7 @@ end
 % coming from intan. to read all info from the text file, use
 % analyze_patch_data.m
 % fileInfo = dir(fullfile(basepath, '*', 'PatchBehav2024*'));
-fileInfo = dir('PatchBehav2024*');
+fileInfo = dir('PatchBehav20*');
 if isempty(fileInfo)
         error('No file starting with "PatchBehav" found in the current directory.');
 elseif numel(fileInfo) > 1
@@ -231,7 +231,7 @@ fclose(fid);
 
 %% Plot
 lick_matrix = zeros(num_trials,7);
-
+%{
 % fill matrix
 for k = 1:num_trials
     pt = behavTrials.port(k);
@@ -294,11 +294,12 @@ title('Distribution of Licks across patches');
 z = ["Rewarded Patch" "Middle port" "Nonrewarded Patch"];
 bar(z, lick_outcome, 'FaceAlpha',0.5);
 
+
 %% Plot behavior over time
 
 licked_ports = behavTrials.port; 
 
-figure (3);
+figure;
 colormap(flipud(gray)); 
 hold on;
 customGreen = [152, 194, 9] / 255;

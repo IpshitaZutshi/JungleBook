@@ -31,22 +31,14 @@ function [tracking] = getPatchTracking(varargin)
 % SAVE behavTrials from this code, because it will align timestamps
 
 p = inputParser;
-addParameter(p,'basepath',pwd,@isstr);
-addParameter(p,'analogInputPos',2,@isnumeric);
+addParameter(p,'basepath',pwd,@isstr)
 addParameter(p,'fs',150,@isnumeric);
-addParameter(p,'trackLength',112,@isnumeric);
-addParameter(p,'trackImgLength',410,@isnumeric);
-addParameter(p,'freqRange',[1000 22000],@isnumeric);
 addParameter(p,'saveMat',true,@islogical)
 addParameter(p,'forceReload',true,@islogical)
 
 parse(p,varargin{:});
 basepath = p.Results.basepath;
-analogInputPos = p.Results.analogInputPos;
 fs = p.Results.fs;
-trackLength = p.Results.trackLength;
-trackImgLength = p.Results.trackImgLength;
-freqRange = p.Results.freqRange;
 saveMat = p.Results.saveMat;
 forceReload = p.Results.forceReload;
 
@@ -69,12 +61,19 @@ if exist([basepath filesep strcat(sessionInfo.session.name,'.MergePoints.events.
          if ~isempty(dir([basepath filesep MergePoints.foldernames{ii} filesep 'top*']))   
             cd([basepath filesep MergePoints.foldernames{ii}]); 
             fprintf('Computing tracking in %s folder \n',MergePoints.foldernames{ii});
-            tempBehav{count} = getPatchBehavior(); % was getPatchBehaviorL()
+            patchBehav{count} = getPatchBehavior(); 
             behavTracking{count}= PosPatchTracking([],'convFact',0.2732,'forceReload',false); % computing trajectory
+            
+            % photometry
             photometry_file = dir('*photometry.mat'); %%% might have to improve this method so i make sure i get the behavior photometry
-            photom_file_name = load(photometry_file.name); %%%
-            photomBehav{count} = getSyncPhotometry(photom_file_name.photometryData); %%%
-            %photomBehav{1} = photomBehav{1}.photometryData; %%%
+            if ~isempty(photometry_file)
+                photom_file_name = load(photometry_file.name); %%%
+                photomBehav{count} = getSyncPhotometry_IZ(photom_file_name.photometryData); %%%
+                photometry_exists = 1; % 1 if it does, 0 if it doesn't
+            else
+                photometry_exists = 0;
+            end
+            
             trackFolder(count) = ii; 
             count = count + 1;
         end
@@ -87,29 +86,32 @@ end
 %% Concatenate and sync timestamps
 ts = []; subSessions = []; maskSessions = [];
 tsBehav= []; % behavior
-maskSessionsBehav = [];
 tsLicks = []; % licks
-tsPhot = []; % photometry %%%
+tsPhot = []; % photometry 
 if exist([basepath filesep strcat(sessionInfo.session.name,'.MergePoints.events.mat')],'file')
     load(strcat(sessionInfo.session.name,'.MergePoints.events.mat'));
     for ii = 1:length(trackFolder)
         if strcmpi(MergePoints.foldernames{trackFolder(ii)},behavTracking{ii}.folder)
             sumTs = behavTracking{ii}.timestamps + MergePoints.timestamps(trackFolder(ii),1);
+            ts = [ts; sumTs]; % figure this out
+
             subSessions = [subSessions; MergePoints.timestamps(trackFolder(ii),1:2)];
             maskSessions = [maskSessions; ones(size(sumTs))*ii];
-            ts = [ts; sumTs];
-
-            %{
-            sumTs = tempBehav{ii}.timestamps + MergePoints.timestamps(trackFolder(ii),1);
-            sumTsLick = tempBehav{ii}.lick_timestamps + MergePoints.timestamps(trackFolder(ii),1);
-            %}
-            sumTs = tempBehav{ii}.timestamps + MergePoints.timestamps(trackFolder(ii),1);
-            sumTsPhot = photomBehav{ii}.timestamps + MergePoints.timestamps(trackFolder(ii),1); %%%
-            maskSessionsBehav = [maskSessionsBehav; ones(size(sumTs))*ii];
+            
+            sumTs = patchBehav{ii}.timestamps + MergePoints.timestamps(trackFolder(ii),1);
             tsBehav = [tsBehav; sumTs];
-            tsPhot = [tsPhot; sumTsPhot]; %%%
-           % tsLicks = [tsLicks; sumTsLick]; add licks back in if you add
-           % licks in behavTrials
+
+            if photometry_exists == 1
+                sumTsPhot = photomBehav{ii}.timestamps + MergePoints.timestamps(trackFolder(ii),1); %%%
+                tsPhot = [tsPhot; sumTsPhot]; %%%
+            end
+            
+            %{
+            add licks back in if you add licks in behavTrials
+            sumTsLick = patchBehav{ii}.lick_timestamps + MergePoints.timestamps(trackFolder(ii),1);
+            tsLicks = [tsLicks; sumTsLick];
+            %}
+            
         else
             error('Folders name does not match!!');
         end
@@ -152,19 +154,23 @@ tracking.framesDropped = framesDropped;
 tracking.events.subSessions =  subSessions;
 tracking.events.subSessionsMask = maskSessions;
 
-behavTrials = tempBehav{1};
+behavTrials = patchBehav{1};
 behavTrials.timestamps = tsBehav;
 behavTrials.lick_timestamps = tsLicks;
 
-photometry = photomBehav{1};
-photometry.timestamps = tsPhot;
+if photometry_exists == 1
+    photometry = photomBehav{1};
+    photometry.timestamps = tsPhot;
+end
 
 %% save tracking 
 [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true);
 if saveMat
     save([basepath filesep sessionInfo.FileName '.Tracking.Behavior.mat'],'tracking');
     save([basepath filesep sessionInfo.FileName '.TrialBehavior.mat'],'behavTrials');
-    save([basepath filesep sessionInfo.FileName '.PhotometryBehav.mat'],'photometry');
+    if photometry_exists == 1
+        save([basepath filesep sessionInfo.FileName '.PhotometryBehav.mat'],'photometry');
+    end
 end
 
 end
