@@ -22,18 +22,18 @@ subplot(3,4,1:4)
 plot(tracking.timestamps, tracking.position.y,'Color',[0.3, 0.3 0.3],'LineWidth',1)
 hold on
 
-% for kk = 1:7
-%     idx = find(behavTrials.port==kk);
-%     for ii= 1:length(idx)
-%         lickTS = behavTrials.timestamps(idx(ii));
-%         [~,ixTS] = min(abs(tracking.timestamps-lickTS));    
-%         if tracking.position.vy(ixTS)<0
-%             scatter(tracking.timestamps(ixTS),tracking.position.y(ixTS),40,col1(kk,:),'filled')        
-%         else
-%             scatter(tracking.timestamps(ixTS),tracking.position.y(ixTS),40,col1(kk,:))        
-%         end
-%     end
-% end
+for kk = 1:7
+    idx = find(behavTrials.port==kk);
+    for ii= 1:length(idx)
+        lickTS = behavTrials.timestamps(idx(ii));
+        [~,ixTS] = min(abs(tracking.timestamps-lickTS));    
+        if tracking.position.vy(ixTS)<0
+            scatter(tracking.timestamps(ixTS),tracking.position.y(ixTS),40,col1(kk,:),'filled')        
+        else
+            scatter(tracking.timestamps(ixTS),tracking.position.y(ixTS),40,col1(kk,:))        
+        end
+    end
+end
 xlabel('Time')
 ylabel('Position')
 ylim([0 125])

@@ -48,7 +48,6 @@ addParameter(p,'fs',30,@isnumeric);
 addParameter(p,'artifactThreshold',10,@isnumeric);
 addParameter(p,'convFact',[],@isnumeric); % 0.1149
 addParameter(p,'roiLED',[],@ismatrix);
-addParameter(p,'ledSync',[],@ismatrix);
 addParameter(p,'forceReload',false,@islogical)
 addParameter(p,'saveFrames',true,@islogical)
 addParameter(p,'verbose',false,@islogical);
@@ -64,7 +63,6 @@ artifactThreshold = p.Results.artifactThreshold;
 roiLED = p.Results.roiLED;
 convFact = p.Results.convFact;
 forceReload = p.Results.forceReload;
-ledSync = p.Results.ledSync;
 saveFrames = p.Results.saveFrames;
 verbose = p.Results.verbose;
 thresh = p.Results.thresh;
@@ -91,7 +89,7 @@ if ~exist('aviFile') || isempty(aviFile)
     end
 end
 
-if ~exist([basepath filesep aviFile '.mat'],'file') || forceReload
+if ~exist([basepath filesep aviFile '.mat'],'file') %|| forceReload
     disp('Get average frame...');
     videoObj = VideoReader([aviFile '.avi']);   % get video
     numFrames = get(videoObj, 'NumFrames');
@@ -176,81 +174,6 @@ else
 end
 
 pos = [Rr_x; Rr_y]';
-
-%% Figure out LED for sync
-if ledSync
-    
-    if ~exist([basepath filesep aviFile '_red.mat'],'file') || forceReload
-        disp('Get average frame...');
-        videoObj = VideoReader([aviFile '.avi']);   % get video
-        numFrames = get(videoObj, 'NumFrames');
-        frames = [];
-        tic
-        f = waitbar(0,'Getting frames...');
-        for ii = 1:numFrames
-            waitbar(ii/numFrames,f)
-            temp_frames = read(videoObj,ii);        % get all frames
-            frames_red(:,:,ii) = temp_frames(:,:,1);      % convert to grayscale
-        end
-        close(f)
-        toc
-        
-        if saveFrames
-            disp('Saving frames...');
-            save([basepath filesep aviFile '_red.mat'],'frames_red','-v7.3');
-        end
-    else
-        disp('Loading frames from mat file...');
-        load([basepath filesep aviFile '.mat'],'frames_red');
-    end
-end
-
-cd(basepath); cd ..; upBasepath = pwd; pwd; cd ..; up_upBasepath = pwd;cd(basepath);
-% deal with the ROI for the LED
-if exist([basepath filesep 'roiLED.mat'],'file')
-    load([basepath filesep 'roiLED.mat'],'roiLED');
-elseif exist([upBasepath filesep 'roiLED.mat'],'file')
-    load([upBasepath filesep 'roiLED.mat'],'roiLED');
-    disp('ROI LED from master folder... copying locally...');
-    save([basepath filesep 'roiLED.mat'],'roiLED');
-elseif ischar(roiLED) && strcmpi(roiLED,'manual')
-    disp('Draw ROI for LED...');
-    h1 = figure;
-    imshow(frames_red(:,:,1));
-    roi = drawpolygon;
-    roiLED = [roi.Position; roi.Position(1,:)];
-    save([basepath filesep 'roiLED.mat'],'roiLED');
-    close(h1);
-end
-
-% %% detect LED pulses for sync
-% if ~isempty(roiLED)
-%     disp('Detect LED for sync...');
-%     bwLED = uint8(poly2mask(roiLED(:,1),roiLED(:,2),size(frames_red,1),size(frames_red,2)));
-%     parfor ii = 1:size(frames_red,3)
-%         fr = double(frames_red(:,:,ii).*bwLED);
-%         fr(fr==0) = NaN;
-%         sync(ii) = nanmedian(fr(:)); 
-%     end
-% 
-%     sync = sync.^2;
-%     syncBin = (sync>median(sync)); % binarize signal
-%     locsA = find(diff(syncBin)==1)/fs; % start of pulses
-%     locsB = find(diff(syncBin)==-1)/fs; % end of pulses
-%     pul = locsA(1:min([length(locsA) length(locsB)]));
-%     for ii = 1 : size(pul,2) % pair begining and end of the pulse
-%         if sum(locsB > pul(1,ii)) > 0
-%             pul(2,ii) =  locsB(find(locsB - pul(1,ii) ==...
-%                 min(locsB(locsB > pul(1,ii)) - pul(1,ii))));
-%         else
-%             pul(2,ii) = nan;
-%         end
-%     end
-%     % if a jump happened only for 1-2 frames, ignore
-%     a = pul(2,:)-pul(1,:);
-% else
-%     sync = []; pul = [];
-% end
 
 %% postprocessing of LED position 
 pos = pos * convFact;                                   % cm or normalized

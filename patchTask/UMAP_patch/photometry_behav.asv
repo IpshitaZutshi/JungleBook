@@ -6,12 +6,12 @@
 
 basepath = pwd;
 behaviorFile = dir(fullfile(basepath, '*.TrialBehavior.mat'));
-%{
+
 mode = 1; % 0 for downsampled, 1 for regular
 %this allows me to easily siwtch btwn down sampled and regular
 % N7 session 12 looks good downsamples but not regular
 if mode == 0
-    sampling_rate = 30;
+    sampling_rate = 7; % ???
     trackFile = dir(fullfile(basepath, '*TrackingDS.mat'));
     photometry_file = dir(fullfile(basepath, '*PhotometryBehavDS.mat'));
     load(photometry_file.name);
@@ -50,7 +50,7 @@ end
 %{
 darkerGreen = [0.1098    0.6000    0.2392];
 hold on
-figure
+figure('color','white')
 plot(photom_var.timestamps, photom_var.grabDA_z, 'Color', darkerGreen, 'LineWidth', 2); 
 ylabel('z score');
 xlabel('time');
@@ -69,7 +69,7 @@ hold off
 
 %% Average photometry across licks
 
-window = 3.1; % window of time around lick to average
+window = 5; % window of time around lick to average
 samples = window*sampling_rate;
 
 zscore_matrix = nan(length(rewarded_times), (samples*2)+1); % rewarded
@@ -100,6 +100,14 @@ reward_SEM = std(zscore_matrix, 1)/sqrt(N);         % Compute rStandard Error Of
 CI95 = tinv([0.025 0.975], N-1);                    % Calculate 95% Probability Intervals Of t-Distribution
 reward_CI95 = bsxfun(@times, reward_SEM, CI95(:));  % Calculate 95% Confidence Intervals Of All Experiments At Each Value Of exw
 
+% statistical significance of peak before lick
+reward_baseline = zscore_matrix(:,[1:390]);%135
+avg_reward_baseline = mean(reward_baseline, 1);
+mn = mean(avg_reward_baseline);
+st_d = std(avg_reward_baseline);
+sample_mn = max(med_z_reward);
+deg_free = length(rewarded_times)-1;
+t = (sample_mn - mn)/(st_d/(sqrt(deg_free)));
 
 % average photometry data within a specified time window around nonrewarded
 % licks
@@ -125,8 +133,17 @@ CI95 = tinv([0.025 0.975], N-1);                    % Calculate 95% Probability 
 nonreward_CI95 = bsxfun(@times, nonreward_SEM, CI95(:));  % Calculate 95% Confidence Intervals Of All Experiments At Each Value Of exw
 
 
+% statistical significance of peak before lick
+non_reward_baseline = zscore_matrix_non(:,[1:390]);%135
+avg_nonreward_baseline = mean(non_reward_baseline, 1);
+mn = mean(avg_nonreward_baseline);
+st_d = std(avg_nonreward_baseline);
+sample_mn = max(med_z_no_reward);
+deg_free = length(nonrewarded_times)-1;
+t = (sample_mn - mn)/(st_d/(sqrt(deg_free)));
+
 %% Plot  average photometry level around licks
-figure(2);
+figure('color','white');
 subplot(2,1,1)
 hold on
 plot(time, med_z_reward, 'g', 'LineWidth', 2);
@@ -150,7 +167,7 @@ hold off
 % plot together 
 cusGreen = [0.7176    0.9412    0.1020];
 cusBlue = [ 0.2392    0.2863    0.9608];
-figure;
+figure('color','white');
 hold on
 plot(time, med_z_reward, 'g', 'LineWidth', 2);
 fill([time,fliplr(time)], [(reward_CI95(1,:)+avg_z_reward),fliplr((reward_CI95(2,:)+avg_z_reward))], cusGreen, 'EdgeColor','none', 'FaceAlpha',0.25)
@@ -187,7 +204,7 @@ cmap = [0.980392156862745, 0.360784313725490, 0.137254901960784;
     0.709803921568627, 0.909803921568627, 0.960784313725490];
     %0.8, 0.8, 0.8];
 
-figure;
+figure('color','white');
 subplot(1, 2, 1)
 imagesc([min(track_var.x), max(track_var.x)], [min(track_var.y), max(track_var.y)], Dq); 
 set(gca, 'YDir', 'normal'); 
@@ -206,7 +223,7 @@ xlabel('X position');
 ylabel('Y position'); 
 title('p value');
 
-figure;
+figure('color','white');
 plot(track_var.speed, photom_var.grabDA_z);
 xlabel('Speed'); 
 ylabel('grabDA z score'); 
@@ -281,7 +298,7 @@ CI95 = tinv([0.025 0.975], N-1);                    % Calculate 95% Probability 
 unexpected_CI95 = bsxfun(@times, reward_SEM, CI95(:));  % Calculate 95% Confidence Intervals Of All Experiments At Each Value Of exw
 
 %% Plot  average photometry level around unexpected rewarded licks
-figure;
+figure('color','white');
 hold on
 plot(time, med_z_unexpected, 'g', 'LineWidth', 2);
 fill([time,fliplr(time)], [(unexpected_CI95(1,:)+avg_z_unexpected),fliplr((unexpected_CI95(2,:)+avg_z_unexpected))], 'b', 'EdgeColor','none', 'FaceAlpha',0.25)
@@ -292,7 +309,7 @@ grid on;
 hold off
 
 
-% find average duration of trial
+%% find average duration of trial
 
 durs = zeros(behavTrials.num_trials, 1);
 for m = 2:behavTrials.num_trials
@@ -316,13 +333,13 @@ avg_dur_nonreward = median(durs_nonreward(2:end));
 
 
 x=1;
-%}
+
 
 
 %% Analyze sleep photometry
 
 % synchronize time stamps for sleep session
-%sleep_sync = getSyncPhotometry(photometryData);
+sleep_sync = getSyncPhotometry(photometryData);
 
 % if saveMat
 %     C = strsplit(pwd,'\');
@@ -332,14 +349,21 @@ x=1;
 % make this a fxn
 %function [avg] = avgAcrossEvents(event)
 
-window = 5; % window of time around lick to average
+% find average time between ripple events
+ripple_durs = zeros(length(ripple_period), 1);
+for k = 2:length(ripple_period)
+    ripple_durs(k) = ripple_period(k)-ripple_period(k-1);
+end
+median(ripple_durs)
+
+window = 0.9; % window of time around ripple to average
 samples = window*sampling_rate;
 
 % need to find end timestamp of first sleep session. will write code for
 % this, but for right now can just use MergePoints
 
-sleep_start = 8335; % start of sleep session
-sleep_end = 8445; % time stamp of end of sleep session 
+sleep_start = 12416; % start of sleep session
+sleep_end = 19840; % time stamp of end of sleep session 
 ripple_period = ripples.peaks(ripples.peaks <= sleep_end & ripples.peaks >= sleep_start);
 ripple_matrix = nan(length(ripple_period), (samples*2)+1); % ripples
 
@@ -367,39 +391,46 @@ CI95 = tinv([0.025 0.975], N-1);                    % Calculate 95% Probability 
 ripple_CI95 = bsxfun(@times, ripple_SEM, CI95(:));  % Calculate 95% Confidence Intervals Of All Experiments At Each Value Of exw
 smooth_CI95 = smoothdata(ripple_CI95, 2);
 
+% statistical significance of peak before lick
+ripple_baseline = ripple_matrix(:,[1:120]);
+avg_ripple_baseline = mean(ripple_baseline, 1);
+mn = mean(avg_ripple_baseline);
+st_d = std(avg_ripple_baseline);
+sample_mn = min(median_ripple);
+deg_free = length(ripple_period)-1;
+t = (sample_mn - mn)/(st_d/(sqrt(deg_free)));
 
 %% Plot photometry against ripples
 
-figure;
+figure('color','white');
 plot(time, median_ripple, 'g', 'LineWidth', 2);
 hold on
 fill([time,fliplr(time)], [(ripple_CI95(1,:)+median_ripple),fliplr((ripple_CI95(2,:)+median_ripple))], 'b', 'EdgeColor','none', 'FaceAlpha',0.25)
 xline(0, '--r', 'LineWidth', 1)
 xlabel('time (s)');
 ylabel('avg z-score');
-title('Average Z-score Around Ripples');
+title('Average Z-score Around Ripples (Pre-task Sleep)');
 grid on;
 hold off
 
 smoothed = smoothdata(median_ripple);
+hold on
 plot(time, smoothed, 'g', 'LineWidth', 2);
-fill([time,fliplr(time)], [(ripple_CI95(1,:)+smoothed),fliplr((ripple_CI95(2,:)+smoothed))], 'b', 'EdgeColor','none', 'FaceAlpha',0.25)
+fill([time,fliplr(time)], [(smooth_CI95(1,:)+smoothed),fliplr((smooth_CI95(2,:)+smoothed))], 'b', 'EdgeColor','none', 'FaceAlpha',0.25)
+xline(0, '--r', 'LineWidth', 1)
+xlabel('time (s)');
+ylabel('avg z-score');
+title('Average Z-score Around Ripples (Post-task Sleep)');
+grid on;
+hold off
 
 
-
-figure;
-plot(sleep_sync(:,1), sleep_sync(:,2), 'g', 'LineWidth', 2);
-
-
-ripple_durs = zeros(length(ripple_period));
-for k = 2:length(ripple_period)
-    ripple_durs(k) = ripple_period(k)-ripple_period(k-1)
 
 
 
 %photom_pre_sleep = photometryData;
 % photometry across sleep and behav
-figure(4);
+figure('color','white');
 subplot(2,1,1)
 plot(photom_pre_sleep.timestamps, photom_pre_sleep.grabDA_z)
 %xlim([0, photom_pre_sleep.timestamps(size(photom_pre_sleep.timestamps))]);

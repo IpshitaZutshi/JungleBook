@@ -115,7 +115,18 @@ end
 %% Build sessions
 disp('Building session folders (It assumes session as all folder at a certain depth recordered on the same day)...');
 allFolder = dir(pwd);
+
 for ii = 1:length(allFolder)
+    % Find max sessNumber already
+    a = dir('*sess*');
+    startSess = 1;
+    for jj = 1:size(a)
+        num = regexp(a(jj).name, 'sess(\d+)', 'tokens');
+        num = str2double(num{1});
+        if num>startSess
+            startSess = num;
+        end
+    end
     if strlength(allFolder(ii).name) > 12 && isfolder(allFolder(ii).name) % if looks like a data folder
         folderFiels = strsplit(allFolder(ii).name,'_');
         if numel(folderFiels) == 4 % if the depth is included in the folder name
@@ -128,7 +139,7 @@ for ii = 1:length(allFolder)
             end
         elseif numel(folderFiels) == 3
             if isempty(dir(strcat('*',folderFiels{2},'_','sess*'))) % if there is no session folder yet
-                mkdir(strcat(folderFiels{1},'_',folderFiels{2},'_','sess',num2str(size(dir('*sess*'),1) + 1))); % create folder
+                mkdir(strcat(folderFiels{1},'_',folderFiels{2},'_','sess',num2str(startSess + 1))); % create folder
             end
             if ~contains(folderFiels{3},'sess') % if it is not a session folder
                 targetfoder = dir(strcat(folderFiels{1},'_',folderFiels{2},'_','sess*'));

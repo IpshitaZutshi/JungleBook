@@ -103,12 +103,17 @@ for i = 1:length(trial_licks)
     elseif prt == 7
         sol = 16;
     end
-    vals = (digitalIn.timestampsOn{1,sol} > (time - 0.01)) & (digitalIn.timestampsOn{1,sol} < (time + 0.01));
-
-    if ismember(1, vals)
-        behavTrials.reward_outcome(i) = 1;
-    else
+    
+    if prt == 4
         behavTrials.reward_outcome(i) = 0;
+    else
+        vals = (digitalIn.timestampsOn{1,sol} > (time - 0.01)) & (digitalIn.timestampsOn{1,sol} < (time + 0.01));
+
+        if ismember(1, vals)
+            behavTrials.reward_outcome(i) = 1;
+        else
+            behavTrials.reward_outcome(i) = 0;
+        end
     end
 end
 
@@ -148,7 +153,7 @@ trial_count = 0;
 trial_numbers = [];
 timestamps_licks = [];
    
-mode = 0; % because the serial monitor got screwed up partway through the experiments. 
+mode = 1; % because the serial monitor got screwed up partway through the experiments. 
 % if patchBehav file (saved from arduino) only saves two lines for each
 % trial, set mode equal to 0. if arduino saves multiple lines (laura's
 % change), set mode equal to 1.
@@ -230,120 +235,76 @@ fclose(fid);
 
 
 %% Plot
-lick_matrix = zeros(num_trials,7);
-%{
-% fill matrix
-for k = 1:num_trials
-    pt = behavTrials.port(k);
-    if behavTrials.reward_outcome(k) == 1
-        lick_matrix(k, pt) = 2; % rewarded
-    elseif behavTrials.reward_outcome(k) == 0
-        lick_matrix(k, pt) = 1; % not rewarded
-    end
-    % unlicked ports remain 0
-end
-behavTrials.lick_matrix = lick_matrix;
+if plotfig
+    h2 = figure;
+    set(gcf,'Renderer','painters')
+    set(gcf,'Color','w')
 
-
-patch_licks = zeros(3,1);
-patch_licks(1) = nnz(behavTrials.port == 1) + nnz(behavTrials.port == 2) + nnz(behavTrials.port == 3);
-patch_licks(2) = nnz(behavTrials.port == 4);
-patch_licks(3) = nnz(behavTrials.port == 5) + nnz(behavTrials.port == 6) + nnz(behavTrials.port == 7);
-
-
-figure
-subplot(1,3,[1,2])
-ylabel('Trial #');
-xlabel('Reward Port');
-heatmap(lick_matrix);
-
-subplot(1,3,3)
-title('Distribution of Licks across patches');
-x = ["Patch 0" "Middle port" "Patch 1"];
-bar(x, patch_licks);
-
-
-%% Plot how often they lick in the correct patch
-
-lick_outcome = zeros(3, 1);
-% first row of lick outcome = rewarded patch, second is middle port,
-% third is unrewarded patch
-
-for i = 1:length(behavTrials.patch_number)
-    % determine which patch has higher rewards
-    if behavTrials.patch_number(i) == 0
-        rewarded_ports = [1, 2, 3];
-        nonrewarded_ports = [5, 6, 7];
-    else 
-        rewarded_ports = [5, 6, 7];
-        nonrewarded_ports = [1, 2, 3];
+    if ~exist('Behavior','dir')
+        mkdir('Behavior\')
     end
 
-    % determine if mouse was licking high or low patch
-    if ismember(behavTrials.port(i), rewarded_ports)
-        lick_outcome(1) = lick_outcome(1)+1;
-    elseif ismember(behavTrials.port(i), nonrewarded_ports)
-        lick_outcome(3) = lick_outcome(3)+1;
-    else 
-        lick_outcome(2) = lick_outcome(2)+1;
+    % Plot licks - rewarded/unrewarded based on changing patch probability
+    subplot(2,4,1:4)
+    box off
+    hold on
+    col = [0/255 151/255 150/255; 128/255 0/255 128/255];
+    for ii= 1:length(behavTrials.timestamps)
+       % current high patch
+       patch1 = mean(behavTrials.ports_probability(ii,1:3));
+       patch2 = mean(behavTrials.ports_probability(ii,5:7));
+       if patch1>patch2
+           highPatch = 1;
+       else
+           highPatch = 2;
+       end
+       if behavTrials.reward_outcome(ii) == 1
+            scatter(behavTrials.timestamps(ii),behavTrials.port(ii),45,col(highPatch,:),"filled") 
+       else
+            scatter(behavTrials.timestamps(ii),behavTrials.port(ii),45,col(highPatch,:)) 
+       end
     end
-end
-
-figure(2)
-title('Distribution of Licks across patches');
-z = ["Rewarded Patch" "Middle port" "Nonrewarded Patch"];
-bar(z, lick_outcome, 'FaceAlpha',0.5);
-
-
-%% Plot behavior over time
-
-licked_ports = behavTrials.port; 
-
-figure;
-colormap(flipud(gray)); 
-hold on;
-customGreen = [152, 194, 9] / 255;
-customRed = [238, 75, 43] / 255;
-y_limits = [min(licked_ports), max(licked_ports)]; 
-timestamps_minutes = timestamps_licks / 60000;
-x_limits = [min(timestamps_minutes), max(timestamps_minutes)];
-hold on
-
-% plot patch with higher probability
-first_in_patch = 1;
-prev = behavTrials.patch_number(1);
-for j = 2:length(behavTrials.patch_number)
-    if behavTrials.patch_number(j) == behavTrials.patch_number(first_in_patch) && (j ~= length(behavTrials.patch_number))
-        prev = j;
-        continue
-    else
-        patch_end = prev;
-        if behavTrials.patch_number(patch_end) == 0 % patch 0 is high prob
-            y = [1, 1, 3, 3];
-        else % patch 1 is high prob
-            y = [5, 5, 7, 7];
+    xlabel('Time')
+    ylabel('Port')
+    title(strcat('Total trials=',num2str(behavTrials.num_trials),' Rewarded =',num2str(sum(behavTrials.reward_outcome))));
+    
+    %% Running percentage of licks in a patch
+    % Define the number of trials for the running window
+    windowSize = 30;
+    
+    % Identify high-probability patch at each trial
+    for ii = 1:behavTrials.num_trials
+        highProbPatch(ii) = mean(behavTrials.ports_probability(ii,1:3)) > mean(behavTrials.ports_probability(ii,5:7));
+    end
+    
+    % Determine whether each lick was in the high-probability patch
+    licksInHighProbPatch = ismember(behavTrials.port, 1:3) & highProbPatch' | ...
+                            ismember(behavTrials.port, 5:7) & ~highProbPatch';
+    
+    % Compute running percentage over a sliding window
+    runningPercentage = zeros(size(licksInHighProbPatch));
+    
+    for t = 1:length(licksInHighProbPatch)
+        if t >= windowSize
+            windowLicks = licksInHighProbPatch(t-windowSize+1:t);
+        else
+            windowLicks = licksInHighProbPatch(1:t);
         end
-        x = [timestamps_minutes(first_in_patch), timestamps_minutes(patch_end), timestamps_minutes(patch_end), timestamps_minutes(first_in_patch)];
-        first_in_patch = j;
-        patch(x, y, [0.5, 0.5, 0.5], 'FaceAlpha', 0.3, 'EdgeAlpha', 0)
+        runningPercentage(t) = mean(windowLicks) * 100;
     end
+    
+    % Plot the running percentage
+    subplot(2,4,5:8)
+    plot(behavTrials.timestamps, runningPercentage, 'b', 'LineWidth', 1);
+    hold on
+    plot(behavTrials.timestamps,highProbPatch*100,'Color','r','LineWidth',1)
+    xlabel('Trial Number');
+    ylabel('Running %');
+
+    saveas(h2,'Behavior\Behavior.png');
+    saveas(h2,'Behavior\Behavior.fig');
+
 end
-
-% plot gray trajectory lines
-% fix if the two arrays are different sizes
-plot(timestamps_minutes, licked_ports, 'Color', [0.1, 0.1, 0.1]);  
-
-% plot lick points
-rewarded_indices = find(behavTrials.reward_outcome == 1);
-not_rewarded_indices = find(behavTrials.reward_outcome == 0);
-scatter(timestamps_minutes(rewarded_indices), licked_ports(rewarded_indices), 36, customGreen, 'filled');
-scatter(timestamps_minutes(not_rewarded_indices), licked_ports(not_rewarded_indices), 36, customRed, 'filled');
-
-ylabel('Port');
-xlabel('Time');
-title(strjoin(string(currentFolderName), ' '));
-hold off
-%}
 
 %% Save
 if saveMat
