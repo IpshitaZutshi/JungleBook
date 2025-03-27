@@ -27,13 +27,15 @@ end
 spikes = loadSpikes('getWaveformsFromDat', false);
 
 %% 3. Extract sharp wave ripples
-pyrCh = 75; % 75 for n11
+pyrCh = 66; % 75 for n11 115 67 for n11
+%67 90 66
 noiseCh = 111;
-[ripples] = bz_FindRipples(pwd,pyrCh,'noise',noiseCh,'savemat',true);
+[ripples] = bz_FindRipples(pwd,pyrCh,'noise',noiseCh,'savemat',true,'durations',[30 100],'passband',[130 200]);
 
 %% 4. Sleep score
 badChannels = [24:38 48:63]; %N7
 % badChannels = [0:3 15:18 21:30 43 50 95 97]; %N9
+%badChannels = [0:3 15:18 21:30 41 43 46 47 50 52 95 97]; %N15
 SleepScoreMaster(pwd,'stickytrigger',true,'rejectChannels',badChannels); % try to sleep score
 
 

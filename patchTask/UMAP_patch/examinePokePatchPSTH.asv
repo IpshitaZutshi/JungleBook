@@ -7,10 +7,12 @@ function examinePokePatchPSTH
 sess= {'N7\N7_241216_sess23',...
     }; 
 
+% sess= {'N11\Final\N11_250314_sess18',...
+%     };
 
 expPath = 'Z:\Buzsakilabspace\LabShare\ZutshiI\patchTask\';
 
-mode = 7; % 0 = 'pyr_vs_int' or 7 = 'ports'
+mode = 0; % 0 = 'pyr_vs_int' or 7 = 'ports'
 
 if mode == 7
     end_pt = 7;
@@ -49,24 +51,36 @@ for ii = 1:length(sess)
             for tt = 1:end_pt
 
                 if mode == 7
-                    start_time = behavTrials.timestamps(1);
-                    end_time = behavTrials.timestamps(1);
+                    start_time = behavTrials.timestamps(96); %61
+                    end_time = behavTrials.timestamps(146);%95
                     if tt == 1 
                         st = behavTrials.timestamps(behavTrials.port == 1 & ...
                             behavTrials.timestamps >= start_time & ...
                             behavTrials.timestamps <= end_time);
                     elseif tt == 2 
-                        st = behavTrials.timestamps(behavTrials.port == 2); % behavTrials.timestamps(behavTrials.reward_outcome == 1);
+                        st = behavTrials.timestamps(behavTrials.port == 2 & ... % behavTrials.timestamps(behavTrials.reward_outcome == 1);
+                            behavTrials.timestamps >= start_time & ...
+                            behavTrials.timestamps <= end_time);
                     elseif tt == 3 
-                        st = behavTrials.timestamps(behavTrials.port == 3);
+                        st = behavTrials.timestamps(behavTrials.port == 3 & ...
+                            behavTrials.timestamps >= start_time & ...
+                            behavTrials.timestamps <= end_time);
                     elseif tt == 4 
-                        st = behavTrials.timestamps(behavTrials.port == 4);
+                        st = behavTrials.timestamps(behavTrials.port == 4 & ...
+                            behavTrials.timestamps >= start_time & ...
+                            behavTrials.timestamps <= end_time);
                     elseif tt == 5 
-                        st = behavTrials.timestamps(behavTrials.port == 5);
+                        st = behavTrials.timestamps(behavTrials.port == 5 & ...
+                            behavTrials.timestamps >= start_time & ...
+                            behavTrials.timestamps <= end_time);
                     elseif tt == 6 
-                        st = behavTrials.timestamps(behavTrials.port == 6);
+                        st = behavTrials.timestamps(behavTrials.port == 6 & ...
+                            behavTrials.timestamps >= start_time & ...
+                            behavTrials.timestamps <= end_time);
                     elseif tt == 7 
-                        st = behavTrials.timestamps(behavTrials.port == 7);
+                        st = behavTrials.timestamps(behavTrials.port == 7 & ...
+                            behavTrials.timestamps >= start_time & ...
+                            behavTrials.timestamps <= end_time);
                     end
                 elseif mode == 0
                     if tt == 1 
@@ -78,7 +92,8 @@ for ii = 1:length(sess)
                     
                 if ~isempty(st)
                     [stccg, tPSTH] = CCG({spikes.times{kk} st},[],'binSize',0.1,'duration',4,'norm','rate');
-                    psthReward{tt} = [psthReward{tt}; stccg(:,2,1)'];               
+                    psthReward{tt} = [psthReward{tt}; stccg(:,2,1)']; 
+                    disp(strjoin(string(trial)))
                 else
                     fillArr(1,1:41) = nan;
                     psthReward{tt} = [psthReward{tt}; fillArr];               

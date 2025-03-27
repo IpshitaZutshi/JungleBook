@@ -7,6 +7,8 @@ function examinePokePatchPSTH
 sess= {'N7\N7_241216_sess23',...
     }; 
 
+% sess= {'N11\Final\N11_250314_sess18',...
+%     };
 
 expPath = 'Z:\Buzsakilabspace\LabShare\ZutshiI\patchTask\';
 
@@ -90,7 +92,8 @@ for ii = 1:length(sess)
                     
                 if ~isempty(st)
                     [stccg, tPSTH] = CCG({spikes.times{kk} st},[],'binSize',0.1,'duration',4,'norm','rate');
-                    psthReward{tt} = [psthReward{tt}; stccg(:,2,1)'];               
+                    psthReward{tt} = [psthReward{tt}; stccg(:,2,1)']; 
+                    %disp(strjoin(string(tt)))
                 else
                     fillArr(1,1:41) = nan;
                     psthReward{tt} = [psthReward{tt}; fillArr];               
@@ -145,6 +148,7 @@ if mode == 0
     [~,idxMax2] = max(newpsth{1}(:,idxT),[],2); % the 1 keeps sorting the same for all plots. change to tt for individually sorted
     [~,idxMax] = sort(idxMax2);
 
+ 
     % interneuron sorting
     idxT_i = tPSTH_i<0 & tPSTH_i>=-0.2;
     avgRate1_i = nanmean(psthReward_i{1}(:,idxT_i),2);
@@ -157,6 +161,17 @@ if mode == 0
     [~,idxMax2_i] = max(newpsth_i{1}(:,idxT_i),[],2);
     [~,idxMax_i] = sort(idxMax2_i);
 
+    allData = [];
+       % Combine pyramidal cells data
+    for tt = 1:2
+        allData = [allData; zscore(newpsth{tt}, [], 2)];
+        allData = [allData; zscore(newpsth_i{tt}, [], 2)];
+    end
+    
+    % Get global color scale limits
+    collim = [nanmin(allData(:)), nanmax(allData(:))];
+
+
     % plot heatmaps 
     for tt = 1:2
         subplot(3,2,tt)
@@ -164,6 +179,7 @@ if mode == 0
         h = imagesc(tPSTH, 1:size(newpsth{tt},1),temp(idxMax,:));
         set(h, 'AlphaData', ~isnan(temp))
         %clim([-0.5 2])
+        clim(collim);
         colorbar
         %ylim([125 350])
         title('Pyramidal Cells')
@@ -173,6 +189,7 @@ if mode == 0
         h = imagesc(tPSTH_i, 1:size(newpsth_i{tt},1),temp(idxMax_i,:));
         set(h, 'AlphaData', ~isnan(temp))
         %clim([-0.5 2])
+        clim(collim);
         colorbar
         %ylim([125 350])
         title('Interneurons')
@@ -211,8 +228,17 @@ elseif mode == 7
         newpsth{tt} = psthReward{tt}(avgRate>0.5,:);
     end
     idxT = tPSTH<0 & tPSTH>=-0.5;
-    [~,idxMax2] = max(newpsth{tt}(:,idxT),[],2); % 1 for consistent sorting. tt for individually sorted
+    [~,idxMax2] = max(newpsth{1}(:,idxT),[],2); % 1 for consistent sorting. tt for individually sorted
     [~,idxMax] = sort(idxMax2);
+
+    allData = [];
+       % Combine pyramidal cells data
+    for tt = 1:7
+        allData = [allData; zscore(newpsth{tt}, [], 2)];
+    end
+    
+    % Get global color scale limits
+    collim = [nanmin(allData(:)), nanmax(allData(:))];
 
     % plot heatmaps
     for tt = 1:7
@@ -221,12 +247,13 @@ elseif mode == 7
         h = imagesc(tPSTH, 1:size(newpsth{tt},1),temp(idxMax,:));
         set(h, 'AlphaData', ~isnan(temp))
         %clim([-0.5 2])
+        clim(collim);
         colorbar
         %ylim([125 350])
         title('Pyramidal Cells')
             
         subplot(2,7,tt+7)
-        col = [0.5 0.5 0.5];
+        col = [0.047058823529412   0.419607843137255   0.121568627450980];
         meanpsth = nanmean(newpsth{tt},1);
         stdpsth = nanstd(newpsth{tt},1)./sqrt(size(newpsth{tt},1));         
         hold on

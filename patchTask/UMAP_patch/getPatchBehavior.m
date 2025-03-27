@@ -118,19 +118,19 @@ for i = 1:length(trial_licks)
 end
 
 %% Detect switch patch trials
-%{
-for i = 2:length(trial_licks)
+
+for i = 2:behavTrials.num_trials
     current_port = behavTrials.port(i);
     previous_port = behavTrials.port(i-1);
     
-    if (ismember(current_port, [1, 2, 3, 0]) && ismember(previous_port, [0, 5, 6, 7])) || ...
-       (ismember(current_port, [5, 6, 7, 0]) && ismember(previous_port, [0, 1, 2, 3]))
+    if (ismember(current_port, [1, 2, 3]) && ismember(previous_port, [5, 6, 7])) || ...
+       (ismember(current_port, [5, 6, 7]) && ismember(previous_port, [1, 2, 3]))
         behavTrials.stay_switch(i) = 1;
     else
         behavTrials.stay_switch(i) = 0;
     end
 end
-%}
+
 
 %% Analyze text file
 % this only gets info on the probabilities and patch, because reward and lick data is
@@ -306,11 +306,78 @@ if plotfig
 
 end
 
+%% Plot behavior over time
+
+licked_ports = behavTrials.port; 
+
+figure('color','white');
+ax = gca;
+ax.FontSize = 15;
+colormap(flipud(gray)); 
+hold on;
+customGreen = [152, 194, 9] / 255;
+customRed = [238, 75, 43] / 255;
+y_limits = [min(licked_ports), max(licked_ports)]; 
+timestamps_minutes = timestamps_licks / 60000;
+x_limits = [min(timestamps_minutes), max(timestamps_minutes)];
+hold on
+
+% plot patch with higher probability
+first_in_patch = 1;
+prev = behavTrials.patch_number(1);
+for j = 2:length(behavTrials.patch_number)
+    if behavTrials.patch_number(j) == behavTrials.patch_number(first_in_patch) && (j ~= length(behavTrials.patch_number))
+        prev = j;
+        continue
+    else
+        patch_end = prev;
+        if behavTrials.patch_number(patch_end) == 0 % patch 0 is high prob
+            y = [1, 1, 3, 3];
+        else % patch 1 is high prob
+            y = [5, 5, 7, 7];
+        end
+        x = [timestamps_minutes(first_in_patch), timestamps_minutes(patch_end), timestamps_minutes(patch_end), timestamps_minutes(first_in_patch)];
+        first_in_patch = j;
+        patch(x, y, [0.5, 0.5, 0.5], 'FaceAlpha', 0.3, 'EdgeAlpha', 0)
+    end
+end
+
+% plot gray trajectory lines
+% fix if the two arrays are different sizes
+plot(timestamps_minutes, licked_ports, 'Color', [0.1, 0.1, 0.1]);  
+
+% plot lick points
+rewarded_indices = find(behavTrials.reward_outcome == 1);
+not_rewarded_indices = find(behavTrials.reward_outcome == 0);
+scatter(timestamps_minutes(rewarded_indices), licked_ports(rewarded_indices), 36, customGreen, 'filled');
+scatter(timestamps_minutes(not_rewarded_indices), licked_ports(not_rewarded_indices), 36, customRed, 'filled');
+
+ylabel('Port');
+xlabel('Time');
+title(strjoin(string(currentFolderName), ' '));
+
+%{
+% add ripples to plot
+behav_start = MergePoints.timestamps(2,1); 
+behav_end = MergePoints.timestamps(2,2);  
+ripple_color = [1 0 1];
+
+ripple_period = ripples.peaks(ripples.peaks <= behav_end & ripples.peaks >= behav_start);
+adjusted_ts = (ripple_period - behav_start)/60;
+ripple_y = interp1(timestamps_minutes, licked_ports, adjusted_ts);
+scatter(adjusted_ts, ripple_y, 36, ripple_color, 'filled');
+%}
+hold off
+
 %% Save
 if saveMat
     C = strsplit(pwd,'\');
     save([basepath filesep C{end} '.TrialBehaviorUnsynced.mat'],'behavTrials');
 end
 
+%{
+C = strsplit(pwd,'\');
+save([basepath filesep C{end} '.TrialBehavior.mat'],'behavTrials');
+%}
 disp('done!');
 
