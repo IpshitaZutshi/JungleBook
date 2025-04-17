@@ -13,9 +13,22 @@ AnalysisPreprocessing()
 %% 3. LFP, sleep score, ripples, spikes
 AnalysisBatchPatch()
 
+%% Photometry processing
+
+% processing.py 
+% or
+% iso_processing.py
+
 %% 4. Get Tracking and Behavior
-getPatchTracking() %This function returns the tracking and runs getPatchBehavior
+getPatchTracking() 
+
+% This function returns the tracking and runs getPatchBehavior
 % syncs intan, tracking, and photometry together
+
+%% Sleep photometry
+
+getSleepPhotometry()
+% aligns photometry from sleep session to intan data
 
 %% 5. Load spikes
 kilosort_folder = dir(fullfile(basepath, 'Kilosort*'));

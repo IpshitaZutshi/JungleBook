@@ -43,6 +43,8 @@ end
 
 fprintf('Computing place fields\n'); 
 
+portloc = [2 16 37 66 86 110 122.5]/2.5;
+
 %% Assign spike position to each spike
 if ~isempty(dir([basepath filesep '*.spikeData.cellinfo.mat']))
     file = dir([basepath filesep '*.spikeData.cellinfo.mat']);
@@ -117,32 +119,35 @@ if plotfig
     
     %% First plot the spike data plots
     if plotSpikeData
-        for cellNum = 1:length(spikeData.pos)  
+        for cellNum = 29%1:length(spikeData.pos)  
             figure
             set(gcf,'Color','w')
             set(gcf,'Position',[182 166 1585 762])
             plot(tracking.timestamps,tracking.position.y,'Color',[160/243 160/243 160/243], 'LineWidth',1.2)
             hold on
-            scatter(tracking.timestamps(spikeData.posIdx{cellNum}),tracking.position.y(spikeData.posIdx{cellNum}),5,'m','filled')
+            scatter(tracking.timestamps(spikeData.posIdx{cellNum}),tracking.position.y(spikeData.posIdx{cellNum}),8,'r','filled')
 
             for kk = 1:7
                 idx = find(behavTrials.port==kk);
                 for ii= 1:length(idx)
                     lickTS = behavTrials.timestamps(idx(ii));
                     [~,ixTS] = min(abs(tracking.timestamps-lickTS));    
-                    scatter(tracking.timestamps(ixTS),tracking.position.y(ixTS),10,col1(kk,:),'filled')                        
+                    %scatter(tracking.timestamps(ixTS),tracking.position.y(ixTS),10,col1(kk,:),'filled')                        
+                    scatter(tracking.timestamps(ixTS),tracking.position.y(ixTS),10,'k','filled')                        
                 end
             end
 
+            hold on
+            plot(behavTrials.timestamps,behavTrials.patch_number*120,'b')
             ylim([0 125])
             xlabel('Time(s)')
             ylabel('Position on track (cm)')
             box off 
 
-            saveas(gcf,[saveLoc,filesep ,'Avgcell_', num2str(cellNum),'.png'],'png');
-            saveas(gcf,[saveLoc,filesep ,'Avgcell_', num2str(cellNum),'.fig'],'fig');
-            saveas(gcf,[saveLoc,filesep ,'Avgcell_', num2str(cellNum),'.eps'],'epsc');
-            close all;
+            % saveas(gcf,[saveLoc,filesep ,'Avgcell_', num2str(cellNum),'.png'],'png');
+            % saveas(gcf,[saveLoc,filesep ,'Avgcell_', num2str(cellNum),'.fig'],'fig');
+            % saveas(gcf,[saveLoc,filesep ,'Avgcell_', num2str(cellNum),'.eps'],'epsc');
+            % close all;
         end
     end
     
@@ -181,7 +186,7 @@ if plotfig
 
         numCells = length(firingMaps.rateMaps);
 
-        for cellNum = 25%1:numCells
+        for cellNum = 157
             sortedRateMaps{cellNum} = [];
             sortedAvgRateMapsHighPatch{cellNum} = [];
             sortedAvgRateMapsLowPatch{cellNum} = [];
@@ -201,7 +206,24 @@ if plotfig
                     for trialNum = 1:length(idxHighPatch{ss})
                         avgRM = [avgRM; firingMaps.rateMaps{cellNum}{idxHighPatch{ss}(trialNum)}];
                     end
-                    sortedAvgRateMapsHighPatch{cellNum} = [sortedAvgRateMapsHighPatch{cellNum};nanmean(avgRM,1)];
+
+                    % Find the fraction of non-NaN values in each column
+                    fracNonNan = sum(~isnan(avgRM), 1) ./ size(avgRM, 1);
+                    
+                    % Keep only columns where at least 10% of the values are non-NaN
+                    avgRM_filtered = avgRM(:, fracNonNan >= 0.20);
+                    
+                   % Compute the average over the filtered columns
+                    if ~isempty(avgRM_filtered)
+                        % Take the average of filtered data
+                        avg_filtered = nanmean(avgRM_filtered, 1);
+                        % Pad with NaNs to match the original size
+                        padded_avg = nan(1, size(avgRM, 2));
+                        padded_avg(fracNonNan >= 0.20) = avg_filtered;
+                    else
+                        padded_avg = nan(1, size(avgRM, 2));
+                    end
+                    sortedAvgRateMapsHighPatch{cellNum} = [sortedAvgRateMapsHighPatch{cellNum}; padded_avg];
                 else
                     ratemap = nan(1,50);
                     sortedAvgRateMapsHighPatch{cellNum} = [sortedAvgRateMapsHighPatch{cellNum};ratemap];
@@ -213,29 +235,80 @@ if plotfig
                     for trialNum = 1:length(idxLowPatch{ss})
                         avgRM = [avgRM; firingMaps.rateMaps{cellNum}{idxLowPatch{ss}(trialNum)}];
                     end
-                    sortedAvgRateMapsLowPatch{cellNum} = [sortedAvgRateMapsLowPatch{cellNum};nanmean(avgRM,1)];
+                     % Find the fraction of non-NaN values in each column
+                    fracNonNan = sum(~isnan(avgRM), 1) ./ size(avgRM, 1);
+                    
+                    % Keep only columns where at least 10% of the values are non-NaN
+                    avgRM_filtered = avgRM(:, fracNonNan >= 0.20);
+                    
+                   % Compute the average over the filtered columns
+                    if ~isempty(avgRM_filtered)
+                        % Take the average of filtered data
+                        avg_filtered = nanmean(avgRM_filtered, 1);
+                        % Pad with NaNs to match the original size
+                        padded_avg = nan(1, size(avgRM, 2));
+                        padded_avg(fracNonNan >= 0.20) = avg_filtered;
+                    else
+                        padded_avg = nan(1, size(avgRM, 2));
+                    end
+                    sortedAvgRateMapsLowPatch{cellNum} = [sortedAvgRateMapsLowPatch{cellNum}; padded_avg];
                 else
                     ratemap = nan(1,50);
                     sortedAvgRateMapsLowPatch{cellNum} = [sortedAvgRateMapsLowPatch{cellNum};ratemap];
                 end                
             end
 
-            figure            
+            fig2 = figure;            
             set(gcf,'Color','w')
-            subplot(2,2,[1 3])
+            subplot(2,3,[1 4])
             h = imagesc(sortedRateMaps{cellNum});
             set(h, 'AlphaData', ~isnan(sortedRateMaps{cellNum}))
             %caxis([0 20])
 
-            subplot(2,2,2)
+            subplot(2,3,2)
             h = imagesc(sortedAvgRateMapsHighPatch{cellNum});
             set(h, 'AlphaData', ~isnan(sortedAvgRateMapsHighPatch{cellNum}))
-            %caxis([0 20])
+            caxis([0 max(max(sortedAvgRateMapsHighPatch{cellNum}))])
+            title('High probability','Color','r')
+            for ss = 1:size(sorted_data,1)
+                line([portloc(sorted_data(ss,1)) portloc(sorted_data(ss,1))],[ss-0.5 ss+0.5],'LineWidth',2,'Color','k')
+                hold on
+                line([portloc(sorted_data(ss,2)) portloc(sorted_data(ss,2))],[ss-0.5 ss+0.5],'LineWidth',2,'Color','k')
+            end
+            colorbar
 
-            subplot(2,2,4)
+            
+            subplot(2,3,3)
             h = imagesc(sortedAvgRateMapsLowPatch{cellNum});
             set(h, 'AlphaData', ~isnan(sortedAvgRateMapsLowPatch{cellNum}))
-            %caxis([0 20])
+            caxis([0 max(max(sortedAvgRateMapsLowPatch{cellNum}))])
+            title('Low probability','Color','b')
+            for ss = 1:size(sorted_data,1)
+                line([portloc(sorted_data(ss,1)) portloc(sorted_data(ss,1))],[ss-0.5 ss+0.5],'LineWidth',2,'Color','k')
+                hold on
+                line([portloc(sorted_data(ss,2)) portloc(sorted_data(ss,2))],[ss-0.5 ss+0.5],'LineWidth',2,'Color','k')
+            end
+            colorbar
+
+            subplot(2,3,6);
+            timeaxis = 1:50;
+            if cellNum == 157
+                data1 = sortedAvgRateMapsHighPatch{cellNum}([7 8 9 10],:);
+                data2 = sortedAvgRateMapsLowPatch{cellNum}([7 8 9 10],:); 
+                %data3 = sortedAvgRateMapsHighPatch{cellNum}([14 17 19],:);
+            else
+                data1 = sortedAvgRateMapsHighPatch{cellNum}([15 18 20 21],:);
+                data2 = sortedAvgRateMapsLowPatch{cellNum}([15 18 20 21],:); 
+                data3 = sortedAvgRateMapsHighPatch{cellNum}([14 17 19],:);                
+            end
+            plotAvgStd(data1,2,3,6,fig2,timeaxis','r',0)
+            hold on                       
+            plotAvgStd(data2,2,3,6,fig2,timeaxis','b',0)            
+            %plotAvgStd(data3,2,3,6,fig2,timeaxis','k',0)
+            ylabel('Average firing rate')
+            xlabel('Position on track')
+            title(strcat('Cell num',num2str(cellNum)))
+
 
 %          saveas(gcf,['FiringMap',filesep ,'cell_' num2str(cellNum) '.png'],'png');
 %          saveas(gcf,['FiringMap',filesep ,'cell_' num2str(cellNum) '.fig'],'fig');
@@ -245,4 +318,39 @@ if plotfig
 
     end  
 end
+end
+
+function plotAvgStd(array,numrows,numcol,subplotlocation,figureHandle,xAxis,col, useMedian)
+
+    subplot(numrows, numcol, subplotlocation, 'Parent', figureHandle);
+    if ~useMedian
+        meanpsth = nanmean(array,1);
+        stdpsth = nanstd(array,1)./sqrt(size(array,1));
+        lArr  = meanpsth-stdpsth;
+        uArr = meanpsth+stdpsth;
+    else
+        meanpsth = nanmedian(array,1);
+        % Bootstrapping to estimate variability of the median
+        n_bootstraps = 1000;
+        bootstrap_medians = zeros(n_bootstraps, size(array, 2));
+        
+        for i = 1:n_bootstraps
+            resample_indices = randi([1, size(array, 1)], size(array, 1), 1);  % Generate random indices with replacement
+            bootstrap_sample = array(resample_indices, :);  % Create bootstrap sample
+            bootstrap_medians(i, :) = nanmedian(bootstrap_sample);  % Compute median of the bootstrap sample
+        end
+        
+        % Compute the 2.5th and 97.5th percentiles for the bounds
+        lArr = prctile(bootstrap_medians, 2.5);
+        uArr = prctile(bootstrap_medians, 97.5);
+
+    end
+
+    lArr(isnan(lArr)) = 0;
+    uArr(isnan(uArr)) = 0;
+    fill([xAxis; flipud(xAxis)],[lArr'; flipud(uArr')],col,'linestyle','none','FaceAlpha',0.5);                    
+    hold on
+    hi = line(xAxis,meanpsth,'LineWidth',1,'Color',col);
+    %yscale log
+
 end

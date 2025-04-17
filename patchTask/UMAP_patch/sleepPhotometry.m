@@ -4,12 +4,28 @@
 % not already been synced to intan. Plots the averaged photometry data around 
 % ripple events for the entire session.
 
+color = 0; % 0/pink for striatum, 1/green for HPC
+
+%% combine all photometry sessions
+% full_photometry.timestamps = sleep_sync.timestamps;
+% full_photometry.grabDA_z = sleep_sync.grabDA_z;
+% 
+% full_photometry.timestamps = [full_photometry.timestamps; photometry.timestamps];
+% full_photometry.grabDA_z = [full_photometry.grabDA_z; photometry.grabDA_z];
+% 
+% full_photometry.timestamps = [full_photometry.timestamps; sleep_sync.timestamps+MergePoints.timestamps(3,1)];
+% full_photometry.grabDA_z = [full_photometry.grabDA_z; sleep_sync.grabDA_z];
+% 
+% figure
+% plot(full_photometry.timestamps, full_photometry.grabDA_z);
+
 %% Load variables
 
 % set pre_post to be 1 for pre behavior sleep, 2 for post behavior sleep  
-pre_post = 1;
+pre_post = 2;
 
 basepath = pwd;
+[~, currentFolderName] = fileparts(basepath);
 
 sampling_rate = 130; % sampling rate of photometry set up - 130
 
@@ -44,6 +60,68 @@ end
 % make this a fxn
 %function [avg] = avgAcrossEvents(event)
 
+%{
+    sleep_start = MergePoints.timestamps(2,1); 
+    sleep_end = MergePoints.timestamps(2,2); 
+%}
+
+color = 0; % 0/pink for striatum, 1/green for HPC
+
+%% combine all photometry sessions
+% full_photometry.timestamps = sleep_sync.timestamps;
+% full_photometry.grabDA_z = sleep_sync.grabDA_z;
+% 
+% full_photometry.timestamps = [full_photometry.timestamps; photometry.timestamps];
+% full_photometry.grabDA_z = [full_photometry.grabDA_z; photometry.grabDA_z];
+% 
+% full_photometry.timestamps = [full_photometry.timestamps; sleep_sync.timestamps+MergePoints.timestamps(3,1)];
+% full_photometry.grabDA_z = [full_photometry.grabDA_z; sleep_sync.grabDA_z];
+
+
+%% full trace
+
+% BLUE = NREM
+% RED = REM
+% YELLOW = WAKE
+
+if exist('full_photometry')
+    sleep_state_file = dir(fullfile(basepath, '..', '*SleepState.states.mat'));
+    load(sleep_state_file.name)
+    adjusted_ts = sleep_sync.timestamps + sleep_start;
+    
+    darkerGreen = [0.1098    0.6000    0.2392];
+    striatum_pink = [0.960784313725490, 0.152941176470588, 0.905882352941176];
+    figure('color','white')
+    ax = gca;
+    ax.FontSize = 15;
+    hold on
+    plot(adjusted_ts, sleep_sync.grabDA_z, 'Color', darkerGreen, 'LineWidth', 2);
+    for ii = 1:size(SleepState.ints.NREMstate, 1)
+        y = [-4, -4, 6, 6];
+        x = [SleepState.ints.NREMstate(ii, 1), SleepState.ints.NREMstate(ii, 2), ...
+            SleepState.ints.NREMstate(ii, 2), SleepState.ints.NREMstate(ii, 1)];
+        patch(x, y, [0.301960784313725   0.745098039215686   0.933333333333333], 'FaceAlpha', 0.3, 'EdgeAlpha', 0)
+    end
+    
+    for ii = 1:size(SleepState.ints.REMstate, 1)
+        y = [-4, -4, 6, 6];
+        x = [SleepState.ints.REMstate(ii, 1), SleepState.ints.REMstate(ii, 2), ...
+            SleepState.ints.REMstate(ii, 2), SleepState.ints.REMstate(ii, 1)];
+        patch(x, y, [1.000000000000000   0.266666666666667                   0], 'FaceAlpha', 0.3, 'EdgeAlpha', 0)
+    end
+    
+    for ii = 1:size(SleepState.ints.WAKEstate, 1)
+        y = [-4, -4, 6, 6];
+        x = [SleepState.ints.WAKEstate(ii, 1), SleepState.ints.WAKEstate(ii, 2), ...
+            SleepState.ints.WAKEstate(ii, 2), SleepState.ints.WAKEstate(ii, 1)];
+        patch(x, y, [1.000000000000000   1.000000000000000   0.066666666666667], 'FaceAlpha', 0.3, 'EdgeAlpha', 0)
+    end
+    xlim([adjusted_ts(1), adjusted_ts(end)]);
+    ylim([min(y), max(y)])
+    hold off
+end
+
+
 
 %% Analyze sleep photometry
 
@@ -71,14 +149,24 @@ for j = 1:length(ripple_period)
     end_idx = ripple_idx + samples;
     if start_idx >= 1 && end_idx <= height(adjusted_ts)
         ripple_matrix(j, :) = sleep_sync.grabDA_z(start_idx:end_idx);
+        
+        % % z score
+        % baseline = ripple_matrix(j, :);
+        % 
+        % % Calculate baseline mean and std
+        % baseline_mean = mean(baseline);
+        % baseline_std = std(baseline);
+        % 
+        % % Z-score the entire trial using the baseline stats
+        % ripple_matrix(j, :) = (ripple_matrix(j, :) - baseline_mean) / baseline_std;
     end
 end
 
 ripple_matrix(any(isnan(ripple_matrix), 2), :) = [];
 
 % ripple_matrix_2 = ripple_matrix;
-%new = [ripple_matrix_2; ripple_matrix];
-%ripple_matrix = new;
+% new = [ripple_matrix_2; ripple_matrix];
+% ripple_matrix = new;
 
 median_ripple = median(ripple_matrix, 1); % median at each timepoint
 time = linspace(-window, window, ((samples*2)+1));
@@ -109,7 +197,7 @@ fill([time,fliplr(time)], [(ripple_CI95(1,:)+median_ripple),fliplr((ripple_CI95(
 xline(0, '--r', 'LineWidth', 1)
 xlabel('time (s)');
 ylabel('avg z-score');
-title('Average Z-score Around Ripples - N11 sess 17 Striatum');% (Pre-task Sleep)');
+d Ripples - N11 sess 17 Striatum');% (Pre-task Sleep)');
 grid on;
 hold off
 
@@ -122,19 +210,6 @@ xline(0, '--r', 'LineWidth', 1)
 xlabel('time (s)');
 ylabel('avg z-score');
 title('Average Z-score Around Ripples (Pre-task Sleep)');
-grid on;
-hold off
-
-
-figure('color','white');
-subplot()
-plot(time, median_ripple, 'g', 'LineWidth', 2);
-hold on
-fill([time,fliplr(time)], [(ripple_CI95(1,:)+median_ripple),fliplr((ripple_CI95(2,:)+median_ripple))], 'b', 'EdgeColor','none', 'FaceAlpha',0.25)
-xline(0, '--r', 'LineWidth', 1)
-xlabel('time (s)');
-ylabel('avg z-score');
-title('Average Z-score Around Ripples - N11 sess 17 Striatum');% (Pre-task Sleep)');
 grid on;
 hold off
 

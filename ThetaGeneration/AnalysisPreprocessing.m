@@ -176,6 +176,7 @@ for ii = 1:size(allSess,1)
         copyfile(strcat(allpath{1},'\global.xml'),strcat(allSess(ii).name,'.xml'),'f');
     end
     % Concatenate sessions
+    
     bz_ConcatenateDats(pwd,0,1);
 
 end

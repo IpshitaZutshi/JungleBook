@@ -275,10 +275,10 @@ for ii = 1:length(results)
     end
         
     % 
-    expPath = 'C:\Users\Ipshita\NYU Langone Health Dropbox\Ipshita Zutshi\Patch Task\Figures';
-    saveas(gcf,strcat(expPath,'UMAP_N7_sess23_singletrials_',num2str(ii),'.png'));
-    saveas(gcf,strcat(expPath,'UMAP_N7_sess23_singletrials_',num2str(ii),'.eps'),'epsc');
-    saveas(gcf,strcat(expPath,'UMAP_N7_sess23_singletrials_',num2str(ii),'.fig'));
+    % expPath = 'C:\Users\Ipshita\NYU Langone Health Dropbox\Ipshita Zutshi\Patch Task\Figures';
+    % saveas(gcf,strcat(expPath,'UMAP_N7_sess23_singletrials_',num2str(ii),'.png'));
+    % saveas(gcf,strcat(expPath,'UMAP_N7_sess23_singletrials_',num2str(ii),'.eps'),'epsc');
+    % saveas(gcf,strcat(expPath,'UMAP_N7_sess23_singletrials_',num2str(ii),'.fig'));
 end
 
 
