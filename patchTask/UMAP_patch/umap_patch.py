@@ -18,7 +18,7 @@ import umap
 from umap import UMAP
 #import matplotlib as plt
 
-basepath = r'Z:\Buzsakilabspace\LabShare\ZutshiI\patchTask\N7\N7_241205_sess17'
+basepath = r'C:\Data\Kilosort\N9_241211_sess14'
 
 spikes_file = glob.glob(basepath + '/*.data.mat')
 behav_file = glob.glob(basepath + '/*.position_behavior_speed.mat')
@@ -46,24 +46,24 @@ utrans = UMAP(n_neighbors=20, n_components=6, metric='cosine', metric_kwds=None,
 uproj1 = utrans.fit_transform(spikes_data[:,:])
 ## fit transform behavior only
 
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-# plt.hsv()
-# for deg1 in [-80, -20, 20,80,50,-50]:
-#     for deg2 in [20]:
-#         fig = plt.figure(figsize= (20,20), dpi = 300)
+plt.hsv()
+for deg1 in [-80, -20, 20,80,50,-50]:
+    for deg2 in [20]:
+        fig = plt.figure(figsize= (20,20), dpi = 300)
 
-#         ax = fig.add_subplot(111, projection = '3d')       
-#         ax.axis('off')
-#         ax.set_title(str(deg1) + '_' + str(deg2))
-#         ax.scatter(uproj1[:,0], 
-#                    uproj1[:,1],
-#                    uproj1[:,2],c='Crimson')
+        ax = fig.add_subplot(111, projection = '3d')       
+        ax.axis('off')
+        ax.set_title(str(deg1) + '_' + str(deg2))
+        ax.scatter(uproj1[:,0], 
+                    uproj1[:,1],
+                    uproj1[:,2],c='Crimson')
 
-#                    #c = xx_tmaze[speed_tmaze>sp][movetimes1],
-#                   #s = 10)
-#         ax.view_init(deg1,deg2)
-#         plt.show()
+                    #c = xx_tmaze[speed_tmaze>sp][movetimes1],
+                  #s = 10)
+        ax.view_init(deg1,deg2)
+        plt.show()
 
 
 
