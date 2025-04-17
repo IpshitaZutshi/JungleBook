@@ -26,10 +26,13 @@ norm_session1 = zeros(size(ripple_matrix_sleep_18));
 norm_session2 = zeros(size(ripple_matrix_sleep_19));
 norm_session3 = zeros(size(ripple_matrix_sleep_22));
 norm_session4 = zeros(size(ripple_matrix_sleep_HPC_23));
+<<<<<<< HEAD
 norm_session5 = zeros(size(ripple_matrix_sleep_24));
 norm_session6 = zeros(size(ripple_matrix_sleep_26));
 norm_session7 = zeros(size(ripple_matrix_sleep_28));
 norm_session8 = zeros(size(ripple_matrix_sleep_30));
+=======
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 
 % norm_session1 = zeros(size(ripple_matrix_sleep_2));
 % norm_session2 = zeros(size(ripple_matrix_sleep_3));
@@ -37,11 +40,16 @@ norm_session8 = zeros(size(ripple_matrix_sleep_30));
 % norm_sessions = {norm_session1, norm_session2};
 
 % Normalize each trial in each session
+<<<<<<< HEAD
 sessions = {ripple_matrix_sleep_18, ripple_matrix_sleep_19, ripple_matrix_sleep_22, ... 
     ripple_matrix_sleep_HPC_23, ripple_matrix_sleep_24, ripple_matrix_sleep_26, ... 
     ripple_matrix_sleep_28, ripple_matrix_sleep_30};
 norm_sessions = {norm_session1, norm_session2, norm_session3, norm_session4... 
     norm_session5, norm_session6, norm_session7, norm_session8};
+=======
+sessions = {ripple_matrix_sleep_18, ripple_matrix_sleep_19, ripple_matrix_sleep_22, ripple_matrix_sleep_HPC_23};
+norm_sessions = {norm_session1, norm_session2, norm_session3, norm_session4};
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 
 for s = 1:length(sessions)
     current_session = sessions{s};
@@ -77,7 +85,11 @@ for ii=1:length(norm_sessions)
     ripple_CI95 = bsxfun(@times, ripple_SEM, CI95(:)); 
     median_ripple = median(current_norm, 1); % median at each timepoint
 
+<<<<<<< HEAD
     cmap = summer(9);
+=======
+    cmap = summer(5);
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
     plot(time, median_ripple, 'color', cmap(ii, :), 'LineWidth', 2);
     fill([time,fliplr(time)], [(ripple_CI95(1,:)+median_ripple),fliplr((ripple_CI95(2,:)+median_ripple))], cmap(ii, :), 'EdgeColor','none', 'FaceAlpha',0.25)
     xline(0, '--r', 'LineWidth', 1)
@@ -85,6 +97,7 @@ for ii=1:length(norm_sessions)
     ylabel('avg z-score');
     title(['Average Z-score Around Ripples'], [num2str(size(norm_sessions{1}, 1)), ...
         ' ripples, ', num2str(size(norm_sessions{2}, 1)), ' ripples, ', ...
+<<<<<<< HEAD
         num2str(size(norm_sessions{3}, 1)), ' ripples, ', num2str(size(norm_sessions{4}, 1)), ' ripples, ',... 
         num2str(size(norm_sessions{5}, 1)), ' ripples, ', num2str(size(norm_sessions{6}, 1)), ' ripples, ']);
 end
@@ -117,6 +130,9 @@ for ii=1:length(norm_sessions)
         ' ripples, ', num2str(size(norm_sessions{2}, 1)), ' ripples, ', ...
         num2str(size(norm_sessions{3}, 1)), ' ripples, ', num2str(size(norm_sessions{4}, 1)), ' ripples, ',... 
         num2str(size(norm_sessions{5}, 1)), ' ripples, ', num2str(size(norm_sessions{6}, 1)), ' ripples, ']);
+=======
+        num2str(size(norm_sessions{3}, 1)), ' ripples, ', num2str(size(norm_sessions{4}, 1)), ' ripples, ']);
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 end
 grid on;
 hold off
@@ -173,7 +189,10 @@ for ii=1:length(norm_sessions)
     median_ripple = median(current_norm, 1); % median at each timepoint
 
     cmap = spring(4);
+<<<<<<< HEAD
     smoothed = smoothdata(median_ripple);
+=======
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
     plot(time, median_ripple, 'color', cmap(ii, :), 'LineWidth', 2);
     fill([time,fliplr(time)], [(ripple_CI95(1,:)+median_ripple),fliplr((ripple_CI95(2,:)+median_ripple))], cmap(ii, :), 'EdgeColor','none', 'FaceAlpha',0.25)
     xline(0, '--r', 'LineWidth', 1)
@@ -188,6 +207,7 @@ end
 grid on;
 hold off
 
+<<<<<<< HEAD
 % smoothed
 figure('color','white');
 hold on
@@ -217,6 +237,8 @@ for ii=1:length(norm_sessions)
 end
 grid on;
 hold off
+=======
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

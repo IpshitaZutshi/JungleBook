@@ -5,13 +5,11 @@ basepath = pwd;
 [~, currentFolderName, ~] = fileparts(pwd);
 
 
-file = dir(fullfile(pwd, '*', '*.spikes.cellinfo.mat'));
-cd(file.folder)
+file = dir('*.spikes.cellinfo.mat');
 load(file.name)
-cd(basepath)
 
-% file = dir('*.cell_metrics.cellinfo.mat');
-% load(file.name)
+file = dir('*.cell_metrics.cellinfo.mat');
+load(file.name)
 
 file = dir('*.session.mat');
 load(file.name)

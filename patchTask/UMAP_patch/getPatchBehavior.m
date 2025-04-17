@@ -119,12 +119,16 @@ end
 
 %% Detect switch patch trials
 
+<<<<<<< HEAD
 for i = 2:length(trial_licks)
+=======
+for i = 2:behavTrials.num_trials
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
     current_port = behavTrials.port(i);
     previous_port = behavTrials.port(i-1);
     
-    if (ismember(current_port, [1, 2, 3, 0]) && ismember(previous_port, [0, 5, 6, 7])) || ...
-       (ismember(current_port, [5, 6, 7, 0]) && ismember(previous_port, [0, 1, 2, 3]))
+    if (ismember(current_port, [1, 2, 3]) && ismember(previous_port, [5, 6, 7])) || ...
+       (ismember(current_port, [5, 6, 7]) && ismember(previous_port, [1, 2, 3]))
         behavTrials.stay_switch(i) = 1;
     else
         behavTrials.stay_switch(i) = 0;
@@ -270,7 +274,7 @@ if plotfig
     
     %% Running percentage of licks in a patch
     % Define the number of trials for the running window
-    windowSize = 30;
+    windowSize = 29;
     
     % Identify high-probability patch at each trial
     for ii = 1:behavTrials.num_trials
@@ -281,16 +285,24 @@ if plotfig
     licksInHighProbPatch = ismember(behavTrials.port, 1:3) & highProbPatch' | ...
                             ismember(behavTrials.port, 5:7) & ~highProbPatch';
     
+    licksInHighProbPatch = double(licksInHighProbPatch)';
+
     % Compute running percentage over a sliding window
     runningPercentage = zeros(size(licksInHighProbPatch));
     
     for t = 1:length(licksInHighProbPatch)
-        if t >= windowSize
-            windowLicks = licksInHighProbPatch(t-windowSize+1:t);
-        else
-            windowLicks = licksInHighProbPatch(1:t);
+        if t == 1 || (behavTrials.patch_number(t-1)~=behavTrials.patch_number(t)) % New patch has started
+            winCount = 1;
         end
-        runningPercentage(t) = mean(windowLicks) * 100;
+        if winCount < windowSize
+            curArray1 = zeros(1,windowSize-winCount); 
+            curArray2 = licksInHighProbPatch(t-(winCount-1):t);
+            curArray = [curArray1 curArray2];
+        else
+            curArray = licksInHighProbPatch(t-(windowSize-1):t);
+        end
+        winCount = winCount+1;
+        runningPercentage(t) = mean(curArray) * 100;
     end
     
     % Plot the running percentage
@@ -300,6 +312,17 @@ if plotfig
     plot(behavTrials.timestamps,highProbPatch*100,'Color','r','LineWidth',1)
     xlabel('Trial Number');
     ylabel('Running %');
+
+    patchNums = find(diff(behavTrials.patch_number)~=0);
+    if isempty(patchNums)
+        trialstoSwitch = nan;
+    else
+        trialstoSwitch = patchNums(1);
+        for ii = 1:(length(patchNums)-1)
+            trialstoSwitch(ii+1) = patchNums(ii+1)-patchNums(ii);
+        end
+    end
+    title(strcat('Avg trials to switch = ', num2str(nanmean(trialstoSwitch))))
 
     saveas(h2,'Behavior\Behavior.png');
     saveas(h2,'Behavior\Behavior.fig');

@@ -19,6 +19,10 @@ color = 0; % 0/pink for striatum, 1/green for HPC
 % figure
 % plot(full_photometry.timestamps, full_photometry.grabDA_z);
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 %% Load variables
 
 % set pre_post to be 1 for pre behavior sleep, 2 for post behavior sleep  
@@ -65,6 +69,7 @@ end
     sleep_end = MergePoints.timestamps(2,2); 
 %}
 
+<<<<<<< HEAD
 color = 0; % 0/pink for striatum, 1/green for HPC
 
 %% combine all photometry sessions
@@ -80,10 +85,16 @@ color = 0; % 0/pink for striatum, 1/green for HPC
 
 %% full trace
 
+=======
+
+%% full trace
+%{
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 % BLUE = NREM
 % RED = REM
 % YELLOW = WAKE
 
+<<<<<<< HEAD
 if exist('full_photometry')
     sleep_state_file = dir(fullfile(basepath, '..', '*SleepState.states.mat'));
     load(sleep_state_file.name)
@@ -121,9 +132,47 @@ if exist('full_photometry')
     hold off
 end
 
+=======
+sleep_state_file = dir(fullfile(basepath, '..', '*SleepState.states.mat'));
+load(sleep_state_file.name)
+adjusted_ts = sleep_sync.timestamps + sleep_start;
+
+darkerGreen = [0.1098    0.6000    0.2392];
+striatum_pink = [0.960784313725490, 0.152941176470588, 0.905882352941176];
+figure('color','white')
+ax = gca;
+ax.FontSize = 15;
+hold on
+plot(adjusted_ts, sleep_sync.grabDA_z, 'Color', darkerGreen, 'LineWidth', 2);
+for ii = 1:size(SleepState.ints.NREMstate, 1)
+    y = [-4, -4, 6, 6];
+    x = [SleepState.ints.NREMstate(ii, 1), SleepState.ints.NREMstate(ii, 2), ...
+        SleepState.ints.NREMstate(ii, 2), SleepState.ints.NREMstate(ii, 1)];
+    patch(x, y, [0.301960784313725   0.745098039215686   0.933333333333333], 'FaceAlpha', 0.3, 'EdgeAlpha', 0)
+end
+
+for ii = 1:size(SleepState.ints.REMstate, 1)
+    y = [-4, -4, 6, 6];
+    x = [SleepState.ints.REMstate(ii, 1), SleepState.ints.REMstate(ii, 2), ...
+        SleepState.ints.REMstate(ii, 2), SleepState.ints.REMstate(ii, 1)];
+    patch(x, y, [1.000000000000000   0.266666666666667                   0], 'FaceAlpha', 0.3, 'EdgeAlpha', 0)
+end
+
+for ii = 1:size(SleepState.ints.WAKEstate, 1)
+    y = [-4, -4, 6, 6];
+    x = [SleepState.ints.WAKEstate(ii, 1), SleepState.ints.WAKEstate(ii, 2), ...
+        SleepState.ints.WAKEstate(ii, 2), SleepState.ints.WAKEstate(ii, 1)];
+    patch(x, y, [1.000000000000000   1.000000000000000   0.066666666666667], 'FaceAlpha', 0.3, 'EdgeAlpha', 0)
+end
+xlim([adjusted_ts(1), adjusted_ts(end)]);
+ylim([min(y), max(y)])
+hold off
+%}
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 
 
 %% Analyze sleep photometry
+sleep_sync=photometry;
 
 ripple_period = ripples.peaks(ripples.peaks <= sleep_end & ripples.peaks >= sleep_start);
 
@@ -138,11 +187,12 @@ window = 5; % window of time around ripple to average
 samples = window*sampling_rate;
 
 % initialize matrix
-ripple_matrix = nan(length(ripple_period), (samples*2)+1); % ripples
+ripple_matrix = nan(length(ripple_period), (samples*2)+1); 
 
 
 % average photometry data within a specified time window around ripples
 adjusted_ts = sleep_sync.timestamps + sleep_start;
+adjusted_ts = sleep_sync.timestamps;
 for j = 1:length(ripple_period)
     [~, ripple_idx] = min(abs(adjusted_ts - ripple_period(j)));
     start_idx = ripple_idx - samples;
@@ -164,9 +214,17 @@ end
 
 ripple_matrix(any(isnan(ripple_matrix), 2), :) = [];
 
+<<<<<<< HEAD
 % ripple_matrix_2 = ripple_matrix;
 % new = [ripple_matrix_2; ripple_matrix];
 % ripple_matrix = new;
+=======
+%{
+ripple_matrix_2 = ripple_matrix;
+new = [ripple_matrix_2; ripple_matrix];
+ripple_matrix = new;
+%}
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 
 median_ripple = median(ripple_matrix, 1); % median at each timepoint
 time = linspace(-window, window, ((samples*2)+1));
@@ -190,6 +248,16 @@ t = (sample_mn - mn)/(st_d/(sqrt(deg_free)));
 
 %% Plot photometry against ripples
 
+if color == 0
+    % avg_color = [ 0.2392    0.2863    0.9608];
+    % conf_color = 'b';
+    avg_color = [0.960784313725490, 0.152941176470588, 0.905882352941176];
+    conf_color = [0.960784313725490, 0.152941176470588, 0.905882352941176];
+else
+    avg_color = 'g';
+    conf_color = [0.7176    0.9412    0.1020];
+end
+%{
 figure('color','white');
 plot(time, median_ripple, 'g', 'LineWidth', 2);
 hold on
@@ -197,9 +265,14 @@ fill([time,fliplr(time)], [(ripple_CI95(1,:)+median_ripple),fliplr((ripple_CI95(
 xline(0, '--r', 'LineWidth', 1)
 xlabel('time (s)');
 ylabel('avg z-score');
+<<<<<<< HEAD
 d Ripples - N11 sess 17 Striatum');% (Pre-task Sleep)');
+=======
+title('Average Z-score Around Ripples -  N11 sess 17 Striatum');% (Pre-task Sleep)');
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 grid on;
 hold off
+%}
 
 smoothed = smoothdata(median_ripple);
 figure('color','white');
@@ -214,6 +287,24 @@ grid on;
 hold off
 
 
+<<<<<<< HEAD
+=======
+figure('color','white');
+plot(time, median_ripple, 'color', avg_color, 'LineWidth', 2);
+hold on
+fill([time,fliplr(time)], [(ripple_CI95(1,:)+median_ripple),fliplr((ripple_CI95(2,:)+median_ripple))], conf_color, 'EdgeColor','none', 'FaceAlpha',0.25)
+xline(0, '--r', 'LineWidth', 1)
+xlabel('time (s)');
+ylabel('avg z-score');
+title(['Average Z-score Around Ripples - ', currentFolderName, ' HPC'], [num2str(size(ripple_matrix, 1)), ' ripple events']);% (Pre-task Sleep)');
+grid on;
+hold off
+
+% chan = sessionInfo.AnatGrps(5).Channels;
+% lfp = bz_GetLFP(chan);
+% bz_eventCSD(lfp, ripples.peaks);
+
+>>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 %{
 
 %photom_pre_sleep = photometryData;

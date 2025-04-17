@@ -107,8 +107,6 @@ if useDLC
     p = DLC.Var4;
     x1(p<0.9995) = nan;
     y1(p<0.9995) = nan;
-    x1(x1>810) = nan;
-    y1(x1>810) = nan;
     pos = [x1 y1];
 else
     tic

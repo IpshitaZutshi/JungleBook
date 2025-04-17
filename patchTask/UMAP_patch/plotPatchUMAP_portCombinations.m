@@ -97,81 +97,81 @@ pos_x_filtered = position_x_all(filtered_idx);
 pos_y_filtered = position_y_all(filtered_idx);
 
 time_filtered = timestamp_beh(filtered_idx);
-%[~,x]=min(abs(time_filtered - behavTrials.timestamps(5)));
+[~,x]=min(abs(time_filtered - behavTrials.timestamps(5)));
 
-%% Create multiplot
+% Create multiplot
 
-% figure;
-% set(gcf,'Color','w')
-% set(gcf,'Position',[22 65 1650 940])
-% set(gcf,'Renderer','painters')
-% t = tiledlayout(2, 2, 'TileSpacing', 'Compact', 'Padding', 'Compact');
-% title(t, currentFolderName);
-% 
-% ax1 = nexttile;
-% ax2 = nexttile;
-% ax3 = nexttile;
-% ax4 = nexttile;
-% 
-% Link = linkprop([ax1, ax2, ax3, ax4], {'CameraPosition', 'CameraTarget', 'CameraUpVector', 'XLim', 'YLim', 'ZLim'});
-% setappdata(gcf, 'StoreTheLink', Link);
-% 
-% color = 'jet';
-% dotSize = 5;
-% % Plot1: colored by position
-% hold on
-% scatter3(ax1, Umap_results_filtered(:,dim1), Umap_results_filtered(:,dim2), Umap_results_filtered(:,dim3), dotSize, pos_plot_filtered, 'filled');
-% colormap(ax1, color);
-% view(ax1, A, E);
-% grid(ax1, 'off');
-% axis(ax1, 'tight');
-% axis(ax1, 'off');
-% colorbar(ax1);
-% title(ax1, 'Position');
-% hold off
-% 
-% % Plot 2: Colored by chosen port
-% scatter3(ax2, Umap_results_filtered(:,dim1), Umap_results_filtered(:,dim2), Umap_results_filtered(:,dim3), dotSize, lick_plot_filtered, 'filled');
-% colormap(ax2, color);
-% view(ax2, A, E);
-% grid(ax2, 'off');
-% axis(ax2, 'tight');
-% axis(ax2, 'off');
-% colorbar(ax2);
-% title(ax2, 'Chosen port');
-% 
-% % Plot 3: Colored by direction
-% scatter3(ax3, Umap_results_filtered(:,dim1), Umap_results_filtered(:,dim2), Umap_results_filtered(:,dim3), dotSize, direction_plot_filtered, 'filled');
-% colormap(ax3, color);
-% view(ax3, A, E);
-% grid(ax3, 'off');
-% axis(ax3, 'tight');
-% axis(ax3, 'off');
-% colorbar(ax3);
-% title(ax3, 'Direction');
-% 
-% %Plot 4: Only show times of licks
-% scatter3(ax4, Umap_results_filtered(:,dim1), Umap_results_filtered(:,dim2), Umap_results_filtered(:,dim3), ...
-%     dotSize, [0.85 0.85 0.85], 'filled', 'MarkerFaceAlpha', 0.4);
-% view(ax4, A, E);
-% 
-% cmap = jet(7);
-% colormap(ax4, cmap); 
-% grid(ax4, 'off');
-% axis(ax4, 'tight');
-% axis(ax4, 'off');
-% title(ax4, 'Licked Ports');
-% hold(ax4, 'on');
-% colorbar(ax4, 'Ticks', [0, 0.2, 0.35, 0.5, 0.65, 0.8, 1], 'TickLabels', {'1', '2', '3', '4','5', '6', '7'});
-% 
-% for i = 1:7
-%     ts = behavTrials.timestamps(behavTrials.port == i);
-%     for tt = 1:length(ts)
-%         [~, tsIdx] = min(abs(time_filtered-ts(tt)));
-%         scatter3(ax4, Umap_results_filtered(tsIdx, dim1), Umap_results_filtered(tsIdx, dim2), Umap_results_filtered(tsIdx, dim3), ...
-%             20, cmap(i, :), 'filled');
-%     end
-% end
+figure;
+set(gcf,'Color','w')
+set(gcf,'Position',[22 65 1650 940])
+set(gcf,'Renderer','painters')
+t = tiledlayout(2, 2, 'TileSpacing', 'Compact', 'Padding', 'Compact');
+title(t, currentFolderName);
+
+ax1 = nexttile;
+ax2 = nexttile;
+ax3 = nexttile;
+ax4 = nexttile;
+
+Link = linkprop([ax1, ax2, ax3, ax4], {'CameraPosition', 'CameraTarget', 'CameraUpVector', 'XLim', 'YLim', 'ZLim'});
+setappdata(gcf, 'StoreTheLink', Link);
+
+color = 'jet';
+dotSize = 5;
+% Plot1: colored by position
+hold on
+scatter3(ax1, Umap_results_filtered(:,dim1), Umap_results_filtered(:,dim2), Umap_results_filtered(:,dim3), dotSize, pos_plot_filtered, 'filled');
+colormap(ax1, color);
+view(ax1, A, E);
+grid(ax1, 'off');
+axis(ax1, 'tight');
+axis(ax1, 'off');
+colorbar(ax1);
+title(ax1, 'Position');
+hold off
+
+% Plot 2: Colored by chosen port
+scatter3(ax2, Umap_results_filtered(:,dim1), Umap_results_filtered(:,dim2), Umap_results_filtered(:,dim3), dotSize, lick_plot_filtered, 'filled');
+colormap(ax2, color);
+view(ax2, A, E);
+grid(ax2, 'off');
+axis(ax2, 'tight');
+axis(ax2, 'off');
+colorbar(ax2);
+title(ax2, 'Chosen port');
+
+% Plot 3: Colored by direction
+scatter3(ax3, Umap_results_filtered(:,dim1), Umap_results_filtered(:,dim2), Umap_results_filtered(:,dim3), dotSize, direction_plot_filtered, 'filled');
+colormap(ax3, color);
+view(ax3, A, E);
+grid(ax3, 'off');
+axis(ax3, 'tight');
+axis(ax3, 'off');
+colorbar(ax3);
+title(ax3, 'Direction');
+
+%Plot 4: Only show times of licks
+scatter3(ax4, Umap_results_filtered(:,dim1), Umap_results_filtered(:,dim2), Umap_results_filtered(:,dim3), ...
+    dotSize, [0.85 0.85 0.85], 'filled', 'MarkerFaceAlpha', 0.4);
+view(ax4, A, E);
+
+cmap = jet(7);
+colormap(ax4, cmap); 
+grid(ax4, 'off');
+axis(ax4, 'tight');
+axis(ax4, 'off');
+title(ax4, 'Licked Ports');
+hold(ax4, 'on');
+colorbar(ax4, 'Ticks', [0, 0.2, 0.35, 0.5, 0.65, 0.8, 1], 'TickLabels', {'1', '2', '3', '4','5', '6', '7'});
+
+for i = 1:7
+    ts = behavTrials.timestamps(behavTrials.port == i);
+    for tt = 1:length(ts)
+        [~, tsIdx] = min(abs(time_filtered-ts(tt)));
+        scatter3(ax4, Umap_results_filtered(tsIdx, dim1), Umap_results_filtered(tsIdx, dim2), Umap_results_filtered(tsIdx, dim3), ...
+            20, cmap(i, :), 'filled');
+    end
+end
 
 % expPath = 'C:\Users\Ipshita\NYU Langone Health Dropbox\Ipshita Zutshi\Patch Task\Figures\';
 % saveas(gcf,strcat(expPath,'UMAP_N7_sess23.png'));

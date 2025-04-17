@@ -24,7 +24,7 @@ dim1 = 1;
 dim2 = 2;
 dim3 = 3;
 dotSize = 5;
-A = 0; E = 90; % azimuth and elevation for viewing
+A = -75; E = 25; %A = 0; E = 90; % azimuth and elevation for viewing
 %% load Umap result
 Umap_results = readtable(fullfile(umap_path, umap_name));
 Umap_results = table2array(Umap_results);
