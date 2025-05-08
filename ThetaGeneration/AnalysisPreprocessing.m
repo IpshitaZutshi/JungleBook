@@ -119,7 +119,7 @@ allFolder = dir(pwd);
 for ii = 1:length(allFolder)
     % Find max sessNumber already
     a = dir('*sess*');
-    startSess = 1;
+    startSess = 0;
     for jj = 1:size(a)
         num = regexp(a(jj).name, 'sess(\d+)', 'tokens');
         num = str2double(num{1});
@@ -168,31 +168,37 @@ end
 cd(allpath{1});
 allSess = dir('*_sess*');
 disp('Concatenate session folders...');
-for ii = 1:size(allSess,1)
+sessNum = 11;
+
+for ii = sessNum:size(allSess,1)
+    
     fprintf(' ** Concatenating session %3.i of %3.i... \n',ii, size(allSess,1));
     cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
-    if ~exist(strcat(allSess(ii).name,'.xml'))
-        delete(strcat(allSess(ii).name,'.xml'));% bring xml file
-        copyfile(strcat(allpath{1},'\global.xml'),strcat(allSess(ii).name,'.xml'),'f');
-    end
-    % Concatenate sessions
-    
-    bz_ConcatenateDats(pwd,0,1);
 
-end
+    % Only concatenate if you see three folders    
+    subSess = dir();
+    if size(subSess,1)>=5
+        if ~exist(strcat(allSess(ii).name,'.xml'))
+            delete(strcat(allSess(ii).name,'.xml'));% bring xml file
+            copyfile(strcat(allpath{1},'\global.xml'),strcat(allSess(ii).name,'.xml'),'f');
+        end
+        % Concatenate sessions       
+        bz_ConcatenateDats(pwd,0,1);
 
-%% Loading metadata
-try
-    session = sessionTemplate(pwd,'showGUI',false); % 
-    session.channels = 1:session.extracellular.nChannels;    
-    %session.channelTags.Bad.channels = [24:38 48:63];
-    save([session.general.name,'.session.mat'],'session','-v7.3');
-catch
-    warning('it seems that CellExplorer is not on your path');
+        %% Loading metadata
+        try
+            session = sessionTemplate(pwd,'showGUI',false); % 
+            session.channels = 1:session.extracellular.nChannels;    
+            %session.channelTags.Bad.channels = [24:38 48:63];
+            save([session.general.name,'.session.mat'],'session','-v7.3');
+        catch
+            warning('it seems that CellExplorer is not on your path');
+        end
+    end    
 end
 
 %% Get analog and digital pulses
-for ii = 1:size(allSess,1)
+for ii = sessNum:size(allSess,1)
     cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
     if  ~isempty(dir('analogin.dat'))
         try
@@ -224,35 +230,28 @@ for ii = 1:size(allSess,1)
 
 end
 
-%% LFP
-[sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true); sessionInfo.rates.lfp = 1250;  save(strcat(sessionInfo.session.name,'.sessionInfo.mat'),'sessionInfo');
-if isempty(dir('*.lfp'))
-    try 
-        bz_LFPfromDat(pwd,'outFs',1250); % generating lfp
-    catch
-        disp('Problems with bz_LFPfromDat, resampling...');
-        ResampleBinary(strcat(sessionInfo.session.name,'.dat'),strcat(sessionInfo.session.name,'.lfp'),...
-            sessionInfo.nChannels,1,sessionInfo.rates.wideband/sessionInfo.rates.lfp);
-    end
-end
-
 %% Kilosort all sessions
 disp('Spike sort all sessions...');
-for ii = size(allSess,1):-1:1
+for ii = sessNum:size(allSess,1)
     cd(strcat(allSess(ii).folder,'\',allSess(ii).name));
-    if forcesort ||  isempty(dir('*Kilosort*')) % if not kilosorted yet
-        fprintf(' ** Kilosorting session %3.i of %3.i... \n',ii, size(allSess,1));   
-        KiloSortWrapper;
-        kilosortFolder = dir('*Kilosort_*');
-        try
-            PhyAutoClustering(strcat(kilosortFolder.folder,'\',kilosortFolder.name)); % autoclustering
-        catch err
-            disp(err.message)
-            warning('PhyAutoClustering not possible!!');
-        end
-        if exist('phyLink') && ~isempty(phyLink) % move phy link to
-            kilosort_path = dir('*Kilosort*');
-            try copyfile(phyLink, strcat(kilosort_path.name,filesep,'LaunchPhy')); % copy pulTime to kilosort folder
+    
+    % Only kilosort if you see three folders    
+    subSess = dir();
+    if size(subSess,1)>=5
+        if forcesort ||  isempty(dir('*Kilosort*')) % if not kilosorted yet
+            fprintf(' ** Kilosorting session %3.i of %3.i... \n',ii, size(allSess,1));   
+            KiloSortWrapper;
+            kilosortFolder = dir('*Kilosort_*');
+            try
+                PhyAutoClustering(strcat(kilosortFolder.folder,'\',kilosortFolder.name)); % autoclustering
+            catch err
+                disp(err.message)
+                warning('PhyAutoClustering not possible!!');
+            end
+            if exist('phyLink') && ~isempty(phyLink) % move phy link to
+                kilosort_path = dir('*Kilosort*');
+                try copyfile(phyLink, strcat(kilosort_path.name,filesep,'LaunchPhy')); % copy pulTime to kilosort folder
+                end
             end
         end
     end

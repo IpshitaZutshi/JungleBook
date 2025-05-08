@@ -106,6 +106,8 @@ for i = 1:length(trial_licks)
     
     if prt == 4
         behavTrials.reward_outcome(i) = 0;
+    elseif prt == 7 && length(digitalIn.timestampsOn)<16
+        behavTrials.reward_outcome(i) = 0;
     else
         vals = (digitalIn.timestampsOn{1,sol} > (time - 0.01)) & (digitalIn.timestampsOn{1,sol} < (time + 0.01));
 
@@ -119,11 +121,7 @@ end
 
 %% Detect switch patch trials
 
-<<<<<<< HEAD
-for i = 2:length(trial_licks)
-=======
 for i = 2:behavTrials.num_trials
->>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
     current_port = behavTrials.port(i);
     previous_port = behavTrials.port(i-1);
     
@@ -329,55 +327,6 @@ if plotfig
 
 end
 
-%% Plot behavior over time
-
-licked_ports = behavTrials.port; 
-
-figure;
-colormap(flipud(gray)); 
-hold on;
-customGreen = [152, 194, 9] / 255;
-customRed = [238, 75, 43] / 255;
-y_limits = [min(licked_ports), max(licked_ports)]; 
-timestamps_minutes = timestamps_licks / 60000;
-x_limits = [min(timestamps_minutes), max(timestamps_minutes)];
-hold on
-
-% plot patch with higher probability
-first_in_patch = 1;
-prev = behavTrials.patch_number(1);
-for j = 2:length(behavTrials.patch_number)
-    if behavTrials.patch_number(j) == behavTrials.patch_number(first_in_patch) && (j ~= length(behavTrials.patch_number))
-        prev = j;
-        continue
-    else
-        patch_end = prev;
-        if behavTrials.patch_number(patch_end) == 0 % patch 0 is high prob
-            y = [1, 1, 3, 3];
-        else % patch 1 is high prob
-            y = [5, 5, 7, 7];
-        end
-        x = [timestamps_minutes(first_in_patch), timestamps_minutes(patch_end), timestamps_minutes(patch_end), timestamps_minutes(first_in_patch)];
-        first_in_patch = j;
-        patch(x, y, [0.5, 0.5, 0.5], 'FaceAlpha', 0.3, 'EdgeAlpha', 0)
-    end
-end
-
-% plot gray trajectory lines
-% fix if the two arrays are different sizes
-plot(timestamps_minutes, licked_ports, 'Color', [0.1, 0.1, 0.1]);  
-
-% plot lick points
-rewarded_indices = find(behavTrials.reward_outcome == 1);
-not_rewarded_indices = find(behavTrials.reward_outcome == 0);
-scatter(timestamps_minutes(rewarded_indices), licked_ports(rewarded_indices), 36, customGreen, 'filled');
-scatter(timestamps_minutes(not_rewarded_indices), licked_ports(not_rewarded_indices), 36, customRed, 'filled');
-
-ylabel('Port');
-xlabel('Time');
-title(strjoin(string(currentFolderName), ' '));
-hold off
-
 %% Save
 if saveMat
     C = strsplit(pwd,'\');
@@ -385,4 +334,3 @@ if saveMat
 end
 
 disp('done!');
-
