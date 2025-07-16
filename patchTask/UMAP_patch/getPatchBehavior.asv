@@ -375,8 +375,8 @@ if plotfig
     title(strjoin(string(currentFolderName), ' '));
     hold off
     
-    saveas(h3,'Behavior\BehaviorAcrossTime.png');
-    saveas(h3,'Behavior\BehaviorAcrossTime.fig');
+    saveas(h3,'Behavior\Behavior.png');
+    saveas(h3,'Behavior\Behavior.fig');
 end
 
 %% Save

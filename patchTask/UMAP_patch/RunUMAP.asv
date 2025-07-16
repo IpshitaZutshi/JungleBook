@@ -21,55 +21,34 @@ getPatchTracking()
 % This function returns the tracking 
 % syncs intan, tracking, and photometry together
 
-%% 5. Sleep photometry
+%% Sleep photometry
 sleepPhotometry()
 % aligns photometry from sleep session to intan data. also analyzes
 % photometry from sleep sessions at times of ripples
 
-%% 6. Photometry during behavior
+%% Photometry during behavior
 photometry_behav.m
 
 % aligns photometry from behavior session to intan data. also analyzes
 % dopamine levels around licks and different types of events
 
-%% 7. Analyzing photometry across sessions
+%% Analyzing photometry across sessions
 averageSleepPhotometryAcrossSessions.m
 averageBehaviorPhotometryAcrossSessions.m
 
-% these scripts require saving the photometry matrices around specified
-% events generated in photometry_behav.m or sleepPhotometry.m as variables
-% which you can then load into these scripts.
-
-%% UMAP
-%% 8. Load spikes
+% these scripts require saving the photometry
+%% 5. Load spikes
 kilosort_folder = dir(fullfile(basepath, 'Kilosort*'));
 cd(fullfile(basepath, kilosort_folder.name));
 [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true); sessionInfo.rates.lfp = 1250;  save(strcat(sessionInfo.session.name,'.sessionInfo.mat'),'sessionInfo');
 spikes = loadSpikes('getWaveformsFromDat', false);
 
-%% 9. Run preprocessing for the manifold
+%% 6. Run preprocessing for the manifold
 cd(basepath)
 preprocess_manifold_patch()
 
-%% 10. Run Umap with python
+%% 7. Run Umap with python
 %  Run umap_patch code
 
-%% 11. Plot UMAP
+%% 8. Plot UMAP
 plotPatchUMAP()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
