@@ -1,20 +1,28 @@
-function plotResampledTrajectories(tracking, behavTrials)
+function plotResampledTrajectories(tracking, behavTrials, figHandle)
 
 % Settings
 nPoints = 100;    % Number of resampled points
 opacity = 0.2;    % Line opacity for individual trials
+stim = 0; % If stim == 0, plots correct vs incorrect, otherwise if stim == 1, plots stim vs baseline
 
 % Get trial indices
-bL = find(behavTrials.stim'==0 & behavTrials.choice == 1);  % Baseline Left
-sL = find(behavTrials.stim'==1 & behavTrials.choice == 1);  % Stim Left
-bR = find(behavTrials.stim'==0 & behavTrials.choice == 0);  % Baseline Right
-sR = find(behavTrials.stim'==1 & behavTrials.choice == 0);  % Stim Right
+if stim == 0
+    bL = find(behavTrials.correct==1 & behavTrials.choice == 1 & behavTrials.stim' ==0);  % Baseline Left
+    sL = find(behavTrials.correct==0 & behavTrials.choice == 1 & behavTrials.stim' ==0);  % Stim Left
+    bR = find(behavTrials.correct==1 & behavTrials.choice == 0 & behavTrials.stim' ==0);  % Baseline Right
+    sR = find(behavTrials.correct==0 & behavTrials.choice == 0 & behavTrials.stim' ==0);  % Stim Right
+    labels = {'Correct Left', 'Error Left', 'Correct Right', 'Error Right'};
+else
+    bL = find(behavTrials.stim'==0 & behavTrials.choice == 1);  % Baseline Left
+    sL = find(behavTrials.stim'==1 & behavTrials.choice == 1);  % Stim Left
+    bR = find(behavTrials.stim'==0 & behavTrials.choice == 0);  % Baseline Right
+    sR = find(behavTrials.stim'==1 & behavTrials.choice == 0);  % Stim Right
+    labels = {'Baseline Left', 'Stim Left', 'Baseline Right', 'Stim Right'};
+end
 
 groups = {bL, sL, bR, sR};
-labels = {'Baseline Left', 'Stim Left', 'Baseline Right', 'Stim Right'};
-colors = {[0 0.6 0], [0 1 0], [0 0 0.8], [0 0.5 1]};  % Dark green, light green, dark blue, light blue
 
-figure; hold on;
+colors = {[0 0.6 0], [0 1 0], [0 0 0.8], [0 0.5 1]};  % Dark green, light green, dark blue, light blue
 
 for g = 1:4
     trials = groups{g};
@@ -57,9 +65,13 @@ end
 xlabel('X'); ylabel('Y');
 % xlim([89.5 97.5]);
 % ylim([90 120]);
-% xlim([89.5 97.5]);
-% ylim([90 120]);
-title('Trajectories: Baseline vs Stim, Left vs Right');
+if stim == 0
+    title('Trajectories: Correct vs Error, Left vs Right');
+else
+    title('Trajectories: Baseline vs Stim, Left vs Right');
+end
 axis square;
 
 end
+
+

@@ -4,8 +4,6 @@ basepath = pwd;
 %% 1. Plot behavior
 getPatchBehavior()
 
-%patchStatistics()
-
 %% 2. Run Kilosort
 AnalysisPreprocessing()
 % Manual curation with Phy before running Step 2
@@ -14,22 +12,31 @@ AnalysisPreprocessing()
 AnalysisBatchPatch()
 
 %% Photometry processing
-
-% processing.py 
-% or
-% iso_processing.py
+% first, use python script iso_processing.py on each ppd file from the session
+% (or processing.py if there are two fluorophores, i.e. not isosbestic)
 
 %% 4. Get Tracking and Behavior
 getPatchTracking() 
 
-% This function returns the tracking and runs getPatchBehavior
+% This function returns the tracking 
 % syncs intan, tracking, and photometry together
 
 %% Sleep photometry
+sleepPhotometry()
+% aligns photometry from sleep session to intan data. also analyzes
+% photometry from sleep sessions at times of ripples
 
-getSleepPhotometry()
-% aligns photometry from sleep session to intan data
+%% Photometry during behavior
+photometry_behav.m
 
+% aligns photometry from behavior session to intan data. also analyzes
+% dopamine levels around licks and different types of events
+
+%% Analyzing photometry across sessions
+averageSleepPhotometryAcrossSessions.m
+averageBehaviorPhotometryAcrossSessions.m
+
+% these scripts require saving the photometry
 %% 5. Load spikes
 kilosort_folder = dir(fullfile(basepath, 'Kilosort*'));
 cd(fullfile(basepath, kilosort_folder.name));

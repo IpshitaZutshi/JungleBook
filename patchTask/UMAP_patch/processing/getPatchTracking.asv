@@ -66,12 +66,22 @@ if exist([basepath filesep strcat(sessionInfo.session.name,'.MergePoints.events.
             
             % photometry
             photometry_file = dir('*photometry.mat'); %%% might have to improve this method so i make sure i get the behavior photometry
-            if ~isempty(photometry_file)
-                photom_file_name = load(photometry_file.name); %%%
-                photomBehav{count} = getSyncPhotometry_IZ(photom_file_name.photometryData); %%%
-                photometry_exists = 1; % 1 if it does, 0 if it doesn't
-            else
-                photometry_exists = 0;
+            photometry_exists = zeros(1,2); % 1 if file exists for hpc/striatum, else 0
+            photomBehav_hpc = [];
+            photomBehav_striatum = [];
+            
+            for i = 1:length(photometry_file)
+                fname = photometry_file(i).name;
+                data = load(fname);
+                
+                % Check for 'hpc' or 'striatum' in filename (case-insensitive)
+                if contains(lower(fname), 'hpc')
+                    photomBehav_hpc = getSyncPhotometry_IZ(data.photometryData);
+                    photometry_exists(1) = 1;
+                elseif contains(lower(fname), 'striatum')
+                    photomBehav_striatum = getSyncPhotometry_IZ(data.photometryData);
+                    photometry_exists(2) = 1;
+                end
             end
             
             trackFolder(count) = ii; 
@@ -82,6 +92,18 @@ if exist([basepath filesep strcat(sessionInfo.session.name,'.MergePoints.events.
 else
     error('missing MergePoints, quiting...');
 end
+
+
+% % photometry
+% photometry_file = dir('*photometry.mat'); %%%
+% if ~isempty(photometry_file)
+%     photom_file_name = load(photometry_file.name); %%%
+%     photomBehav{count} = getSyncPhotometry_IZ(photom_file_name.photometryData); %%%
+%     photometry_exists = 1; % 1 if it does, 0 if it doesn't
+% else
+%     photometry_exists = 0;
+% end
+
 
 %% Concatenate and sync timestamps
 ts = []; subSessions = []; maskSessions = [];

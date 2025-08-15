@@ -15,8 +15,8 @@ import scipy
 from data_import import import_ppd, preprocess_data
 
 #data_folder = r'\\research-cifs.nyumc.org\research\buzsakilab\Buzsakilabspace\LabShare\ZutshiI\patchTask\test_random_pulses'
-data_folder = r'\\research-cifs.nyumc.org\research\buzsakilab\Buzsakilabspace\LabShare\ZutshiI\patchTask\N11\Final\N11_250411_sess31\N11_250411_141925' 
-file = 'N11_striatum-2025-04-11-142027' 
+data_folder = r'\\research-cifs.nyumc.org\research\buzsakilab\Buzsakilabspace\LabShare\ZutshiI\patchTask\N14\N14_250421_sess3\N14_250421_141035'
+file = 'N14_HPC-2025-04-21-141213' 
 data_filename = file + '.ppd'
 data = import_ppd(os.path.join(data_folder, data_filename))   #, low_pass=20, high_pass=0.001)
 grabDA_raw = data['analog_1'] # green 
