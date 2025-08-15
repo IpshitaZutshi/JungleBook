@@ -8,7 +8,7 @@
 %    =========================================================================
 
 
-direc = '\\research-cifs.nyumc.org\research\buzsakilab\Buzsakilabspace\LabShare\ZutshiI\patchTask\N14';
+direc = pwd;
 
 folders = dir(direc);  % list all files/folders in direc
 
@@ -21,9 +21,50 @@ for i = 1:length(folders)
             cd(currFolder);
             basepath = pwd;
 
-            % get tracking
-            if isempty (dir(fullfile(basepath, '*Tracking.Behavior.mat')))
-                getPatchTracking() 
+            if ~isempty (dir(fullfile(basepath, '*session.mat')))
+                % sleep score
+                badChannels = [42 48 56:59 61 70:72]; %N17
+                SleepScoreMaster(pwd,'stickytrigger',true,'rejectChannels',badChannels); % try to sleep score
+
+                SleepScoreMaster(pwd,'stickytrigger',true,'rejectChannels',badChannels); % try to sleep score
+
+
+                %getPatchTracking()
+                % get tracking
+                % if isempty (dir(fullfile(basepath, '*Tracking.Behavior.mat')))
+                %     getPatchTracking() 
+                % end
+                % 
+                % get just ripples
+                % if isempty (dir(fullfile(basepath, '*ripples.events.mat')))
+                %     if ~isempty (dir(fullfile(basepath, '*.lfp')))
+                %         % Extract sharp wave ripples
+                %         pyrCh = 121; % n17
+                %         noiseCh = 111;
+                %         [ripples] = bz_FindRipples(pwd,pyrCh,'noise',noiseCh,'savemat',true,'durations',[30 100],'passband',[130 200]);
+                %     end
+                % end
+
+                %  % get lfp and ripples
+                %  if isempty (dir(fullfile(basepath, '*.lfp')))
+                %      %% 2. Extract LFP
+                %     [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true); 
+                %     sessionInfo.rates.lfp = 1250;  
+                %     save(strcat(sessionInfo.session.name,'.sessionInfo.mat'),'sessionInfo');
+                %     if isempty(dir('*.lfp'))
+                %         try 
+                %             bz_LFPfromDat(pwd,'outFs',1250); % generating lfp
+                %         catch
+                %             disp('Problems with bz_LFPfromDat, resampling...');
+                %             ResampleBinary(strcat(sessionInfo.session.name,'.dat'),strcat(sessionInfo.session.name,'.lfp'),...
+                %                 sessionInfo.nChannels,1,sessionInfo.rates.wideband/sessionInfo.rates.lfp);
+                %         end
+                %     end
+                %     % Extract sharp wave ripples
+                %     pyrCh = 121; % n17
+                %     noiseCh = 111;
+                %     [ripples] = bz_FindRipples(pwd,pyrCh,'noise',noiseCh,'savemat',true,'durations',[30 100],'passband',[130 200]);
+                % end
             end
 
             cd(direc);

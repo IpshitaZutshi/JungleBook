@@ -36,8 +36,10 @@ noiseCh = 111;
 
 %% 5. Sleep score
 %badChannels = [24:38 48:63]; %N7
-badChannels = [0:3 15:18 21:30 43 50 95 97]; %N9
+%badChannels = [0:3 15:18 21:30 43 50 95 97]; %N9
 %badChannels = [0:3 15:18 21:30 41 43 46 47 50 52 95 97]; %N15
+badChannels = [42 48 56:59 61 70:72]; %N17
+%badChannels = 74; %N14
 SleepScoreMaster(pwd,'stickytrigger',true,'rejectChannels',badChannels); % try to sleep score
 
 %% 6. Cell Explorer
