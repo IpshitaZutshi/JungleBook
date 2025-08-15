@@ -326,7 +326,9 @@ if plotfig
     saveas(h2,'Behavior\Behavior.png');
     saveas(h2,'Behavior\Behavior.fig');
 
-%{
+
+<<<<<<< HEAD
+
     %% Plot behavior over time
     
     licked_ports = behavTrials.port; 
@@ -378,10 +380,10 @@ if plotfig
     
     saveas(h3,'Behavior\BehaviorAcrossTime.png');
     saveas(h3,'Behavior\BehaviorAcrossTime.fig');
-%}
 end
 
-
+=======
+>>>>>>> d11a5c9307a598fc247bd53d45ae873f1746772b
 %% Save
 if saveMat
     C = strsplit(pwd,'\');

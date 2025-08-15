@@ -32,17 +32,20 @@ norm_session6 = zeros(size(ripple_matrix_sleep_26));
 norm_session7 = zeros(size(ripple_matrix_sleep_28));
 norm_session8 = zeros(size(ripple_matrix_sleep_30));
 % N17
-norm_session9 = zeros(size(ripple_matrix_pre_HPC_21));
-norm_session10 = zeros(size(ripple_matrix_post_HPC_21));
+norm_session9 = zeros(size(ripple_matrix_pre_HPC_15));
+norm_session10 = zeros(size(ripple_matrix_post_HPC_15));
+norm_session11 = zeros(size(ripple_matrix_pre_HPC_21));
+norm_session12 = zeros(size(ripple_matrix_post_HPC_21));
 
 
 % Normalize each trial in each session
 sessions = {ripple_matrix_sleep_18, ripple_matrix_sleep_19, ripple_matrix_sleep_22, ... 
     ripple_matrix_sleep_HPC_23, ripple_matrix_sleep_26, ... 
-    ripple_matrix_sleep_28, ripple_matrix_sleep_30, ripple_matrix_pre_HPC_21 ...
-    ripple_matrix_post_HPC_21};
-norm_sessions = {norm_session1, norm_session2, norm_session3, norm_session4... 
-    norm_session6, norm_session7, norm_session8, norm_session9, norm_session10};
+    ripple_matrix_sleep_28, ripple_matrix_sleep_30, ripple_matrix_pre_HPC_15, ...
+    ripple_matrix_post_HPC_15, ripple_matrix_pre_HPC_21, ripple_matrix_post_HPC_21};
+norm_sessions = {norm_session1, norm_session2, norm_session3, norm_session4,... 
+    norm_session6, norm_session7, norm_session8, norm_session9, norm_session10,...
+    norm_session11, norm_session12};
 
 
 for s = 1:length(sessions)
@@ -139,7 +142,7 @@ for ii=1:length(norm_sessions)
     ripple_CI95 = bsxfun(@times, ripple_SEM, CI95(:)); 
     median_ripple = median(current_norm, 1); % median at each timepoint
 
-    cmap = summer(9);
+    cmap = summer(length(sessions)+1);
     smoothed = smoothdata(median_ripple);
     plot(time, smoothed, 'color', cmap(ii, :), 'LineWidth', 2);
     xline(0, '--r', 'LineWidth', 1)
@@ -163,30 +166,40 @@ norm_session2 = zeros(size(ripple_matrix_sleep_17));
 norm_session3 = zeros(size(ripple_matrix_sleep_20));
 norm_session4 = zeros(size(ripple_matrix_sleep_striatum_23));
 % N17
-norm_session5 = zeros(size(ripple_matrix_pre_striatum_21));
-norm_session6 = zeros(size(ripple_matrix_post_striatum_21));
+norm_session5 = zeros(size(ripple_matrix_pre_striatum_15));
+norm_session6 = zeros(size(ripple_matrix_post_striatum_15));
+norm_session7 = zeros(size(ripple_matrix_pre_striatum_21));
+norm_session8 = zeros(size(ripple_matrix_post_striatum_21));
 
 
 % Normalize each trial in each session
 % sessions = {ripple_matrix_sleep_16, ripple_matrix_sleep_17, ripple_matrix_sleep_20, ripple_matrix_sleep_striatum_23};
 % norm_sessions = {norm_session1, norm_session2, norm_session3, norm_session4};
 sessions = {ripple_matrix_sleep_16, ripple_matrix_sleep_17, ripple_matrix_sleep_striatum_23, ...
+    ripple_matrix_pre_striatum_15, ripple_matrix_post_striatum_15, ...
     ripple_matrix_pre_striatum_21, ripple_matrix_post_striatum_21};
-norm_sessions = {norm_session1, norm_session2, norm_session4, norm_session5, norm_session6};
+norm_sessions = {norm_session1, norm_session2, norm_session4, norm_session5, norm_session6, ...
+    norm_session7, norm_session8};
 
 for s = 1:length(sessions)
     current_session = sessions{s};
-   
+
     for trial = 1:size(current_session,1)
         % Extract baseline for current trial
         baseline = current_session(trial, :);
-       
+
         % Calculate baseline mean and std
         baseline_mean = mean(baseline);
         baseline_std = std(baseline);
-       
+
         % Z-score the entire trial using the baseline stats
         norm_sessions{s}(trial, :) = (current_session(trial, :) - baseline_mean) / baseline_std;
+
+        %  % Extract baseline for current trial
+        % baseline = current_session(trial, :);
+        % 
+        % % Z-score the entire trial using the baseline stats
+        % norm_sessions{s}(trial, :) = baseline;
     end
 end
 
@@ -215,8 +228,6 @@ for ii=1:length(norm_sessions)
     xline(0, '--r', 'LineWidth', 1)
     xlabel('time (s)');
     ylabel('avg z-score');
-    % title(['Average Z-score Around Ripples'], [num2str(size(norm_sessions{1}, 1)), ...
-    %     ' ripples, ', num2str(size(norm_sessions{2}, 1)), ' ripples, ', num2str(size(norm_sessions{3}, 1)), ' ripples']);
     title(['Average Z-score Around Ripples'], [num2str(size(norm_sessions{1}, 1)), ...
         ' ripples, ', num2str(size(norm_sessions{2}, 1)), ' ripples, ', num2str(size(norm_sessions{3}, 1)), ' ripples, ']);
 
@@ -245,8 +256,6 @@ for ii=1:length(norm_sessions)
     xline(0, '--r', 'LineWidth', 1)
     xlabel('time (s)');
     ylabel('avg z-score');
-    % title(['Average Z-score Around Ripples'], [num2str(size(norm_sessions{1}, 1)), ...
-    %     ' ripples, ', num2str(size(norm_sessions{2}, 1)), ' ripples, ', num2str(size(norm_sessions{3}, 1)), ' ripples']);
     title(['Average Z-score Around Ripples'], [num2str(size(norm_sessions{1}, 1)), ...
         ' ripples, ', num2str(size(norm_sessions{2}, 1)), ' ripples, ', num2str(size(norm_sessions{3}, 1)), ' ripples, ']);
 

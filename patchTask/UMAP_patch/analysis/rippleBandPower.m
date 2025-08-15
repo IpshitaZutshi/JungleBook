@@ -1,10 +1,19 @@
 function [ripple_power] = rippleBandPower(varargin)
-%FindRipples - Find hippocampal ripples (100~200Hz oscillations).
-%
+
+
+%% Modified from bz_FindRipples
+
 % USAGE
-%    [ripples] = bz_FindRipples(lfp.data,lfp.timestamps,<options>)
-%    OR
-%    [ripples] = bz_FindRipples(basepath,channel,<options>)
+% call the function the same way you would call bz_findRipples
+% 
+% pyrCh = 121; 
+% noiseCh = 111;
+% [ripple_power] = rippleBandPower(pwd,pyrCh,'noise',noiseCh,'savemat',true,'durations',[30 100],'passband',[130 200]);
+% 
+% 
+% Lucy Anderson 2025
+% 
+% 
 %
 %    Ripples are detected using the normalized squared signal (NSS) by
 %    thresholding the baseline, merging neighboring events, thresholding
@@ -60,17 +69,6 @@ function [ripple_power] = rippleBandPower(varargin)
 %                   .peakNormedPower   Nx1 matrix of peak power values
 %                   .detectorParams    struct with input parameters given
 %                                      to the detector
-% SEE ALSO
-%
-%    See also bz_Filter, bz_RippleStats, bz_SaveRippleEvents, bz_PlotRippleStats.
-
-% Copyright (C) 2004-2011 by Michaël Zugaro, initial algorithm by Hajime Hirase
-% edited by David Tingley, 2017
-%
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 3 of the License, or
-% (at your option) any later version.
 
 warning('this function is under development and may not work... yet')
 

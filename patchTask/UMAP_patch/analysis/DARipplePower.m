@@ -1,22 +1,36 @@
-
+%
+% USAGE
+%   calculates the ripple power centered around DA peaks or troughs
+%
+% INPUTS 
+%
+%    =========================================================================
 
 basepath = pwd;
 [~, currentFolderName] = fileparts(basepath);
+color = 0;
 
 % load ripple file
 ripple_file = dir(fullfile(basepath, '*ripples.events.mat'));
 load(ripple_file.name)
 
+% load ripple power
+ripple_file = dir(fullfile(basepath, '*rippleBandPower.mat'));
+load(ripple_file.name);
+%{
 %% average ripple power around DA peaks - behav
 % load hpc ohtometry
-HPC_photometry_file = dir(fullfile(basepath, '*PhotometryBehavHPC'));
+HPC_photometry_file = dir(fullfile(basepath, '*PhotometryBehavHPC.mat'));
 load(HPC_photometry_file.name);
 
 % load striatum photometry
-striatum_photometry_file = dir(fullfile(basepath, '*PhotometryBehavStriatum'));
+striatum_photometry_file = dir(fullfile(basepath, '*PhotometryBehavStriatum.mat'));
 load(striatum_photometry_file.name);
 
-ripple_period = ripple_power.normed_power_trace(ripple_power.timestamps <= behav_end & ripple_power.timestamps >= behav_start);
+% load ripple power
+ripple_file = dir(fullfile(basepath, '*rippleBandPower.mat'));
+load(ripple_file.name);
+%ripple_period = ripple_power.normed_power_trace(ripple_power.timestamps <= behav_end & ripple_power.timestamps >= behav_start);
 
 [peakVals, peakLocs] = findpeaks(photometry_hpc.grabDA_z, 'MinPeakHeight', 0.05);
 peakTimes = photometry_hpc.timestamps(peakLocs);
@@ -110,11 +124,16 @@ title('Average Z-score Around Ripples (smoothed)');
 grid on;
 hold off
 
+%}
 
 
-
-% look at sleep DA
+%% look at sleep DA
 cd(basepath);
+
+% load sleep states
+sleep_state_file = dir(fullfile(basepath, '*SleepStateEpisodes.states.mat'));
+load(sleep_state_file.name)
+
 sleep_merge = []; % will hold the merge points (start and stop times) of just sleep sessions
 [sessionInfo] = bz_getSessionInfo(basepath, 'noPrompts', true);
 if exist([basepath filesep strcat(sessionInfo.session.name,'.MergePoints.events.mat')],'file')
@@ -228,12 +247,6 @@ for j = 1:length(da_peaks)
     end
 end
 
-% Remove rows with NaNs (e.g., edges)
-ripple_matrix(any(isnan(ripple_matrix), 2), :) = [];
-
-% Then continue with median and plotting as before...
-
-
 ripple_matrix(any(isnan(ripple_matrix), 2), :) = [];
 median_ripple = median(ripple_matrix, 1); % median at each timepoint
 time = linspace(-window, window, ((samples*2)+1));
@@ -246,14 +259,6 @@ CI95 = tinv([0.025 0.975], N-1);                    % Calculate 95% Probability 
 ripple_CI95 = bsxfun(@times, ripple_SEM, CI95(:));  % Calculate 95% Confidence Intervals Of All Experiments At Each Value Of exw
 smooth_CI95 = smoothdata(ripple_CI95, 2);
 
-% statistical significance 
-ripple_baseline = ripple_matrix(:,[1:120]);
-avg_ripple_baseline = mean(ripple_baseline, 1);
-mn = mean(avg_ripple_baseline);
-st_d = std(avg_ripple_baseline);
-sample_mn = min(median_ripple);
-deg_free = length(da_peaks)-1;
-t = (sample_mn - mn)/(st_d/(sqrt(deg_free)));
 
 %% Plot 
 
@@ -288,6 +293,113 @@ xline(0, '--r', 'LineWidth', 1)
 xlabel('time (s)');
 ylabel('avg z-score');
 title('Ripple power around DA peaks - NREM (smoothed)');
+grid on;
+hold off
+
+
+
+%% ripple power around ripples
+cd(basepath);
+% load ripple power file
+ripple_band_file = dir(fullfile(basepath, '*rippleBandPower.mat'));
+load(ripple_band_file.name)
+
+sampling_rate = 1250;
+% power around peak
+window = 5; % window of time around ripple to average
+samples = window*sampling_rate;
+
+% initialize matrix
+ripple_matrix = nan(length(ripples.peaks), (samples*2)+1); 
+
+% average power within a specified time window around peaks
+for j = 1:length(ripples.peaks)
+    [~, peak_idx] = min(abs(ripple_power.timestamps - ripples.peaks(j)));
+    start_idx = peak_idx - samples;
+    end_idx = peak_idx + samples;
+    if start_idx >= 1 && end_idx <= length(ripple_power.timestamps) % issue where if a peak is right at the edge of nrem, this could include samples from a different nrem episode
+        ripple_matrix(j, :) = ripple_power.normed_power_trace(start_idx:end_idx);
+        
+        % z score
+        baseline = ripple_matrix(j, :);
+
+        % Calculate baseline mean and std
+        baseline_mean = mean(baseline);
+        baseline_std = std(baseline);
+
+        % Z-score the entire trial using the baseline stats
+        ripple_matrix(j, :) = (baseline - baseline_mean) / baseline_std;
+    end
+end
+
+%
+% baseline_start = 5; % seconds before peak (start of baseline window)
+% baseline_end = 1;   % seconds before peak (end of baseline window)
+% 
+% baseline_samples_start = round(baseline_start * sampling_rate);
+% baseline_samples_end = round(baseline_end * sampling_rate);
+% 
+% for j = 1:length(da_peaks)
+%     [~, peak_idx] = min(abs(ripple_power.timestamps - da_peaks(j, 2)));
+%     start_idx = peak_idx - samples;
+%     end_idx = peak_idx + samples;
+% 
+%     if start_idx >= 1 && end_idx <= length(ripple_power.timestamps)
+%         segment = ripple_power.normed_power_trace(start_idx:end_idx);
+% 
+%         % Define baseline indices relative to segment
+%         baseline_indices = (samples + baseline_samples_start):(samples + baseline_samples_end);
+% 
+%         baseline_data = segment(baseline_indices);
+% 
+%         % Compute mean and std of baseline period only
+%         baseline_mean = mean(baseline_data);
+%         baseline_std = std(baseline_data);
+% 
+%         % Z-score entire segment using baseline mean and std
+%         ripple_matrix(j, :) = (segment - baseline_mean) / baseline_std;
+%     else
+%         ripple_matrix(j, :) = nan(1, (samples*2)+1);
+%     end
+% end
+
+ripple_matrix(any(isnan(ripple_matrix), 2), :) = [];
+median_ripple = median(ripple_matrix, 1); % median at each timepoint
+time = linspace(-window, window, ((samples*2)+1));
+
+% calculate confidence intervals
+N = height(ripple_matrix);                          % Number of Experiments In Data Set
+avg_ripple = mean(ripple_matrix, 1);              % Mean Of All Experiments At Each Value Of ,x 
+ripple_SEM = std(ripple_matrix, 1)/sqrt(N);         % Compute rStandard Error Of The Meane Of All Experiments At Each Value Of wxa
+CI95 = tinv([0.025 0.975], N-1);                    % Calculate 95% Probability Intervals Of t-Distribution
+ripple_CI95 = bsxfun(@times, ripple_SEM, CI95(:));  % Calculate 95% Confidence Intervals Of All Experiments At Each Value Of exw
+smooth_CI95 = smoothdata(ripple_CI95, 2);
+
+%% Plot 
+
+plot_color = [0.270588235294118   0.101960784313725   0.941176470588235];
+
+figure('color','white');
+plot(time, median_ripple, 'Color', plot_color, 'LineWidth', 2);
+hold on
+fill([time,fliplr(time)], [(ripple_CI95(1,:)+median_ripple),fliplr((ripple_CI95(2,:)+median_ripple))], plot_color, 'EdgeColor','none', 'FaceAlpha',0.25)
+xline(0, '--r', 'LineWidth', 1)
+xlabel('time (s)');
+ylabel('avg z-score');
+title('Ripple power around ripples - NREM');
+grid on;
+hold off
+
+
+smoothed = smoothdata(median_ripple);
+figure('color','white');
+plot(time, smoothed, 'Color', plot_color, 'LineWidth', 2);
+hold on
+fill([time,fliplr(time)], [(smooth_CI95(1,:)+smoothed),fliplr((smooth_CI95(2,:)+smoothed))], plot_color, 'EdgeColor','none', 'FaceAlpha',0.25)
+xline(0, '--r', 'LineWidth', 1)
+xlabel('time (s)');
+ylabel('avg z-score');
+title('Ripple power around ripples - NREM (smoothed)');
 grid on;
 hold off
 
