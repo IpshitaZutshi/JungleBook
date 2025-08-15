@@ -40,7 +40,7 @@ norm_session10 = zeros(size(ripple_matrix_post_HPC_21));
 sessions = {ripple_matrix_sleep_18, ripple_matrix_sleep_19, ripple_matrix_sleep_22, ... 
     ripple_matrix_sleep_HPC_23, ripple_matrix_sleep_26, ... 
     ripple_matrix_sleep_28, ripple_matrix_sleep_30, ripple_matrix_pre_HPC_21 ...
-    ripple_matrix_post_HPC_21};
+    };
 norm_sessions = {norm_session1, norm_session2, norm_session3, norm_session4... 
     norm_session6, norm_session7, norm_session8, norm_session9, norm_session10};
 
@@ -79,7 +79,7 @@ for ii=1:length(norm_sessions)
     ripple_CI95 = bsxfun(@times, ripple_SEM, CI95(:)); 
     median_ripple = median(current_norm, 1); % median at each timepoint
 
-    cmap = summer(length(sessions)+1);
+    cmap = summer(9);
     plot(time, median_ripple, 'color', cmap(ii, :), 'LineWidth', 2);
     fill([time,fliplr(time)], [(ripple_CI95(1,:)+median_ripple),fliplr((ripple_CI95(2,:)+median_ripple))], cmap(ii, :), 'EdgeColor','none', 'FaceAlpha',0.25)
     xline(0, '--r', 'LineWidth', 1)
@@ -109,7 +109,7 @@ for ii=1:length(norm_sessions)
     ripple_CI95 = bsxfun(@times, ripple_SEM, CI95(:)); 
     median_ripple = median(current_norm, 1); % median at each timepoint
 
-    cmap = summer(length(sessions)+1);
+    cmap = summer(9);
     smoothed = smoothdata(median_ripple);
     plot(time, smoothed, 'color', cmap(ii, :), 'LineWidth', 2);
     fill([time,fliplr(time)], [(ripple_CI95(1,:)+smoothed),fliplr((ripple_CI95(2,:)+smoothed))], cmap(ii, :), 'EdgeColor','none', 'FaceAlpha',0.25)
@@ -208,7 +208,7 @@ for ii=1:length(norm_sessions)
     ripple_CI95 = bsxfun(@times, ripple_SEM, CI95(:));
     median_ripple = median(current_norm, 1); % median at each timepoint
 
-    cmap = spring(length(sessions)+1);
+    cmap = spring(4);
     smoothed = smoothdata(median_ripple);
     plot(time, median_ripple, 'color', cmap(ii, :), 'LineWidth', 2);
     fill([time,fliplr(time)], [(ripple_CI95(1,:)+median_ripple),fliplr((ripple_CI95(2,:)+median_ripple))], cmap(ii, :), 'EdgeColor','none', 'FaceAlpha',0.25)
@@ -239,7 +239,7 @@ for ii=1:length(norm_sessions)
     ripple_CI95 = bsxfun(@times, ripple_SEM, CI95(:));
     median_ripple = median(current_norm, 1); % median at each timepoint
 
-    cmap = spring(length(sessions)+1);
+    cmap = spring(4);
     plot(time, median_ripple, 'color', cmap(ii, :), 'LineWidth', 2);
     fill([time,fliplr(time)], [(ripple_CI95(1,:)+median_ripple),fliplr((ripple_CI95(2,:)+median_ripple))], cmap(ii, :), 'EdgeColor','none', 'FaceAlpha',0.25)
     xline(0, '--r', 'LineWidth', 1)

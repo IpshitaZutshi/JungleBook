@@ -8,13 +8,9 @@
 
 basepath = pwd;
 behaviorFile = dir(fullfile(basepath, '*.TrialBehavior.mat'));
-session = 18;
-<<<<<<< HEAD
-=======
+session = 21;
 %color_scheme = spring;
->>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
-
-color = 1; % 0/blue for striatum, 1/green for HPC
+color = 0; % 0/blue for striatum, 1/green for HPC
 
 mode = 1; % 0 for downsampled, 1 for regular
 %this allows me to easily siwtch btwn down sampled and regular
@@ -30,10 +26,10 @@ if mode == 0
 else
     sampling_rate = 130; % sampling rate of photometry set up - 130
     trackFile = dir(fullfile(basepath, '*Tracking.Behavior.mat'));
-    photometry_file = dir(fullfile(basepath, '*PhotometryBehav.mat'));
+    photometry_file = dir(fullfile(basepath, '*PhotometryBehavHPC.mat'));
     load(photometry_file.name);
     load(trackFile.name);
-    photom_var = photometry;
+    photom_var = load(photometry_file.name); %%% FIX
     track_var = tracking.position;
 end
 
@@ -226,10 +222,8 @@ t = (sample_mn - mn)/(st_d/(sqrt(deg_free)));
 
 %% Plot  average photometry level around licks
 
-<<<<<<< HEAD
 total_min = min(min(med_z_reward), min(med_z_no_reward));
 total_max = max(max(med_z_reward), max(med_z_no_reward));
-=======
 if color == 0
     % avg_color = [ 0.2392    0.2863    0.9608];
     % conf_color = 'b';
@@ -239,21 +233,17 @@ else
     avg_color = 'g';
     conf_color = [0.7176    0.9412    0.1020];
 end
->>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 
 figure('color','white');
 subplot(2,1,1)
 hold on
-<<<<<<< HEAD
 plot(time, med_z_reward, 'g', 'LineWidth', 2);
 fill([time,fliplr(time)], [(reward_CI95(1,:)+med_z_reward),fliplr((reward_CI95(2,:)+med_z_reward))], 'b', 'EdgeColor','none', 'FaceAlpha',0.25)
-=======
 ax = gca;
 ax.FontSize = 15;
 plot(time, avg_z_reward, 'color', avg_color, 'LineWidth', 2);
 fill([time,fliplr(time)], [(reward_CI95(1,:)+avg_z_reward),fliplr((reward_CI95(2,:)+avg_z_reward))], conf_color, 'EdgeColor','none', 'FaceAlpha',0.25)
 xline(0, '--r', 'LineWidth', 1)
->>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 xlabel('time (s)');
 ylabel('avg z-score');
 title('Average Z-score Around Rewards');
@@ -264,14 +254,11 @@ hold off
 subplot(2,1,2)
 plot(time, avg_z_no_reward, 'color', avg_color, 'LineWidth', 2);
 hold on
-<<<<<<< HEAD
 fill([time,fliplr(time)], [(nonreward_CI95(1,:)+med_z_no_reward),fliplr((nonreward_CI95(2,:)+med_z_no_reward))], 'b', 'EdgeColor','none', 'FaceAlpha',0.25)
-=======
 ax = gca;
 ax.FontSize = 15;
 fill([time,fliplr(time)], [(nonreward_CI95(1,:)+avg_z_no_reward),fliplr((nonreward_CI95(2,:)+avg_z_no_reward))], conf_color, 'EdgeColor','none', 'FaceAlpha',0.25)
 xline(0, '--r', 'LineWidth', 1)
->>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 xlabel('time (s)');
 ylabel('avg z-score');
 title('Average Z-score Around Non-rewarded Licks');
@@ -553,10 +540,7 @@ if patch_num > 0 && trial_count > 0
     %saveas(gcf,[saveLoc,filesep ,'Sess_', num2str(session), '_Patch_', num2str(patch_num),'.png'],'png');
 end
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 %% Stay vs switch
 
 window = 5; % window of time around lick to average
@@ -653,10 +637,7 @@ peaks_switch = max(zscore_matrix_switch, [], 2);
 
 [h, p, ci, stats] = ttest2(peaks_stay, peaks_switch);
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 %% Plot dopamine at unexpected reward (reward when mouse is in low patch)
 
 unexpected_reward = []; % when the mouse is in low patch but gets rewarded
@@ -972,7 +953,6 @@ x=1;
 %{
 %% DA - early vs late in patch
 
-<<<<<<< HEAD
 %% Analyze awake ripples
 
 % Load variables
@@ -993,7 +973,7 @@ sleep_end = MergePoints.timestamps(2,2); % time stamp of end of sleep session
 
 
 ripple_period = ripples.peaks(ripples.peaks <= sleep_end & ripples.peaks >= sleep_start);
-=======
+
 
 % Parameters
 window = 5; % Time window around event in seconds
@@ -1018,7 +998,6 @@ for i = 1:length(behavTrials.patch_trials)
             for b = 1:ceil(trial_count/10)
                 avg_signal = mean(patch_zscore_matrix(((b-1)*10 + 1):min(b*10, trial_count), :), 1);
                 smoothed = smoothdata(avg_signal);
->>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 
                 baseline = mean(smoothed(1:baseline_samples));
                 normalized_signal = smoothed - baseline;
@@ -1049,7 +1028,6 @@ for i = 1:length(behavTrials.patch_trials)
         patch_zscore_matrix = [];
     end
 
-<<<<<<< HEAD
 window = 5; % window of time around ripple to average
 samples = window*sampling_rate;
 
@@ -1175,7 +1153,6 @@ if patch_num > 0 && trial_count > 0
     hold off
 end
 %}
->>>>>>> 2f4d3a86f04df0da4d5e289cb15f173d8d44909b
 
 
 
