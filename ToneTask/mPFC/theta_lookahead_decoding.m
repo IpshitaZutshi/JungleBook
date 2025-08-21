@@ -1,45 +1,45 @@
 function out = theta_lookahead_decoding(sess, decodingPath, varargin)
 % theta_lookahead_decoding
 % Lookahead = decoded y-position minus true y-position.
-% Aligns lookahead to theta peaks (from your saved thetaLFP) and
-% builds peri-peak heatmaps/averages for baseline (stim==0) vs stim (stim==1).
+% Key change: compute lookahead on the DECODER timebase (post_time), not the
+% tracking timebase, then align to theta peaks (from thetaLFP).
 %
-% Required inputs
-%   sess         : session folder containing *thetaLFP.mat, *Tracking.Behavior.mat,
+% Inputs
+%   sess         : session folder with *thetaLFP.mat, *Tracking.Behavior.mat,
 %                  *TrialBehavior.Behavior.mat
-%   decodingPath : NetCDF path with variables:
+%   decodingPath : NetCDF with variables:
 %                  y_position (posterior), time, y_position_value
 %
 % Options (Name,Value)
-%   'Win'          : [-0.2 0.2]   peri-peak window (s)
-%   'SpeedThresh'  : 2            forward-motion gate (cm/s)
-%   'AlignTol'     : 0.05         |tracking t - posterior t| max (s)
-%   'NumStd'       : 2            amplitude gate for peaks (see below)
-%   'MinPeakDist'  : 0.06         minimum distance between peaks (s)
-%   'UsePowerGate' : false        if true, gate peaks by lfp.thetapower instead of |filtered|
-%   'SaveFig'      : ''           if nonempty, saves PNG+FIG with this basename
+%   'Win'            : [-0.2 0.2] peri-peak window (s)
+%   'SpeedThresh'    : 2          forward-motion gate (cm/s)
+%   'NumStd'         : 2          amplitude gate for peaks
+%   'MinPeakDist'    : 0.06       minimum distance between peaks (s)
+%   'UsePowerGate'   : false      gate by thetapower instead of |filtered|
+%   'UsePosteriorMean': false     if true, use E[pos] (mean), else MAP
+%   'SaveFig'        : ''         basename to save PNG+FIG
 %
-% Output struct:
+% Output:
 %   out.timeAxis
 %   out.base / out.stim: periErr, mean, sem, N
 %   out.params
 
-% -------------------- options --------------------
+% ---------- options ----------
 p = inputParser;
 addParameter(p,'Win',[-0.2 0.2]);
 addParameter(p,'SpeedThresh',2);
-addParameter(p,'AlignTol',0.05);
 addParameter(p,'NumStd',2);
 addParameter(p,'MinPeakDist',0.06);
 addParameter(p,'UsePowerGate',false);
+addParameter(p,'UsePosteriorMean',false);
 addParameter(p,'SaveFig','');
 parse(p,varargin{:});
 opt = p.Results;
 
-% -------------------- load session data --------------------
+% ---------- load session data ----------
 cwd0 = pwd; if exist(sess,'dir'); cd(sess); end
 
-% theta LFP with fields: timestamps, filtered, thetapower, thetaphase (0..2π)
+% theta LFP (fields: timestamps, filtered, thetapower, thetaphase 0..2π)
 f = dir('*thetaLFP.mat');  assert(~isempty(f),'*.thetaLFP.mat not found.');
 S = load(f(1).name);       lfp = fetchField(S,{'lfp','LFP','ThetaLFP'});
 
@@ -54,45 +54,54 @@ end
 assert(isfield(behavTrials,'timestamps') && isfield(behavTrials,'stim'),...
     'behavTrials.timestamps or behavTrials.stim missing');
 
+% Tracking series
 ts_track = tracking.timestamps(:);
-ypos     = tracking.position.y(:);
+y_track  = tracking.position.y(:);
 if isfield(tracking,'position') && isfield(tracking.position,'vy')
-    vy = tracking.position.vy(:);
+    vy_track = tracking.position.vy(:);
 else
-    vy = [0; diff(ypos)] ./ [1; diff(ts_track)]; % crude fallback (cm/s)
+    vy_track = [0; diff(y_track)]./[1; diff(ts_track)];
 end
 
-% --- robust dt and peri time axis (fixes shape mismatch) ---
-dts = diff(ts_track);
-dts = dts(isfinite(dts) & dts > 0);
-dt_track = median(dts,'omitnan');
-nSamp = max(3, round((opt.Win(2)-opt.Win(1))/dt_track) + 1);
-timeAxis = linspace(opt.Win(1), opt.Win(2), nSamp);
-
-% -------------------- read posterior --------------------
+% ---------- read decoder ----------
 posterior_pos = ncread(decodingPath,'y_position');         % (nPos x nTime)
 post_time     = ncread(decodingPath,'time');               % (nTime)
 post_pos      = ncread(decodingPath,'y_position_value');   % (nPos, cm)
 
-% -------------------- compute lookahead at tracking timestamps --------------------
-lookahead = nan(size(ts_track));
-for i = 1:numel(ts_track)
-    [d, tscur] = min(abs(post_time - ts_track(i)));
-    if d <= opt.AlignTol
-        curPost = posterior_pos(:,tscur);
-        [~, idxMax] = max(curPost);
-        dec_cm = post_pos(idxMax);
-        lookahead(i) = dec_cm - ypos(i);  % + = decoded ahead of animal
-    end
+% Decoder time step & peri window axis (fixed length)
+dts = diff(post_time); dts = dts(isfinite(dts) & dts>0);
+dt_post = median(dts,'omitnan');
+nSamp   = max(5, round((opt.Win(2)-opt.Win(1))/dt_post) + 1);
+timeAxis = linspace(opt.Win(1), opt.Win(2), nSamp);
+
+% ---------- compute lookahead on decoder timebase ----------
+% 1) True y at decoder times
+y_at_post  = interp1(ts_track, y_track, post_time, 'linear', NaN);
+vy_at_post = interp1(ts_track, vy_track, post_time, 'linear', NaN);
+
+% 2) Decoded y at decoder times
+if opt.UsePosteriorMean
+    % Expected value of position (cm)
+    normPost = posterior_pos ./ max(eps, sum(posterior_pos,1));
+    dec_y = post_pos(:)' * normPost;    % 1 x nTime
+    dec_y = dec_y(:);                   % column
+else
+    % MAP
+    [~,idxMax] = max(posterior_pos, [], 1);
+    dec_y = post_pos(idxMax)';          % column
 end
 
-% -------------------- theta peaks from your saved fields --------------------
-lfp_ts = lfp.timestamps(:);
-xf     = double(lfp.filtered(:));     % bandpassed theta signal
-ph     = double(lfp.thetaphase(:));   % 0..2π -> convert to -π..π
-ph(ph>pi) = ph(ph>pi) - 2*pi;
+% 3) Lookahead at decoder times
+lookahead_post = dec_y - y_at_post;     % column
+validDecode = isfinite(lookahead_post) & ~isnan(lookahead_post) & (sum(posterior_pos,1)'>0);
+% keep only valid decoder samples
+lookahead_post(~validDecode) = NaN;
 
-% amplitude gate
+% ---------- theta peaks (using your lfp fields) ----------
+lfp_ts = lfp.timestamps(:);
+xf     = double(lfp.filtered(:));
+ph     = double(lfp.thetaphase(:)); ph(ph>pi) = ph(ph>pi) - 2*pi;
+
 if opt.UsePowerGate
     pow = double(lfp.thetapower(:));
     thr = mean(pow,'omitnan') + opt.NumStd*std(pow,[],'omitnan');
@@ -100,73 +109,64 @@ if opt.UsePowerGate
 else
     rmssig = abs(xf);
     thr = opt.NumStd*std(rmssig,'omitnan');
-    ampGate = xf > thr;               % positive peaks only (as requested)
+    ampGate = xf > thr; % positive peaks
 end
-
-% rising zero-crossings of phase
 phaseUp = [false; diff(ph>0)] > 0;
-
 pkIdx = find(ampGate & phaseUp);
 
-% enforce minimum inter-peak distance
+% min inter-peak spacing
 if ~isempty(pkIdx)
-    keep = true(size(pkIdx));
-    lastT = -Inf;
-    for k = 1:numel(pkIdx)
-        t = lfp_ts(pkIdx(k));
-        if (t - lastT) < opt.MinPeakDist
-            keep(k) = false;
-        else
-            lastT = t;
-        end
+    keep = true(size(pkIdx)); lastT = -Inf;
+    for k=1:numel(pkIdx)
+        t=lfp_ts(pkIdx(k));
+        if (t - lastT) < opt.MinPeakDist, keep(k)=false; else, lastT=t; end
     end
     pkIdx = pkIdx(keep);
 end
 thetaTimes_all = lfp_ts(pkIdx);
 
-% -------------------- assign peaks to baseline vs stim forward runs --------------------
-basePeaks = peaksInTrials(thetaTimes_all, behavTrials.timestamps(behavTrials.stim==0,:), ts_track, vy, opt.SpeedThresh);
-stimPeaks = peaksInTrials(thetaTimes_all, behavTrials.timestamps(behavTrials.stim==1,:), ts_track, vy, opt.SpeedThresh);
+% ---------- select peaks within trials & forward motion ----------
+% Gates evaluated at peak times using tracking speed
+basePeaks = peaksInTrials(thetaTimes_all, behavTrials.timestamps(behavTrials.stim==0,:), ...
+                          ts_track, vy_track, opt.SpeedThresh);
+stimPeaks = peaksInTrials(thetaTimes_all, behavTrials.timestamps(behavTrials.stim==1,:), ...
+                          ts_track, vy_track, opt.SpeedThresh);
 
-% -------------------- peri-event matrices (shape-safe) --------------------
-periBase = buildPeri(lookahead, ts_track, basePeaks, timeAxis);
-periStim = buildPeri(lookahead, ts_track, stimPeaks, timeAxis);
+% ---------- build peri-event matrices on decoder timebase ----------
+periBase = buildPeri(lookahead_post, post_time, basePeaks, timeAxis);
+periStim = buildPeri(lookahead_post, post_time, stimPeaks, timeAxis);
 
-% Optional sanity checks
-assert(size(periBase,2) == numel(timeAxis), 'periBase width mismatch');
-assert(size(periStim,2) == numel(timeAxis), 'periStim width mismatch');
+% Optional: also require forward motion **within** the window (decoder speed)
+% (uncomment if desired)
+% vperiBase = buildPeri(vy_at_post, post_time, basePeaks, timeAxis);
+% vperiStim = buildPeri(vy_at_post, post_time, stimPeaks, timeAxis);
+% spmaskB = vperiBase > opt.SpeedThresh; periBase(~spmaskB) = NaN;
+% spmaskS = vperiStim > opt.SpeedThresh; periStim(~spmaskS) = NaN;
 
-% -------------------- plot --------------------
+% ---------- plot ----------
 fh = figure('Color','w','Position',[180 120 1150 780]);
-
-subplot(2,2,1);
-heatmapSafe(timeAxis, periBase, 'Baseline (stim==0)');
-
-subplot(2,2,2);
-heatmapSafe(timeAxis, periStim, 'mPFC silencing (stim==1)');
+subplot(2,2,1); heatmapSafe(timeAxis, periBase, 'Baseline (stim==0)');
+subplot(2,2,2); heatmapSafe(timeAxis, periStim, 'mPFC silencing (stim==1)');
 
 subplot(2,2,3);
-[mB,seB] = meanSem(periBase);
-[mS,seS] = meanSem(periStim);
+[mB,seB] = meanSem(periBase); [mS,seS] = meanSem(periStim);
 hold on;
 plot(timeAxis, mB, 'k', 'LineWidth', 2);
 plot(timeAxis, mB+seB, 'k--', timeAxis, mB-seB, 'k--');
 plot(timeAxis, mS, 'g', 'LineWidth', 2);
 plot(timeAxis, mS+seS, 'g--', timeAxis, mS-seS, 'g--');
-yline(0,'k:');
-xlabel('Time from theta peak (s)'); ylabel('Decode - true pos (cm)');
+yline(0,'k:'); xlabel('Time from theta peak (s)'); ylabel('Decode - true pos (cm)');
 legend({'Baseline','Baseline \pm SEM','Silencing','Silencing \pm SEM'},'Location','best');
 title('Theta lookahead (decoded - true)');
 
 subplot(2,2,4);
-% simple modulation score: post - pre
 preWin  = timeAxis>=-0.08 & timeAxis<=-0.02;
 postWin = timeAxis>=+0.02 & timeAxis<=+0.08;
 msB = rowfun(@(x) nanmean(x(postWin)) - nanmean(x(preWin)), periBase);
 msS = rowfun(@(x) nanmean(x(postWin)) - nanmean(x(preWin)), periStim);
 hold on;
-if ~isempty(msB), histogram(msB, 'Normalization','probability'); end
-if ~isempty(msS), histogram(msS, 'Normalization','probability'); end
+if ~isempty(msB), histogram(msB,'Normalization','probability'); end
+if ~isempty(msS), histogram(msS,'Normalization','probability'); end
 xlabel('Modulation score (cm)'); ylabel('Probability');
 legend({'Baseline','Silencing'}); box off;
 title('Per-peak modulation (post - pre)');
@@ -176,7 +176,7 @@ if ~isempty(opt.SaveFig)
     savefig(fh, [opt.SaveFig '.fig']);
 end
 
-% -------------------- outputs --------------------
+% ---------- outputs ----------
 out = struct();
 out.timeAxis = timeAxis;
 out.base = packOut(periBase, mB, seB);
@@ -186,7 +186,7 @@ out.params = opt;
 if exist('cwd0','var'); cd(cwd0); end
 end
 
-% =================== helpers ===================
+% ================= helpers =================
 function val = fetchField(S, names)
 for k = 1:numel(names)
     if isfield(S,names{k}), val = S.(names{k}); return; end
@@ -202,7 +202,7 @@ for i = 1:size(intervals,1)
     sel = pkTimes>=t1 & pkTimes<=t2;
     if any(sel)
         tk = pkTimes(sel);
-        % forward-motion gate at peak time
+        % forward-motion gate evaluated at peak time via tracking
         vAtPk = interp1(ts_track, vy, tk, 'linear', 'extrap');
         tk = tk(vAtPk > speedThresh);
         peaks = [peaks; tk]; %#ok<AGROW>
@@ -211,35 +211,15 @@ end
 end
 
 function peri = buildPeri(signal, sigT, eventTimes, tAxis)
-% Build a peri-event matrix by interpolating the signal onto a fixed grid.
-% Ensures row length == numel(tAxis) every time.
-
-    % Force consistent orientations
-    signal = signal(:);       % column
-    sigT   = sigT(:);         % column
-    tAxis  = tAxis(:)';       % row
-
-    % Deduplicate timebase (interp1 requires strictly increasing x)
-    [sigTuniq, iu] = unique(sigT, 'stable');
-    signaluniq = signal(iu);
-
-    % Preallocate
-    peri = nan(numel(eventTimes), numel(tAxis));
-
-    if isempty(eventTimes), return; end
-
-    % Interpolate each peri window
-    for i = 1:numel(eventTimes)
-        tgt = eventTimes(i) + tAxis;  % row, same length as tAxis
-        row = interp1(sigTuniq, signaluniq, tgt, 'linear', NaN); % NaN if out-of-range
-
-        % (Optional) stricter support check: reject samples too far from nearest timestamp
-        % nearestIdx = interp1(sigTuniq, 1:numel(sigTuniq), tgt, 'nearest', 'extrap');
-        % dt_local   = abs(sigTuniq(nearestIdx) - tgt);
-        % row(dt_local > 1.5*median(diff(sigTuniq))) = NaN;
-
-        peri(i,:) = row;  % guaranteed size match
-    end
+% Interpolate a signal defined on sigT onto windows centered at eventTimes.
+signal = signal(:); sigT = sigT(:); tAxis = tAxis(:)';    % orient
+[sigTuniq, iu] = unique(sigT,'stable'); signal = signal(iu);
+peri = nan(numel(eventTimes), numel(tAxis));
+if isempty(eventTimes), return; end
+for i = 1:numel(eventTimes)
+    tgt = eventTimes(i) + tAxis;                           % row
+    peri(i,:) = interp1(sigTuniq, signal, tgt, 'linear', NaN);
+end
 end
 
 function [m,se] = meanSem(X)
@@ -267,14 +247,8 @@ else
     nstr = sprintf('N=%d peaks', size(periMat,1));
 end
 colormap(gca,'magma'); colorbar;
-caxisSafe(periMat);
+vals = periMat(:); vals = vals(isfinite(vals));
+if ~isempty(vals), caxis([min(vals) max(vals)]); end
 xlabel('Time from theta peak (s)'); ylabel('Event #');
 title(sprintf('%s, %s', ttl, nstr));
-end
-
-function caxisSafe(A)
-vals = A(:); vals = vals(isfinite(vals));
-if ~isempty(vals)
-    caxis([min(vals) max(vals)]);
-end
 end
