@@ -61,7 +61,13 @@ if isfield(tracking,'position') && isfield(tracking.position,'vy')
 else
     vy = [0; diff(ypos)] ./ [1; diff(ts_track)]; % crude fallback (cm/s)
 end
-dt_track = median(diff(ts_track),'omitnan');
+
+% --- robust dt and peri time axis (fixes shape mismatch) ---
+dts = diff(ts_track);
+dts = dts(isfinite(dts) & dts > 0);
+dt_track = median(dts,'omitnan');
+nSamp = max(3, round((opt.Win(2)-opt.Win(1))/dt_track) + 1);
+timeAxis = linspace(opt.Win(1), opt.Win(2), nSamp);
 
 % -------------------- read posterior --------------------
 posterior_pos = ncread(decodingPath,'y_position');         % (nPos x nTime)
@@ -122,25 +128,22 @@ thetaTimes_all = lfp_ts(pkIdx);
 basePeaks = peaksInTrials(thetaTimes_all, behavTrials.timestamps(behavTrials.stim==0,:), ts_track, vy, opt.SpeedThresh);
 stimPeaks = peaksInTrials(thetaTimes_all, behavTrials.timestamps(behavTrials.stim==1,:), ts_track, vy, opt.SpeedThresh);
 
-% -------------------- peri-event matrices --------------------
-timeAxis = opt.Win(1):dt_track:opt.Win(2);
+% -------------------- peri-event matrices (shape-safe) --------------------
 periBase = buildPeri(lookahead, ts_track, basePeaks, timeAxis);
 periStim = buildPeri(lookahead, ts_track, stimPeaks, timeAxis);
+
+% Optional sanity checks
+assert(size(periBase,2) == numel(timeAxis), 'periBase width mismatch');
+assert(size(periStim,2) == numel(timeAxis), 'periStim width mismatch');
 
 % -------------------- plot --------------------
 fh = figure('Color','w','Position',[180 120 1150 780]);
 
 subplot(2,2,1);
-imagesc(timeAxis, 1:size(periBase,1), periBase); axis xy;
-colormap(gca,'magma'); colorbar; caxisForBoth(gca, periBase, periStim);
-title(sprintf('Baseline (stim==0), N=%d peaks', size(periBase,1)));
-xlabel('Time from theta peak (s)'); ylabel('Event #');
+heatmapSafe(timeAxis, periBase, 'Baseline (stim==0)');
 
 subplot(2,2,2);
-imagesc(timeAxis, 1:size(periStim,1), periStim); axis xy;
-colormap(gca,'magma'); colorbar; caxisForBoth(gca, periBase, periStim);
-title(sprintf('mPFC silencing (stim==1), N=%d peaks', size(periStim,1)));
-xlabel('Time from theta peak (s)'); ylabel('Event #');
+heatmapSafe(timeAxis, periStim, 'mPFC silencing (stim==1)');
 
 subplot(2,2,3);
 [mB,seB] = meanSem(periBase);
@@ -162,8 +165,8 @@ postWin = timeAxis>=+0.02 & timeAxis<=+0.08;
 msB = rowfun(@(x) nanmean(x(postWin)) - nanmean(x(preWin)), periBase);
 msS = rowfun(@(x) nanmean(x(postWin)) - nanmean(x(preWin)), periStim);
 hold on;
-histogram(msB, 'Normalization','probability');
-histogram(msS, 'Normalization','probability');
+if ~isempty(msB), histogram(msB, 'Normalization','probability'); end
+if ~isempty(msS), histogram(msS, 'Normalization','probability'); end
 xlabel('Modulation score (cm)'); ylabel('Probability');
 legend({'Baseline','Silencing'}); box off;
 title('Per-peak modulation (post - pre)');
@@ -208,18 +211,35 @@ end
 end
 
 function peri = buildPeri(signal, sigT, eventTimes, tAxis)
-peri = nan(numel(eventTimes), numel(tAxis));
-if isempty(eventTimes), return; end
-dt_median = median(diff(sigT),'omitnan');
-for i = 1:numel(eventTimes)
-    tgt = eventTimes(i) + tAxis;
-    idx = interp1(sigT, 1:numel(sigT), tgt, 'nearest', 'extrap');
-    dt  = abs(sigT(idx) - tgt);
-    bad = dt > 1.5*dt_median;         % reject poor alignments
-    row = signal(idx);
-    row(bad) = NaN;
-    peri(i,:) = row;
-end
+% Build a peri-event matrix by interpolating the signal onto a fixed grid.
+% Ensures row length == numel(tAxis) every time.
+
+    % Force consistent orientations
+    signal = signal(:);       % column
+    sigT   = sigT(:);         % column
+    tAxis  = tAxis(:)';       % row
+
+    % Deduplicate timebase (interp1 requires strictly increasing x)
+    [sigTuniq, iu] = unique(sigT, 'stable');
+    signaluniq = signal(iu);
+
+    % Preallocate
+    peri = nan(numel(eventTimes), numel(tAxis));
+
+    if isempty(eventTimes), return; end
+
+    % Interpolate each peri window
+    for i = 1:numel(eventTimes)
+        tgt = eventTimes(i) + tAxis;  % row, same length as tAxis
+        row = interp1(sigTuniq, signaluniq, tgt, 'linear', NaN); % NaN if out-of-range
+
+        % (Optional) stricter support check: reject samples too far from nearest timestamp
+        % nearestIdx = interp1(sigTuniq, 1:numel(sigTuniq), tgt, 'nearest', 'extrap');
+        % dt_local   = abs(sigTuniq(nearestIdx) - tgt);
+        % row(dt_local > 1.5*median(diff(sigTuniq))) = NaN;
+
+        peri(i,:) = row;  % guaranteed size match
+    end
 end
 
 function [m,se] = meanSem(X)
@@ -238,7 +258,23 @@ r = nan(size(M,1),1);
 for i = 1:size(M,1), r(i) = f(M(i,:)); end
 end
 
-function caxisForBoth(ax, A, B)
-lims = [nanmin([A(:);B(:)]), nanmax([A(:);B(:)])];
-if all(isfinite(lims)), caxis(ax, lims); end
+function heatmapSafe(timeAxis, periMat, ttl)
+if isempty(periMat)
+    imagesc(timeAxis, 1, nan(1,numel(timeAxis))); axis xy;
+    nstr = 'N=0 peaks';
+else
+    imagesc(timeAxis, 1:size(periMat,1), periMat); axis xy;
+    nstr = sprintf('N=%d peaks', size(periMat,1));
+end
+colormap(gca,'magma'); colorbar;
+caxisSafe(periMat);
+xlabel('Time from theta peak (s)'); ylabel('Event #');
+title(sprintf('%s, %s', ttl, nstr));
+end
+
+function caxisSafe(A)
+vals = A(:); vals = vals(isfinite(vals));
+if ~isempty(vals)
+    caxis([min(vals) max(vals)]);
+end
 end
