@@ -24,30 +24,19 @@ labels = {'BC','BE','Stim'};
 
 % --- Parameters ---
 yMinSearch = 100;   % skip base
-bandX      = 6;    % center-arm band
+bandX      = 4;    % center-arm band
 
 % --- Estimate center arm X from BC trials ---
-% --- Estimate center arm X as mean X at Y closest to 90 (BC trials) ---
-yRef = 90;
-centerX_vals = nan(numel(idxBC),1);
-
-for i = 1:numel(idxBC)
-    tr = idxBC(i);
-
-    % use center-arm window: cue to choice
+centerX_vals = [];
+for tr_bc = idxBC(:)'
     idx_bc = InIntervals(tracking.timestamps, ...
-        [behavTrials.timestamps(tr,1)+2, behavTrials.choiceTS(tr)]);
-
-    x = tracking.position.x(idx_bc);
-    y = tracking.position.y(idx_bc);
-
-    if ~isempty(x) && ~isempty(y) && any(isfinite(y))
-        [~, j] = min(abs(y - yRef));   % index of Y closest to 90
-        centerX_vals(i) = x(j);
-    end
+        [behavTrials.timestamps(tr_bc,1), behavTrials.choiceTS(tr_bc)]);
+    y_bc = tracking.position.y(idx_bc);
+    x_bc = tracking.position.x(idx_bc);
+    mask_bc = (y_bc >= yMinSearch);
+    centerX_vals(end+1) = median(x_bc(mask_bc), 'omitnan');
 end
-
-centerX = mean(centerX_vals, 'omitnan');
+centerX = median(centerX_vals, 'omitnan');
 
 % --- Determine bias from STIM trials ---
 nLeft_ST  = sum(choice(idxST) == 1);
@@ -63,7 +52,6 @@ fprintf('Bias direction from STIM trials: %s\n', ternary(biasDir==1, 'Left', 'Ri
 turnY_all = cell(1,3);
 
 figure;
-set(gcf,'Renderer','painters')
 tiledlayout(1,2,'TileSpacing','compact','Padding','compact');
 
 % === Subplot 1: All trials with bias vs non-bias turn points ===
@@ -74,7 +62,7 @@ for c = 1:3
     for k = 1:numel(ids)
         tr  = ids(k);
         idx = InIntervals(tracking.timestamps, ...
-            [behavTrials.timestamps(tr,1)+2, behavTrials.choiceTS(tr)]);
+            [behavTrials.timestamps(tr,1), behavTrials.choiceTS(tr)]);
         x = tracking.position.x(idx);
         y = tracking.position.y(idx);
         t = tracking.timestamps(idx);
@@ -128,8 +116,6 @@ for c = 1:3
     end
 end
 xlabel(ax1,'X'); ylabel(ax1,'Y'); axis(ax1,'equal');
-ylim([100 118])
-xlim([84 102])
 title(ax1, sprintf('All Trials (Bias = %s)', ternary(biasDir==1, 'Left', 'Right')));
 grid(ax1,'on');
 
