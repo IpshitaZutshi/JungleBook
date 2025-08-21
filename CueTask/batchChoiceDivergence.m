@@ -1,7 +1,8 @@
 
-basepath = '\\research-cifs.nyumc.org\research\buzsakilab\Buzsakilabspace\LabShare\ZutshiI\Cue task\T20\Final\T20_241117_132754';
+basepath = '\\research-cifs.nyumc.org\research\buzsakilab\Buzsakilabspace\LabShare\ZutshiI\Cue task\T20\Final\T20_241101_171908';
+%basepath = '\\research-cifs.nyumc.org\research\buzsakilab\Buzsakilabspace\LabShare\ZutshiI\Cue task\T22\Final\T22_241102_173932';
 
-noseFile = dir(fullfile(basepath, '*Tracking.Nose.mat'));
+noseFile = dir(fullfile(basepath, '*Tracking.Body.mat'));
 behFile  = dir(fullfile(basepath, '*TrialBehavior.Events.mat'));
 if isempty(noseFile) || isempty(behFile)
     warning('Missing tracking or behavior file in %s', basepath);
@@ -11,11 +12,21 @@ end
 load(fullfile(noseFile.folder, noseFile.name), 'tracking');
 load(fullfile(behFile.folder, behFile.name), 'behavTrials');
 
+stim = 0;           % Compare Left vs Right in baseline trials
+NBins = 120;        % Number of Y bins
+Alpha = 0.001;       % FDR significance level
+MinRun = 5;         % Consecutive bins required
+testStr = 'ranksum';
+
 fig1 = figure('Color','w');
+set(gcf,'Renderer','painters')
 ax1 =  subplot(1,2,1);
 hold on
 plotResampledTrajectories(tracking, behavTrials)
-[y_diverge, stats] = findChoiceDivergenceY(tracking, behavTrials, 'TrialFilter', behavTrials.correct==1);
+[y_diverge, stats] = findChoiceDivergenceY(tracking, behavTrials, ...
+        'NBins', NBins, 'Alpha', Alpha, 'MinRun', MinRun, ...
+        'Test', testStr, ...
+        'TrialFilter', behavTrials.correct==1 & behavTrials.stim'==0);
 
 %% Batch Y-divergence computation across sessions
 direc = '\\research-cifs.nyumc.org\research\buzsakilab\Buzsakilabspace\LabShare\ZutshiI\Cue task';
@@ -40,8 +51,7 @@ sessions = {
     'T22\Final\T22_241029_145741', ...
     'T22\Final\T22_241030_144753', ...
     'T22\Final\T22_241102_173932', ...
-    'T22\Final\T22_241103_123921', ...
-    'T22\Final\T22_241104_150209', ...
+    ...%'T22\Final\T22_241103_123921', ...
     'T22\Final\T22_241113_150043', ...
     'T22\Final\T22_241114_143845', ...
     'T22\Final\T22_241119_144043', ...
@@ -55,14 +65,14 @@ sessions = {
 stim = 0;           % Compare Left vs Right in baseline trials
 NBins = 120;        % Number of Y bins
 Alpha = 0.001;       % FDR significance level
-MinRun = 6;         % Consecutive bins required
+MinRun = 5;         % Consecutive bins required
 testStr = 'ranksum';
 
 yVals = nan(numel(sessions),1);
 
 for s = 1:numel(sessions)
     basepath = fullfile(direc, sessions{s});
-    noseFile = dir(fullfile(basepath, '*Tracking.Nose.mat'));
+    noseFile = dir(fullfile(basepath, '*Tracking.Body.mat'));
     behFile  = dir(fullfile(basepath, '*TrialBehavior.Events.mat'));
     if isempty(noseFile) || isempty(behFile)
         continue;
@@ -118,7 +128,7 @@ scatter(xScatterC, data_corr, 60, 'filled', ...
     'MarkerFaceColor', violinColors{1}, 'MarkerFaceAlpha', 0.8);
 
 % Mean line (Correct)
-yMeanC = mean(data_corr);
+yMeanC = median(data_corr);
 plot([0.7, 1.3], [yMeanC, yMeanC], '--', 'Color', violinColors{1});
 text(1.35, yMeanC, sprintf('%.2f', yMeanC), 'VerticalAlignment', 'bottom');
 
@@ -135,7 +145,7 @@ if sum(~isnan(yVals_error))>2
         'MarkerFaceColor', violinColors{2}, 'MarkerFaceAlpha', 0.8);
     
     % Mean line (Error)
-    yMeanE = mean(data_err);
+    yMeanE = median(data_err);
     plot([1.7, 2.3], [yMeanE, yMeanE], '--', 'Color', violinColors{2});
     text(2.35, yMeanE, sprintf('%.2f', yMeanE), 'VerticalAlignment', 'bottom');
 end

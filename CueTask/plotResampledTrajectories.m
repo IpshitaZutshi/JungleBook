@@ -31,7 +31,7 @@ for g = 1:4
 
     for i = 1:length(trials)
         idx = InIntervals(tracking.timestamps, ...
-               [behavTrials.timestamps(trials(i),1), behavTrials.choiceTS(trials(i))]);
+               [behavTrials.timestamps(trials(i),1)+2, behavTrials.choiceTS(trials(i))]);
         x = tracking.position.x(idx);
         y = tracking.position.y(idx);
 
