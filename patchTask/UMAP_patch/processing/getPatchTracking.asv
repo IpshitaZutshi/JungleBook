@@ -1,5 +1,4 @@
 function [tracking] = getPatchTracking(varargin)
-
 % Gets position tracking for each sub-session and concatenate all of them so they are 
 % aligned with LFP and spikes. Default is using the analog input from Bonsai detected position. 
 %
@@ -22,27 +21,20 @@ function [tracking] = getPatchTracking(varargin)
 %   position.x               - x position in cm/ normalize
 %   
 %   timestamps      - in seconds, if Basler ttl detected, sync by them
-
 %   HISTORY:
 %     - Ipshita Zutshi 2021
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % SAVE behavTrials from this code, because it will align timestamps
-
 p = inputParser;
 addParameter(p,'basepath',pwd,@isstr)
 addParameter(p,'fs',150,@isnumeric);
 addParameter(p,'saveMat',true,@islogical)
 addParameter(p,'forceReload',true,@islogical)
-
 parse(p,varargin{:});
 basepath = p.Results.basepath;
 fs = p.Results.fs;
 saveMat = p.Results.saveMat;
 forceReload = p.Results.forceReload;
-
-
 %% In case tracking already exists 
 if ~isempty(dir([basepath filesep '*Tracking.Behavior.mat'])) && ~forceReload
     disp('Trajectory already detected! Loading file.');
@@ -50,7 +42,6 @@ if ~isempty(dir([basepath filesep '*Tracking.Behavior.mat'])) && ~forceReload
     load(file.name);
     return
 end
-
  %% Find subfolder recordings
 cd(basepath);
 [sessionInfo] = bz_getSessionInfo(basepath, 'noPrompts', true);
@@ -76,10 +67,17 @@ if exist([basepath filesep strcat(sessionInfo.session.name,'.MergePoints.events.
                 
                 % Check for 'hpc' or 'striatum' in filename (case-insensitive)
                 if contains(lower(fname), 'hpc')
+<<<<<<< Updated upstream:patchTask/UMAP_patch/processing/getPatchTracking.asv
                     photomBehav_hpc = getSyncPhotometry_IZ(data.photometryData);
                     photometry_exists(1) = 1;
                 elseif contains(lower(fname), 'striatum')
                     photomBehav_striatum = getSyncPhotometry_IZ(data.photometryData);
+=======
+                    photomBehav_hpc{count} = getSyncPhotometry_IZ(data.photometryData);
+                    photometry_exists(1) = 1;
+                elseif contains(lower(fname), 'striatum')
+                    photomBehav_striatum{count} = getSyncPhotometry_IZ(data.photometryData);
+>>>>>>> Stashed changes:patchTask/UMAP_patch/getPatchTracking.m
                     photometry_exists(2) = 1;
                 end
             end
@@ -92,8 +90,11 @@ if exist([basepath filesep strcat(sessionInfo.session.name,'.MergePoints.events.
 else
     error('missing MergePoints, quiting...');
 end
+<<<<<<< Updated upstream:patchTask/UMAP_patch/processing/getPatchTracking.asv
 
 
+=======
+>>>>>>> Stashed changes:patchTask/UMAP_patch/getPatchTracking.m
 % % photometry
 % photometry_file = dir('*photometry.mat'); %%%
 % if ~isempty(photometry_file)
@@ -103,31 +104,37 @@ end
 % else
 %     photometry_exists = 0;
 % end
+<<<<<<< Updated upstream:patchTask/UMAP_patch/processing/getPatchTracking.asv
 
 
+=======
+>>>>>>> Stashed changes:patchTask/UMAP_patch/getPatchTracking.m
 %% Concatenate and sync timestamps
 ts = []; subSessions = []; maskSessions = [];
 tsBehav= []; % behavior
 tsLicks = []; % licks
-tsPhot = []; % photometry 
+tsPhot_hpc = []; % photometry 
+tsPhot_striatum = [];
 if exist([basepath filesep strcat(sessionInfo.session.name,'.MergePoints.events.mat')],'file')
     load(strcat(sessionInfo.session.name,'.MergePoints.events.mat'));
     for ii = 1:length(trackFolder)
         if strcmpi(MergePoints.foldernames{trackFolder(ii)},behavTracking{ii}.folder)
             sumTs = behavTracking{ii}.timestamps + MergePoints.timestamps(trackFolder(ii),1);
             ts = [ts; sumTs]; % figure this out
-
             subSessions = [subSessions; MergePoints.timestamps(trackFolder(ii),1:2)];
             maskSessions = [maskSessions; ones(size(sumTs))*ii];
             
             sumTs = patchBehav{ii}.timestamps + MergePoints.timestamps(trackFolder(ii),1);
             tsBehav = [tsBehav; sumTs];
-
-            if photometry_exists == 1
-                sumTsPhot = photomBehav{ii}.timestamps + MergePoints.timestamps(trackFolder(ii),1); %%%
-                tsPhot = [tsPhot; sumTsPhot]; %%%
+            if photometry_exists(1) == 1
+                sumTsPhot = photomBehav_hpc{ii}.timestamps + MergePoints.timestamps(trackFolder(ii),1); %%%
+                tsPhot_hpc = [tsPhot_hpc; sumTsPhot]; %%%
             end
             
+            if photometry_exists(2) == 1
+                sumTsPhot = photomBehav_striatum{ii}.timestamps + MergePoints.timestamps(trackFolder(ii),1); %%%
+                tsPhot_striatum = [tsPhot_striatum; sumTsPhot]; %%%
+            end
             %{
             add licks back in if you add licks in behavTrials
             sumTsLick = patchBehav{ii}.lick_timestamps + MergePoints.timestamps(trackFolder(ii),1);
@@ -146,54 +153,51 @@ else
         ts = [ts; sumTs];
     end
 end
-
 % Concatenating tracking fields...
 x = []; y = []; vx = []; vy = []; v = []; folder = []; samplingRate = []; description = [];framesDropped = [];
 for ii = 1:size(behavTracking,2) 
     x = [x; behavTracking{ii}.position.x];     
     y = [y; behavTracking{ii}.position.y]; 
-
     vx = [vx; behavTracking{ii}.position.vx];     
     vy = [vy; behavTracking{ii}.position.vy]; 
     v = [v; behavTracking{ii}.position.v];     
-
     folder{ii} = behavTracking{ii}.folder; 
     samplingRate = [samplingRate; behavTracking{ii}.samplingRate];  
     description{ii} = behavTracking{ii}.description;  
     framesDropped{ii} = behavTracking{ii}.framesDropped;  
 end
-
 tracking.position.x = x;
 tracking.position.y = y;
 tracking.position.vx = vx;
 tracking.position.vy = vy;
 tracking.position.v = v;
-
 tracking.folders = folder;
 tracking.samplingRate = samplingRate;
 tracking.timestamps = ts;
 tracking.framesDropped = framesDropped;
 tracking.events.subSessions =  subSessions;
 tracking.events.subSessionsMask = maskSessions;
-
 behavTrials = patchBehav{1};
 behavTrials.timestamps = tsBehav;
 behavTrials.lick_timestamps = tsLicks;
-
-if photometry_exists == 1
-    photometry = photomBehav{1};
-    photometry.timestamps = tsPhot;
+if photometry_exists(1) == 1
+    photometry_hpc = photomBehav_hpc{1};
+    photometry_hpc.timestamps = tsPhot_hpc;
 end
-
+if photometry_exists(2) == 1
+    photometry_striatum = photomBehav_striatum{1};
+    photometry_striatum.timestamps = tsPhot_striatum;
+end
 %% save tracking 
 [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true);
 if saveMat
     save([basepath filesep sessionInfo.FileName '.Tracking.Behavior.mat'],'tracking');
     save([basepath filesep sessionInfo.FileName '.TrialBehavior.mat'],'behavTrials');
-    if photometry_exists == 1
-        save([basepath filesep sessionInfo.FileName '.PhotometryBehav.mat'],'photometry');
+    if photometry_exists(1) == 1
+        save([basepath filesep sessionInfo.FileName '.PhotometryBehavHPC.mat'],'photometry_hpc');
+    end
+    if photometry_exists(2) == 1
+        save([basepath filesep sessionInfo.FileName '.PhotometryBehavStriatum.mat'],'photometry_striatum');
     end
 end
-
 end
-
