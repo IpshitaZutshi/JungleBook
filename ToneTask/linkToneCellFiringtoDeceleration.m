@@ -36,7 +36,7 @@ for ii = 1:length(sess)
     %% Load files
     cd(strcat(expPath,sess{ii}))    
     % Find deceleration points
-    Dec = findDecelerationPoints('plotfig',false);
+    Dec = findDecelerationPoints('plotfig',true);
 
     file = dir(['*.rateMapsAvgnotLog.cellinfo.mat']);
     load(file(1).name); 

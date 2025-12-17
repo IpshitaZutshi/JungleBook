@@ -418,10 +418,10 @@ if plotfig
 
     for ss = 1:2
         idxSess = Summary.AllsessType==(ss-1) & Summary.AllcellType == 1;
-        idxActive = Summary.AllsessType==(ss-1) & Summary.AllcellType == 1 & nanmean(Summary.AllspaceMap,2)>0.2;
-        idxMaps{1} = idxSess & Summary.AlllinField & Summary.AlllinCorr>0.1;
-        idxMaps{2} = idxSess & Summary.AllspaceField & Summary.AllspatialCorr>0.1;
-        idxMaps{3} = idxSess & Summary.AlltoneField & Summary.AlltoneCorr>0.1;    
+        idxActive = Summary.AllsessType==(ss-1) & Summary.AllcellType == 1 & nanmean(Summary.AllspaceMapAvg,2)>0.2;
+        idxMaps{1} = idxActive & idxSess & Summary.AlllinField & Summary.AlllinCorr>0.1;
+        idxMaps{2} = idxActive & idxSess & Summary.AllspaceField & Summary.AllspatialCorr>0.1;
+        idxMaps{3} = idxActive & idxSess & Summary.AlltoneField & Summary.AlltoneCorr>0.1;    
         figure
         set(gcf,'Color','w')
         set(gcf,'renderer','painters')    

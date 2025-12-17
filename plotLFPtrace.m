@@ -1,19 +1,19 @@
 function M = plotLFPtrace(lfp,events)
 % 
-% [sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true);
-% jj = 1;
-% lfp = bz_GetLFP(sessionInfo.AnatGrps(jj).Channels,'noPrompts', true);
-% lfp = bz_interpolateLFP(lfp);
-% analogEv = 64;
-% numAnalog = 2;
-% for ii = 1:numAnalog
-%     analogCh(ii) = (analogEv-1)+ii;
-% end
-% 
-% [pulses] = bz_getAnalogPulses('analogCh',analogCh);
-% pulTr = (pulses.stimComb==2);
-% events = pulses.intsPeriods(:,pulTr);
-% events = round(events*1250);
+[sessionInfo] = bz_getSessionInfo(pwd, 'noPrompts', true);
+jj = 2;
+lfp = bz_GetLFP(sessionInfo.AnatGrps(jj).Channels,'noPrompts', true);
+lfp = bz_interpolateLFP(lfp);
+analogEv = 64;
+numAnalog = 2;
+for ii = 1:numAnalog
+    analogCh(ii) = (analogEv-1)+ii;
+end
+
+[pulses] = bz_getAnalogPulses('analogCh',analogCh);
+pulTr = (pulses.stimComb==2);
+events = pulses.intsPeriods(:,pulTr);
+events = round(events*1250);
 
 file = dir(['*Behavior.mat']);
 load(file(1).name);

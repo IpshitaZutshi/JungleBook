@@ -1,0 +1,93 @@
+function M = plottraceVideo_fullwidth(lfp)
+
+% --- Parameters for smooth scroll ---
+Fs = round(1/median(diff(lfp.timestamps)));   % Hz
+win_len_s   = 0.5;                            % seconds visible at once
+win_len_samp = round(win_len_s*Fs);           % samples per window (e.g. 625 @ 1250 Hz)
+samples_per_frame = 1;                        % scroll by 1 sample each frame
+target_fps  = 60;                             % video frame rate
+line_width  = 1.1;
+
+% --- Data prep ---
+[~,idx] = min(abs(lfp.timestamps-10824));     % starting index (adjust as needed)
+data = double(lfp.data(idx:idx+25000, :));
+data = data(:, [1:7 9:64]);                   % drop channel 8
+nChan = size(data,2);
+nSamp = size(data,1);
+
+% vertical offsets
+arr = (0:nChan-1)*1000;
+data = 2.5*data - arr;
+
+% colormap
+% cm = cbrewer('seq','PuBuGn',90);
+% cm(cm<0) = 0;
+
+nColors = 64;  % number of levels (like in cbrewer)
+
+navy   = [0.10 0.10 0.35];  % deep navy
+teal   = [0.00 0.60 0.60];  % teal
+%gold   = [0.85 0.65 0.10];  % warm gold
+purple = [0.45 0.20 0.50];  % muted purple
+
+%anchor_pos   = [1, round(0.45*nColors), round(0.50*nColors), nColors];
+anchor_colors = [navy; gold; teal; purple];
+
+% Interpolate smoothly across the three anchor colors
+cm = interp1(anchor_pos, anchor_colors, 1:nColors, 'linear');
+
+% --- Figure & axes (full HD, axes fill window) ---
+fig = figure('Color','w','Position',[100 100 1920 1080]); 
+ax  = axes('Parent',fig,'Position',[0 0 1 1]); 
+axis(ax,'off'); hold(ax,'on');
+
+% Fixed XData in pixel space (1920 px wide)
+Xfixed = linspace(0, win_len_samp-1, 1920);
+
+% First window, resampled to 1920 px
+Y0 = interp1(0:win_len_samp-1, data(1:win_len_samp,:), Xfixed, 'linear');
+
+% Initialize line objects
+h = gobjects(nChan,1);
+for j = 1:nChan
+    h(j) = plot(ax, Xfixed, Y0(:,j), ...
+        'LineWidth', line_width, 'Color', cm(j,:));
+end
+
+xlim(ax, [Xfixed(1) Xfixed(end)]);
+ylim(ax, [min(data(:))-200, max(data(:))+200]);
+
+% --- Main loop ---
+start_max = nSamp - win_len_samp;
+k = 1;
+frame = 1;
+
+est_frames = ceil((start_max-1)/samples_per_frame)+1;
+M(est_frames) = struct('cdata',[],'colormap',[]); %#ok<AGROW>
+
+while k <= start_max
+    idx_win = k:(k+win_len_samp-1);
+
+    % Resample each window to 1920 px
+    Ynew = interp1(0:win_len_samp-1, data(idx_win,:), Xfixed, 'linear');
+
+    % Update YData only
+    Yc = mat2cell(Ynew, 1920, ones(1,nChan)).';
+    set(h, {'YData'}, Yc);
+
+    drawnow limitrate nocallbacks;
+    M(frame) = getframe(fig);
+    frame = frame + 1;
+
+    k = k + samples_per_frame;
+end
+
+M = M(1:frame-1);
+close(fig);
+
+% --- Write video ---
+V = VideoWriter('C:\Users\Ipshita\Desktop\trace_fullHD','MPEG-4');
+V.FrameRate = target_fps;
+V.Quality   = 100;
+open(V); writeVideo(V,M); close(V);
+end
