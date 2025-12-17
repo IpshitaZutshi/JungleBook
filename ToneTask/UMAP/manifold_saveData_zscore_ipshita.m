@@ -309,6 +309,8 @@ else
     lick_loc = tracking.masks.LICK_LOC(InIntervals(tracking.timestamps,beh_interval));  
     correct = tracking.masks.CORRECT(InIntervals(tracking.timestamps,beh_interval));
     probe = tracking.masks.PROBE(InIntervals(tracking.timestamps,beh_interval));
+    % Add stim as a variable
+    
 
     
     pos_x = smoothdata(tracking.position.x(InIntervals(tracking.timestamps,beh_interval)),'movmean',smooth_win);

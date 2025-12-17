@@ -14,7 +14,8 @@ sessionDirs = {'C:\Users\Ipshita\NYU Langone Health Dropbox\Ipshita Zutshi\Cue T
 
 % Parameters
 yMinSearch = 100;   % skip base
-bandX      = 6;     % center-arm band half-width
+bandX      = 4;    % center-arm band
+bandXmin = 1;
 yRef       = 90;    % centerX reference Y
 smoothWin  = 2;     % smoothing window for movmedian
 
@@ -81,7 +82,7 @@ for s = 1:numel(sessionDirs)
                 t = tracking.timestamps(idx);
 
                 if numel(y) < 3, continue; end
-                validIdx = (y >= yMinSearch) & (abs(x - centerX) <= bandX);
+                validIdx = (y >= yMinSearch) & (abs(x - centerX) <= bandX) & (abs(x - centerX) >= bandXmin);
                 if nnz(validIdx) < 3, continue; end
 
                 % smooth

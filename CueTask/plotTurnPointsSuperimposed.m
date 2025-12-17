@@ -24,7 +24,8 @@ labels = {'BC','BE','Stim'};
 
 % --- Parameters ---
 yMinSearch = 100;   % skip base
-bandX      = 6;    % center-arm band
+bandX      = 4;    % center-arm band
+bandXmin = 1;
 
 % --- Estimate center arm X from BC trials ---
 % --- Estimate center arm X as mean X at Y closest to 90 (BC trials) ---
@@ -80,7 +81,7 @@ for c = 1:3
         t = tracking.timestamps(idx);
 
         if numel(y) >= 3
-            validIdx = (y >= yMinSearch) & (abs(x - centerX) <= bandX);
+            validIdx = (y >= yMinSearch) & (abs(x - centerX) <= bandX) & (abs(x - centerX) >= bandXmin);
             if nnz(validIdx) >= 3
                 % Smooth valid segment
                 x_valid = smoothdata(x(validIdx), 'movmedian', 2);

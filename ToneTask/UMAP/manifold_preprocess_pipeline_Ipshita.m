@@ -1,24 +1,24 @@
 
 % need to run
-basepath = 'C:\Data\Kilosort\T17_240421_sess6\'
+%basepath = 'C:\Data\Kilosort\T17_240421_sess6\'
 
 %% get subfolder names in the path
-% pathFolder = 'G:\Data\Ipshita\NatureRevisions\'
-% d = dir(pathFolder);
-% isub = [d(:).isdir]; %# returns logical vector
-% nameFolds = {d(isub).name}';
+pathFolder = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\mPFC\'
+d = dir(pathFolder);
+isub = [d(:).isdir]; %# returns logical vector
+nameFolds = {d(isub).name}';
 %%
-behavior_epoch_index =[2,0,1,3,3,3,3,2];
-speed_lims = 0;
+behavior_epoch_index =[];%[2,0,1,3,3,3,3,2];
+speed_lims = 1;
 smooths = 5;
 SPIKEbins_beh = 0.1;
 
 
 
 %% preprocess behavior
-
-nameFolds = {'T17_240421_sess6'}
-pathFolder = 'C:\Data\Kilosort\T17_240421_sess6\'
+% 
+% nameFolds = {'T17_240421_sess6'}
+% pathFolder = 'C:\Data\Kilosort\T17_240421_sess6\'
 
 for bp = 1:length(nameFolds)
     nameFold = nameFolds{bp}
