@@ -1,0 +1,181 @@
+function preprocess_manifold_auditory(varargin)
+
+p = inputParser;
+addParameter(p,'basepath',pwd);
+addParameter(p,'speed_lim',1);
+addParameter(p,'save_name',[]);
+addParameter(p,'seed',0); % 
+addParameter(p,'smooth_win',5); % 
+addParameter(p,'SPIKEbin_beh',0.1); % 
+addParameter(p,'correct_only',0); % 
+addParameter(p,'error_only',0); % 
+addParameter(p,'nostim_only',0); % 
+addParameter(p,'stim_only',0); % 
+
+parse(p,varargin{:});
+basepath = p.Results.basepath;
+speed_lim = p.Results.speed_lim;
+save_name = p.Results.save_name;
+seed = p.Results.seed;
+smooth_win = p.Results.smooth_win;
+SPIKEbin_beh = p.Results.SPIKEbin_beh;
+error_only = p.Results.error_only;
+correct_only = p.Results.correct_only;
+nostim_only = p.Results.nostim_only;
+stim_only = p.Results.stim_only;
+
+basename = basenameFromBasepath(basepath);
+save_path= [basepath, '\manifold'];
+if ~exist(save_path,'dir')
+    mkdir(save_path)
+end
+
+if isempty(save_name)
+%     save_name = ['behavior_speed_',num2str(speed_lim),'_smooth_',num2str(smooth_win),'_Tbin_',num2str(SPIKEbin_beh)];
+    if correct_only
+        save_name = ['behavior_speed_',num2str(speed_lim),'_smooth_',num2str(smooth_win),...
+            '_bin_',num2str(SPIKEbin_beh),'_correct_only'];
+    elseif error_only
+        save_name = ['behavior_speed_',num2str(speed_lim),'_smooth_',num2str(smooth_win),...
+            '_bin_',num2str(SPIKEbin_beh),'_error_only'];    
+    elseif nostim_only
+        save_name = ['behavior_speed_',num2str(speed_lim),'_smooth_',num2str(smooth_win),...
+            '_bin_',num2str(SPIKEbin_beh),'_nostim_only'];
+    elseif stim_only     
+        save_name = ['behavior_speed_',num2str(speed_lim),'_smooth_',num2str(smooth_win),...
+            '_bin_',num2str(SPIKEbin_beh),'_stim_only'];
+    else    
+        save_name = ['behavior_speed_',num2str(speed_lim),'_smooth_',num2str(smooth_win),...
+            '_bin_',num2str(SPIKEbin_beh)];
+    end
+
+end
+
+%% Load files
+file = dir('*.spikes.cellinfo.mat');
+load(file.name)
+file = dir('*.session.mat');
+load(file.name)
+file = dir('*.Tracking.Behavior.mat');
+load(file.name)
+file = dir('*.TrialBehavior.Behavior.mat'); 
+load(file.name)
+
+beh_interval = [tracking.timestamps(1), tracking.timestamps(end)];
+
+%% Spikes
+SPIKEMAT = bz_SpktToSpkmat_manifold(spikes, 'dt',SPIKEbin_beh,'win',beh_interval,'units','counts');
+timestamp = [];
+timestamp = [timestamp, SPIKEMAT.timestamps'];
+
+
+%% Make masks for the behavior
+trialnumberMask = zeros(size(tracking.timestamps)); % total trials within session
+trialTypeMask = zeros(size(tracking.timestamps)); % target port
+lickLocMask = zeros(size(tracking.timestamps)); % chosen port
+correctMask = zeros(size(tracking.timestamps));% rewarded or not rewarded
+probeMask = zeros(size(tracking.timestamps)); % 0 or 1
+stimMask = zeros(size(tracking.timestamps));
+
+
+for ii = 1:(length(behavTrials.timestamps)-1)
+    posTrials = tracking.timestamps >= behavTrials.timestamps(ii,1) & ...
+                tracking.timestamps < behavTrials.timestamps(ii+1,1); % maybe i should keep all timestamps in behavTrials
+    fwdTrials = tracking.timestamps >= behavTrials.timestamps(ii,1) & ...
+                tracking.timestamps < behavTrials.timestamps(ii,2); 
+    retTrials = tracking.timestamps >= behavTrials.timestamps(ii,2) & ...
+                tracking.timestamps < behavTrials.timestamps(ii+1,1);             
+    trialnumberMask(posTrials) = ii; % total trials within session
+    if behavTrials.linTrial(ii) == 1
+        trialTypeMask(fwdTrials) = 6; % target port
+    else
+        trialTypeMask(fwdTrials) = behavTrials.toneGain(ii); % target port
+    end
+    trialTypeMask(retTrials) = 7; % target port
+    lickLocMask(posTrials) = behavTrials.lickLoc(ii); % chosen port
+    correctMask(posTrials) = behavTrials.correct(ii);% rewarded or not rewarded
+    if isfield(behavTrials,'probe')
+        probeMask(posTrials) =  behavTrials.probe(ii); % 0 or 1
+    else
+        probeMask(posTrials) =  0;
+    end
+    if isfield(behavTrials,'stim')
+        stimMask(posTrials) = behavTrials.stim(ii);
+    else
+        stimMask(posTrials) =  0;
+    end
+end
+
+%% Make behav variables
+trial_num = trialnumberMask(InIntervals(tracking.timestamps,beh_interval));    
+trial_type = trialTypeMask(InIntervals(tracking.timestamps,beh_interval));  
+lick_loc = lickLocMask(InIntervals(tracking.timestamps,beh_interval));  
+correct = correctMask(InIntervals(tracking.timestamps,beh_interval));
+probe = probeMask(InIntervals(tracking.timestamps,beh_interval));
+stim = stimMask(InIntervals(tracking.timestamps,beh_interval));
+
+pos_x = smoothdata(tracking.position.x(InIntervals(tracking.timestamps,beh_interval)),'movmean',smooth_win);
+pos_y = smoothdata(tracking.position.y(InIntervals(tracking.timestamps,beh_interval)),'movmean',smooth_win);
+speed = tracking.position.v(InIntervals(tracking.timestamps,beh_interval));
+
+%acl = abs(diff(speed)./diff(tracking.timestamps));
+acl = diff(speed)./diff(tracking.timestamps);
+
+acceleration = [];
+acceleration(1) = acl(1);
+acceleration(2:length(speed)) = acl;
+
+
+%% interpolate
+trial_num_ds = interp1(tracking.timestamps(InIntervals(tracking.timestamps,beh_interval)),trial_num,timestamp,'nearest'); 
+correct_ds = interp1(tracking.timestamps(InIntervals(tracking.timestamps,beh_interval)),correct,timestamp,'nearest');
+probe_ds = interp1(tracking.timestamps(InIntervals(tracking.timestamps,beh_interval)),probe,timestamp,'nearest');
+stim_ds = interp1(tracking.timestamps(InIntervals(tracking.timestamps,beh_interval)),stim,timestamp,'nearest');
+trial_type_ds = interp1(tracking.timestamps(InIntervals(tracking.timestamps,beh_interval)),trial_type,timestamp,'nearest');
+lick_loc_ds = interp1(tracking.timestamps(InIntervals(tracking.timestamps,beh_interval)),lick_loc,timestamp,'nearest');
+pos_x_ds = interp1(tracking.timestamps(InIntervals(tracking.timestamps,beh_interval)),pos_x,timestamp,'linear'); 
+pos_y_ds = interp1(tracking.timestamps(InIntervals(tracking.timestamps,beh_interval)),pos_y,timestamp,'linear'); 
+speed_ds = interp1(tracking.timestamps(InIntervals(tracking.timestamps,beh_interval)),speed,timestamp,'linear'); 
+acceleration_ds =  interp1(tracking.timestamps(InIntervals(tracking.timestamps,beh_interval)),acceleration,timestamp,'linear'); 
+
+if correct_only
+    high_speed_ind = find(correct_ds==1 & speed_ds>speed_lim);
+elseif error_only
+    high_speed_ind = find(correct_ds==0 & speed_ds>speed_lim);
+elseif nostim_only
+    high_speed_ind = find(stim_ds==0 & speed_ds>speed_lim);
+elseif stim_only
+    high_speed_ind = find(stim_ds==1 & speed_ds>speed_lim);
+else
+    high_speed_ind = find(speed_ds>speed_lim);
+end
+
+speed_ds = speed_ds(high_speed_ind);
+acceleration_ds = acceleration_ds(high_speed_ind);
+position_x_all = pos_x_ds(high_speed_ind);
+position_y_all = pos_y_ds(high_speed_ind);
+trial_num_ds = trial_num_ds(high_speed_ind);
+correct_ds = correct_ds(high_speed_ind);
+probe_ds = probe_ds(high_speed_ind);
+stim_ds = stim_ds(high_speed_ind);
+trial_type_ds = trial_type_ds(high_speed_ind);
+lick_loc_ds = lick_loc_ds(high_speed_ind);
+
+spike_counts = [];
+spike_counts = [spike_counts,SPIKEMAT.data(:,:)'];
+
+data = normalize(spike_counts,1,'zscore');
+data(isnan(data))=0;
+data = data';
+
+data = data(high_speed_ind, :);
+timestamp = timestamp(high_speed_ind);
+
+timestamp_beh = timestamp;
+
+%% Save
+save([save_path, '\', basename, '.data_',save_name,'.mat'], 'data', 'timestamp')
+save([save_path, '\', basename, '.position_',save_name,'.mat'],'timestamp_beh','speed_ds','acceleration_ds',...
+    'position_x_all','position_y_all','trial_num_ds','correct_ds','probe_ds','stim_ds', 'trial_type_ds', 'lick_loc_ds');
+
+end
