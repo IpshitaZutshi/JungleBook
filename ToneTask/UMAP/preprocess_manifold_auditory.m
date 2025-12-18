@@ -64,7 +64,7 @@ load(file.name)
 beh_interval = [tracking.timestamps(1), tracking.timestamps(end)];
 
 %% Spikes
-SPIKEMAT = bz_SpktToSpkmat_manifold(spikes, 'dt',SPIKEbin_beh,'win',beh_interval,'units','counts');
+SPIKEMAT = bz_SpktToSpkmat_manifold(spikes, 'dt',SPIKEbin_beh,'win',beh_interval,'units','counts','bintype','gaussian_acausal','smooth_win',5);
 timestamp = [];
 timestamp = [timestamp, SPIKEMAT.timestamps'];
 
@@ -88,11 +88,13 @@ for ii = 1:(length(behavTrials.timestamps)-1)
     trialnumberMask(posTrials) = ii; % total trials within session
     if behavTrials.linTrial(ii) == 1
         trialTypeMask(fwdTrials) = 6; % target port
+        lickLocMask(retTrials) = behavTrials.lickLoc(ii); % chosen port
     else
         trialTypeMask(fwdTrials) = behavTrials.toneGain(ii); % target port
+        lickLocMask(fwdTrials) = behavTrials.lickLoc(ii); % chosen port
     end
     trialTypeMask(retTrials) = 7; % target port
-    lickLocMask(posTrials) = behavTrials.lickLoc(ii); % chosen port
+    lickLocMask(retTrials) = 7; % chosen port
     correctMask(posTrials) = behavTrials.correct(ii);% rewarded or not rewarded
     if isfield(behavTrials,'probe')
         probeMask(posTrials) =  behavTrials.probe(ii); % 0 or 1

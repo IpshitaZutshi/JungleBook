@@ -2,7 +2,7 @@ function manifoldPlot(varargin)
 
 p = inputParser;
 addParameter(p,'umap_path',pwd);
-addParameter(p,'umap_name','behavior_speed_1_smooth_1_bin_0.1');
+addParameter(p,'umap_name','behavior_speed_1_smooth_5_bin_0.1');
 addParameter(p,'behav_file',[]);
 addParameter(p,'A',-7);
 addParameter(p,'E',40);

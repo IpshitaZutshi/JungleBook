@@ -1,4 +1,4 @@
-function [spikemat] = bz_SpktToSpkmat(spikes, varargin)
+function [spikemat] = bz_SpktToSpkmat_manifold(spikes, varargin)
 %spikemat = bz_SpktToSpkmat(spiketimes,<options>) takes a 
 % 1 x N_neurons cell array of spiketimes  and converts into a t/dt x N spike
 % matrix.
@@ -40,9 +40,9 @@ addParameter(p,'win',[]);
 addParameter(p,'binsize',[]);
 addParameter(p,'overlap',[]);
 addParameter(p,'dt',0.1);
-addParameter(p,'bintype','boxcar');
+addParameter(p,'bintype','gaussian_acausal');
 addParameter(p,'units','counts');
-
+addParameter(p,'smooth_win',5);
 
 parse(p,varargin{:})
 
@@ -52,6 +52,7 @@ overlap = p.Results.overlap;
 dt = p.Results.dt;
 bintype = p.Results.bintype;
 units = p.Results.units;
+smooth_win = p.Results.smooth_win;
 
 %For legacy use of 'binsize','overlap' input
 if ~isempty(binsize) && ~isempty(overlap)
@@ -166,20 +167,42 @@ switch bintype
     case 'gaussian'
         % stddev = binsize./(2.*sqrt(2*log(2))); %convert to FWHM (width at half max)
         % kernelx = [-fliplr(dt:dt:3*stddev) 0 dt:dt:3*stddev];
-
+        % 
         % Define the number of bins you want for the window
-        numBins = 5;
-
-        % Calculate the standard deviation based on the number of bins
-        stddev = (numBins - 1) / (2 * sqrt(2 * log(2)));  % Keeping FWHM relation
-
-        % Define the kernelx vector to span 5 bins
-        kernelx = linspace(-2, 2, numBins) * stddev;  % 5 points centered at 0      
+        % numBins = 5;
+        % 
+        % % Calculate the standard deviation based on the number of bins
+        % stddev = (numBins - 1) / (2 * sqrt(2 * log(2)));  % Keeping FWHM relation
+        % 
+        % % Define the kernelx vector to span 5 bins
+        % kernelx = linspace(-2, 2, numBins) * stddev;  % 5 points centered at 0      
+        % 
+        % kernel = Gauss(kernelx,0,stddev);
+        % kernel = kernel./Gauss(0,0,stddev); %normalize for counts at peak
+        % for cc = 1:numcells     
+        %     spkmat(:,cc) = abs(FConv(kernel,spkmat(:,cc)'))';    
+        % end
+        spkmat = smoothdata(spkmat,1,'gaussian',smooth_win);
         
-        kernel = Gauss(kernelx,0,stddev);
-        kernel = kernel./Gauss(0,0,stddev); %normalize for counts at peak
-        for cc = 1:numcells     
-            spkmat(:,cc) = abs(FConv(kernel,spkmat(:,cc)'))';    
+   case 'gaussian_acausal'
+        % ----- CAUSAL Gaussian smoothing (history-only) -----
+        % smooth_win = number of past bins to include (e.g. 5 bins = 500 ms if dt=0.1s)
+    
+        numBins = smooth_win;          % history length in bins
+        if numBins < 1
+            numBins = 1;
+        end
+    
+        % Define causal Gaussian kernel (past only)
+        % sigma chosen so kernel fits well within numBins
+        sigma = numBins / 3;
+        x = 0:(numBins-1);             % 0 = current bin, positive = past bins
+        kernel = exp(-(x.^2) / (2*sigma^2));
+        kernel = kernel / sum(kernel); % normalize
+    
+        % Apply causal filtering along time
+        for cc = 1:numcells
+            spkmat(:,cc) = filter(kernel, 1, spkmat(:,cc));
         end
 end
 

@@ -248,7 +248,7 @@ spike_count_beh = [];
 timestamp = [];
 epoch_ind = [];
 for int = 1:size(beh_interval,1)
-    SPIKEMAT = bz_SpktToSpkmat(spikes, 'dt',SPIKEbin_beh,'win',beh_interval(int,:),'units','counts', 'smooth_win',smooth_win);
+    SPIKEMAT = bz_SpktToSpkmat_manifold(spikes, 'dt',SPIKEbin_beh,'win',beh_interval(int,:),'units','counts', 'smooth_win',smooth_win);
     
     if downsample_cell
 %         SPIKEMAT = downsample_matrix(SPIKEMAT,'down_cell_num',down_cell_num,'down_cell',true,'sub_cell',sub_cells);

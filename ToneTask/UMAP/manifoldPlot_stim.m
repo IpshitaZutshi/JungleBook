@@ -6,6 +6,7 @@ addParameter(p,'umap_name','behavior_speed_1_smooth_5_0.1');
 addParameter(p,'behav_file',[]);
 addParameter(p,'A',-7);
 addParameter(p,'E',40);
+addParameter(p,'separateTrials',false);
 addParameter(p,'numrow',1);
 addParameter(p,'addFreq',false);
 addParameter(p,'numcol',1);
@@ -14,11 +15,13 @@ addParameter(p,'colloc',1);
 addParameter(p,'stim',false);
 addParameter(p,'error',false);
 addParameter(p,'col','jet');
+addParameter(p,'poscutOff',0);
+addParameter(p,'speedThresh',1)
 
 addParameter(p,'dim1',1);
 addParameter(p,'dim2',2);
 addParameter(p,'dim3',3);
-addParameter(p,'TRIAL_TYPE',[5 6 8]);
+addParameter(p,'TRIAL_TYPE',[1 2 3]);
 addParameter(p,'stim_ds',[]);
 addParameter(p,'figHandle',[]);
 
@@ -26,6 +29,7 @@ parse(p,varargin{:});
 umap_path = p.Results.umap_path;
 umap_name = p.Results.umap_name;
 behav_file = p.Results.behav_file;
+separateTrials = p.Results.separateTrials;
 A = p.Results.A;
 E = p.Results.E;
 addFreq = p.Results.addFreq;
@@ -42,6 +46,8 @@ dim3 = p.Results.dim3;
 TRIAL_TYPE = p.Results.TRIAL_TYPE;
 figHandle = p.Results.figHandle;
 stim_ds = p.Results.stim_ds;
+poscutOff = p.Results.poscutOff;
+speedThresh = p.Results.speedThresh;
 
 %% load Umap result
 Umap_results = readtable([umap_path, '\Umap_',umap_name,'.csv']);
@@ -75,16 +81,12 @@ freqExp = log10(22000/1000);
 plot_ind = [];
 for tt = 1:length(TRIAL_TYPE)
     if TRIAL_TYPE(tt)<6 && exist('correct_ds')
-        if exist('stim_ds')
+        if separateTrials
             %plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1 & probe_ds==probe)];
-            if ~error
-                plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1 & stim_ds==stim)];
-            else
-                plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==0 & stim_ds==stim)];
-            end
+            plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & stim_ds==stim & trial_num_ds>2)];
         else
             %plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & correct_ds==1)]; 
-            plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt))]; 
+            plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt) & position_y_all>poscutOff & trial_num_ds>2)]; 
         end
     else
         plot_ind =  [plot_ind,find(lick_loc_ds==TRIAL_TYPE(tt))];
@@ -116,6 +118,10 @@ arm_plot = arm_plot(plot_ind);
 lick_plot = lick_loc_ds; 
 lick_plot(isnan(lick_plot))=0; % deal with nan
 lick_plot = lick_plot(plot_ind);
+
+trialnum_plot = speed_ds;
+trialnum_plot(isnan(trialnum_plot))=0; % deal with nan
+trialnum_plot = trialnum_plot(plot_ind);
 
 % color by position
 BuPu=cbrewer('div', 'PiYG', 500);
