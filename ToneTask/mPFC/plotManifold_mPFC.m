@@ -9,7 +9,8 @@ col = [83/255 0/255 0/255;...
     143/255 189/255 107/255;...
     87/255 116/255 144/255];
 
-umap_path = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\mPFC\IZ39\IZ39_220707_sess17\manifold';
+%umap_path = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\mPFC\IZ39\IZ39_220707_sess17\manifold';
+umap_path = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\mPFC\IZ44\IZ44_220915_sess13\manifold';
 sessname  = strsplit(umap_path,'\');
 behav_file = strcat(umap_path,'\',sessname{8},'.position_behavior_speed_1_smooth_5_bin_0.1.mat');
 load(behav_file)

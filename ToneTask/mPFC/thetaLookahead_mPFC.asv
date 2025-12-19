@@ -1,0 +1,487 @@
+function thetaLookahead_mPFC()
+
+% Goal:
+% (1) Difference between decoded and true position in a 3 s window before lick (tWin(2)),
+%     separately for stim and no-stim.
+% (2) Theta lookahead: for each theta trough, collect (decoded - true) over the next 2 theta cycles,
+%     separately for stim and no-stim.
+
+%% Paths / session (keep as you had)
+decodingPath     = 'Z:\Homes\zz737\ipshita_data\Auditory_Task\';
+decodingName     = 'py_data\theta_decoding_lickLoc_y\up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].nc';
+changePointName  = 'py_data/theta_decoding_lickLoc_y/change_point_posterior_up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].mat';
+
+%sess = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ44\Final\IZ44_220915_sess13';
+sess = 'F:\Sorted Data\IZ44_220915_sess13';
+cd(sess);
+
+% Load behavior / tracking / LFP
+file = dir('*.Tracking.Behavior.mat');          load(file.name);
+file = dir('*.TrialBehavior.Behavior.mat');     load(file.name);
+file = dir('*.thetaLFP.mat');                   load(file.name);
+
+% Load decoding data
+[posterior_pos, post_time, post_pos, change_point, trial] = loadDecodingData( ...
+    decodingPath, 'IZ44\Final\IZ44_220915_sess13', decodingName, changePointName);
+
+% Tone trials
+trialNum = find(behavTrials.linTrial == 0);
+% --- Accumulators for phase x (decoded-true) heatmap ---
+base_phase_all = [];
+base_dlt_all   = [];
+
+stim_phase_all = [];
+stim_dlt_all   = [];
+
+%% Pre-allocate containers
+decodedDiff     = [];                 % [nTrials x nSamp3s]  decoded-true aligned to lick (end)
+correctTrial    = false(numel(trialNum),1);
+stimTrial       = false(numel(trialNum),1);
+baselineThetaLookahead = {};          % cell of vectors (decoded-true) for 2 cycles after trough
+stimThetaLookahead     = {};          % cell of vectors (decoded-true) for 2 cycles after trough
+avgVel = nan(numel(trialNum),1);
+
+%% Loop trials
+for ii = 1:numel(trialNum)     
+
+    curTrial = trialNum(ii);
+    tWin = behavTrials.timestamps(curTrial,:);
+   
+    % shift start to first y>10 within the trial (your logic, but safer indexing)
+    idxTrialTracking = find(tracking.timestamps > tWin(1) & tracking.timestamps < tWin(2));
+    idxVel = find(tracking.position.y(idxTrialTracking) > 10, 1, 'first');
+    if ~isempty(idxVel)
+        startTime = tracking.timestamps(idxTrialTracking(1) + idxVel - 1);
+        tWin(1) = startTime;
+    end
+
+     % Extract decoded position (downsampled to tracking timestamps) + tracking pos/vel
+    [pos, decPos_ds, vel, timeStamp] = extractDecoding( ...
+        tWin, posterior_pos, post_time, post_pos, tracking);
+
+    % Extract theta phase aligned to tracking timestamps
+    [lfp_phase, timeStamp_lfp] = extractTheta(tWin, lfp, tracking);
+
+    correctTrial(ii) = behavTrials.correct(curTrial);
+    stimTrial(ii)    = behavTrials.stim(curTrial);
+    
+     % If any extraction failed, pad outputs and continue
+    if isempty(timeStamp) || isempty(decPos_ds) || isempty(pos)
+        decodedDiff(ii,:) = nan(1,1);
+        continue
+    end
+ 
+    % Average velocity in 3 s pre-lick window
+    t0 = tWin(2) - 3;
+    t1 = tWin(2);
+    idxV = timeStamp >= t0 & timeStamp <= t1;
+
+    if any(idxV)
+        avgVel(ii) = mean(vel(idxV), 'omitnan');
+    end
+
+    %% (1) Just take a 3 second window before the lick, i.e., tWin(2), and
+    % populate it with the difference between decoded and true position. If
+    % the trial is less than 3 seconds, pad with nans;
+    dt = median(diff(timeStamp), 'omitnan');
+    if ~isfinite(dt) || dt <= 0
+        dt = 0.01; % fallback
+    end
+    nSamp = max(1, round(3/dt) + 1);
+    decodedDiff(ii,:) = computePreLickDiff(pos, decPos_ds, timeStamp, tWin(2), nSamp);
+    
+    %% (2) For each theta trough, populate difference between decodedPos and true Pos for two theta cycles. 
+    % Do this separately for stim versus baseline trials
+    if isempty(lfp_phase) || isempty(timeStamp_lfp)
+        continue
+    end
+    
+    troughIdx = findThetaTroughs(lfp_phase);
+
+    % need at least 3 troughs to span 2 cycles (k -> k+2)
+    if numel(troughIdx) < 3
+        continue
+    end
+
+    % Ensure vectors are columns for indexing
+    pos       = pos(:);
+    decPos_ds = decPos_ds(:);
+
+    for k = 1:(numel(troughIdx)-2)
+        i1 = troughIdx(k);
+        i2 = troughIdx(k+2) - 1;
+        if i2 <= i1 || i2 > numel(pos)
+            continue
+        end
+        lookVec = (decPos_ds(i1:i2) - pos(i1:i2)).'; % row vector
+        % Collect phase and lookahead distance samples for heatmap
+        % Phase across TWO cycles: unwrap within snippet and make it start at 0
+        lookPhase = unwrap(lfp_phase(i1:i2));        % radians, unwrapped
+        lookPhase = lookPhase - lookPhase(1);        % start at 0
+        % Optional: clamp to [0, 4*pi] (should already be close)
+        lookPhase = max(0, min(lookPhase, 4*pi));
+        lookDlt   = decPos_ds(i1:i2) - pos(i1:i2);  % decoded - true (ahead/behind)
+
+        if stimTrial(ii) == 0
+            baselineThetaLookahead{end+1} = lookVec; 
+            base_phase_all = [base_phase_all; lookPhase(:)];
+            base_dlt_all   = [base_dlt_all;   lookDlt(:)];            
+        else
+            stimThetaLookahead{end+1}     = lookVec; 
+            stim_phase_all = [stim_phase_all; lookPhase(:)];
+            stim_dlt_all   = [stim_dlt_all;   lookDlt(:)];            
+        end
+    end
+end
+
+baseVel = avgVel(stimTrial == 0 & isfinite(avgVel));
+stimVel = avgVel(stimTrial == 1 & isfinite(avgVel));
+
+[p,~,stats] = ranksum(baseVel, stimVel);
+
+fprintf('Avg velocity (3s pre-lick): baseline n=%d, stim n=%d\n', ...
+    numel(baseVel), numel(stimVel));
+fprintf('ranksum p = %.3g, z = %.3f\n', p, stats.zval);
+
+% (Optional) save results
+% expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\mPFC\IZ44\IZ44_220915_sess13\decoding\';
+% if ~exist(expPath,'dir'); mkdir(expPath); end
+% save(fullfile(expPath,'thetaLookahead_results.mat'), ...
+%     'decodedDiff','baselineThetaLookahead','stimThetaLookahead','correctTrial','stimTrial','trialNum');
+
+
+fsTrack = 30;               % fixed tracking rate
+nSamp   = size(decodedDiff, 2);
+t = linspace(-3, 0, nSamp); % seconds relative to lick/end time (0 = tWin(2))
+
+baseMat = decodedDiff(stimTrial == 0, :);
+stimMat = decodedDiff(stimTrial == 1, :);
+
+mBase = median(baseMat, 1, 'omitnan');
+mStim = median(stimMat, 1, 'omitnan');
+
+nBase = sum(isfinite(baseMat), 1);
+nStim = sum(isfinite(stimMat), 1);
+
+semBase = std(baseMat, 0, 1, 'omitnan') ./ sqrt(max(nBase,1));
+semStim = std(stimMat, 0, 1, 'omitnan') ./ sqrt(max(nStim,1));
+
+figure; hold on
+shadedErrorBar(t, mBase, semBase);
+shadedErrorBar(t, mStim, semStim);
+xlabel('Time (s) relative to lick/end');
+ylabel('Decoded - true position');
+legend({'Baseline','Stim'}, 'Location','best');
+title('Decoded difference (3 s pre-lick): mean ± SEM');
+grid on
+
+% --- Plot 2: theta-event aligned decoded difference mean ± SEM ---
+
+nPts = 60;                 % number of points to resample each snippet to (change if you want)
+xNorm = linspace(0, 1, nPts);
+
+baseCell = baselineThetaLookahead;
+stimCell = stimThetaLookahead;
+
+baseResamp = resampleCellSnips(baseCell, nPts);
+stimResamp = resampleCellSnips(stimCell, nPts);
+
+mBase = mean(baseResamp, 1, 'omitnan');
+mStim = mean(stimResamp, 1, 'omitnan');
+
+nBase = sum(isfinite(baseResamp), 1);
+nStim = sum(isfinite(stimResamp), 1);
+
+semBase = std(baseResamp, 0, 1, 'omitnan') ./ sqrt(max(nBase,1));
+semStim = std(stimResamp, 0, 1, 'omitnan') ./ sqrt(max(nStim,1));
+
+figure; hold on
+shadedErrorBar(xNorm, mBase, semBase);
+shadedErrorBar(xNorm, mStim, semStim);
+xlabel('Normalized time (0 to 1 across 2 theta cycles)');
+ylabel('Decoded - true position');
+legend({'Baseline','Stim'}, 'Location','best');
+title('Theta-event aligned decoded difference: mean ± SEM');
+grid on
+
+% --- Phase x lookahead distance heatmaps (baseline vs stim), SMOOTH + contourf ---
+
+% Binning
+nPhaseBins = 80;                               % more bins helps smoothness
+phaseEdges = linspace(0, 4*pi, nPhaseBins+1);  % TWO cycles!
+
+dltMin = -25; dltMax = 25;                     % adjust if needed
+nDltBins = 80;
+dltEdges = linspace(dltMin, dltMax, nDltBins+1);
+
+% Keep finite samples in range
+keepB = isfinite(base_phase_all) & isfinite(base_dlt_all) & ...
+        base_dlt_all >= dltMin & base_dlt_all <= dltMax & ...
+        base_phase_all >= 0 & base_phase_all <= 4*pi;
+
+keepS = isfinite(stim_phase_all) & isfinite(stim_dlt_all) & ...
+        stim_dlt_all >= dltMin & stim_dlt_all <= dltMax & ...
+        stim_phase_all >= 0 & stim_phase_all <= 4*pi;
+
+% 2D histograms (rows=dlt, cols=phase)
+Nb = histcounts2(base_dlt_all(keepB), base_phase_all(keepB), dltEdges, phaseEdges);
+Ns = histcounts2(stim_dlt_all(keepS), stim_phase_all(keepS), dltEdges, phaseEdges);
+
+% Normalize to probability
+Pb = Nb / max(sum(Nb(:)), 1);
+Ps = Ns / max(sum(Ns(:)), 1);
+
+% Smooth 2D matrices (no toolbox required)
+Pb = smooth2D(Pb, 1.2);   % sigma (tune 0.8–2)
+Ps = smooth2D(Ps, 1.2);
+
+% Bin centers for axes
+phaseCenters = (phaseEdges(1:end-1) + phaseEdges(2:end)) / 2;
+dltCenters   = (dltEdges(1:end-1)   + dltEdges(2:end))   / 2;
+
+% Plot with contourf
+figure;
+tiledlayout(1,2,'TileSpacing','compact','Padding','compact')
+
+% Common color limits
+cl = [min([Pb(:); Ps(:)]), max([Pb(:); Ps(:)])];
+
+nLevels = 20;  % more = smoother color transitions
+levels = linspace(cl(1), cl(2), nLevels);
+
+nexttile
+contourf(phaseCenters, dltCenters, Pb, levels, 'LineColor','none');
+set(gca,'YDir','normal'); colormap(jet); colorbar; caxis(cl)
+xticks([0 2*pi 4*pi]); xticklabels({'0','2\pi','4\pi'})
+xlabel('Theta phase (2 cycles)'); ylabel('Decoded - true (ahead + / behind -)')
+title('Baseline')
+
+nexttile
+contourf(phaseCenters, dltCenters, Ps, levels, 'LineColor','none');
+set(gca,'YDir','normal'); colormap(jet); colorbar; caxis(cl)
+xticks([0 2*pi 4*pi]); xticklabels({'0','2\pi','4\pi'})
+xlabel('Theta phase (2 cycles)'); ylabel('Decoded - true (ahead + / behind -)')
+title('Stim')
+
+
+end
+   
+%% ------------------------- Helpers ------------------------- %%
+function A = smooth2D(A, sigma)
+% Gaussian smoothing via separable conv (no toolbox)
+    if sigma <= 0, return; end
+    rad = max(1, ceil(3*sigma));
+    x = (-rad:rad);
+    g = exp(-(x.^2)/(2*sigma^2));
+    g = g / sum(g);
+    A = conv2(conv2(A, g, 'same'), g', 'same');
+end
+
+function M = resampleCellSnips(C, nPts)
+    % C: cell array of row/col vectors (may contain NaNs)
+    % Returns M: [nSnips x nPts] resampled to normalized axis
+    n = numel(C);
+    M = nan(n, nPts);
+    for i = 1:n
+        v = C{i};
+        if isempty(v); continue; end
+        v = v(:)'; % row
+        % drop leading/trailing NaNs (optional)
+        good = isfinite(v);
+        if nnz(good) < 3; continue; end
+        v = v(find(good,1,'first'):find(good,1,'last'));
+        if numel(v) < 3; continue; end
+        xi = linspace(0, 1, numel(v));
+        M(i,:) = interp1(xi, v, linspace(0, 1, nPts), 'linear');
+    end
+end
+
+function [pos, decPos_ds, vel, timeStamp] = extractDecoding(tWin, posterior_pos, post_time, post_pos, tracking)
+% Minimal inputs: only what is used.
+
+% Find decoding indices for tWin (guard boundaries)
+[~, idxDec1] = min(abs(post_time - tWin(1)));
+if abs(post_time(idxDec1) - tWin(1)) > 0.5 && idxDec1 < numel(post_time)
+    idxDec1 = idxDec1 + 1;
+end
+
+[~, idxDec2] = min(abs(post_time - tWin(2)));
+if abs(post_time(idxDec2) - tWin(2)) > 0.5 && idxDec2 > 1
+    idxDec2 = idxDec2 - 1;
+end
+
+idxDec1 = max(1, idxDec1);
+idxDec2 = min(numel(post_time), idxDec2);
+
+if idxDec2 <= idxDec1
+    pos=[]; decPos_ds=[]; vel=[]; timeStamp=[];
+    return
+end
+
+% Check for gaps in decoding time (your original logic, but safer)
+if any(diff(post_time(idxDec1:idxDec2)) > 0.011)
+    pos=[]; decPos_ds=[]; vel=[]; timeStamp=[];
+    return
+end
+
+% Tracking segment
+[~, idxStart] = min(abs(tracking.timestamps - tWin(1)));
+[~, idxEnd]   = min(abs(tracking.timestamps - tWin(2)));
+idxStart = max(1, idxStart);
+idxEnd   = min(numel(tracking.timestamps), idxEnd);
+
+if idxEnd <= idxStart
+    pos=[]; decPos_ds=[]; vel=[]; timeStamp=[];
+    return
+end
+
+pos       = tracking.position.y(idxStart:idxEnd);
+vel       = tracking.position.v(idxStart:idxEnd);
+timeStamp = tracking.timestamps(idxStart:idxEnd);
+
+% Decoder MAP position
+[~, idxPos]  = max(posterior_pos(:, idxDec1:idxDec2), [], 1);
+decPos       = post_pos(idxPos);
+timestamp_dec = post_time(idxDec1:idxDec2);
+
+% Interpolate decoder onto tracking timestamps
+timestamp_dec = timestamp_dec(:);
+decPos        = decPos(:);
+timeStamp_c   = timeStamp(:);
+
+% Ensure strictly increasing time for interp1
+[timestamp_dec, ord] = sort(timestamp_dec);
+decPos = decPos(ord);
+
+inRange = timeStamp_c >= timestamp_dec(1) & timeStamp_c <= timestamp_dec(end);
+
+decPos_ds = nan(size(timeStamp_c));
+decPos_ds(inRange) = interp1(timestamp_dec, decPos, timeStamp_c(inRange), 'linear');
+
+end
+
+function [lfp_phase, timeStamp] = extractTheta(tWin, lfp, tracking)
+% Align theta phase (lfp.filtered) to tracking timestamps within tWin.
+% Minimal inputs: tWin, lfp, tracking.
+
+% Tracking time base for the window
+[~, idxStart] = min(abs(tracking.timestamps - tWin(1)));
+[~, idxEnd]   = min(abs(tracking.timestamps - tWin(2)));
+idxStart = max(1, idxStart);
+idxEnd   = min(numel(tracking.timestamps), idxEnd);
+
+if idxEnd <= idxStart
+    lfp_phase=[]; timeStamp=[];
+    return
+end
+
+timeStamp = tracking.timestamps(idxStart:idxEnd);
+timeStamp_c = timeStamp(:);
+
+% LFP segment
+[~, idxStartLFP] = min(abs(lfp.timestamps - tWin(1)));
+[~, idxEndLFP]   = min(abs(lfp.timestamps - tWin(2)));
+idxStartLFP = max(1, idxStartLFP);
+idxEndLFP   = min(numel(lfp.timestamps), idxEndLFP);
+
+if idxEndLFP <= idxStartLFP
+    lfp_phase=[]; timeStamp=[];
+    return
+end
+
+thetaPhase    = lfp.thetaphase(idxStartLFP:idxEndLFP);
+%thetaFilt    = lfp.filtered(idxStartLFP:idxEndLFP);
+timestamp_lfp = lfp.timestamps(idxStartLFP:idxEndLFP);
+
+thetaPhase    = thetaPhase(:);
+timestamp_lfp = timestamp_lfp(:);
+
+% Ensure strictly increasing time for interp1
+[timestamp_lfp, ord] = sort(timestamp_lfp);
+thetaPhase = thetaPhase(ord);
+
+% Optional gap check for LFP
+if any(diff(timestamp_lfp) > 0.05) % conservative; adjust if needed
+    lfp_phase=[]; timeStamp=[];
+    return
+end
+
+inRange = timeStamp_c >= timestamp_lfp(1) & timeStamp_c <= timestamp_lfp(end);
+
+lfp_phase = nan(size(timeStamp_c));
+lfp_phase(inRange) = interp1(timestamp_lfp, thetaPhase, timeStamp_c(inRange), 'linear');
+
+end
+
+function diffRow = computePreLickDiff(pos, decPos_ds, timeStamp, lickTime, nSamp)
+% Returns 1 x nSamp vector, aligned so last sample is closest to lickTime.
+pos       = pos(:);
+decPos_ds = decPos_ds(:);
+timeStamp = timeStamp(:);
+
+diffSig = decPos_ds - pos;
+
+% Window
+t0 = lickTime - 3;
+t1 = lickTime;
+
+idx = find(timeStamp >= t0 & timeStamp <= t1);
+
+diffRow = nan(1, nSamp);
+if isempty(idx)
+    return
+end
+
+seg = diffSig(idx).';
+% Keep at most nSamp from the END (closest to lick)
+if numel(seg) >= nSamp
+    diffRow = seg(end-nSamp+1:end);
+else
+    diffRow(end-numel(seg)+1:end) = seg;
+end
+end
+
+function troughIdx = findThetaTroughs(phaseVec)
+% Robust-ish trough finder when phase is in radians (typically wrapped).
+% We look for local minima near -pi (theta trough), allowing NaNs.
+phaseVec = phaseVec(:);
+valid = isfinite(phaseVec);
+phase = phaseVec;
+phase(~valid) = nan;
+
+% distance to -pi on the circle
+d = abs(angle(exp(1i*(phase + pi)))); % 0 when phase == -pi
+
+th = 0.25; % radians tolerance (~14 degrees). adjust if too strict/loose
+cand = d < th & isfinite(d);
+
+% local minima of d (manual, avoids toolbox dependence)
+troughIdx = [];
+if numel(d) < 3
+    return
+end
+
+mid = 2:numel(d)-1;
+isMin = cand(mid) & (d(mid) < d(mid-1)) & (d(mid) <= d(mid+1));
+
+troughIdx = mid(isMin);
+end
+
+function [posterior_pos, post_time, post_pos, change_point, trial] = loadDecodingData(decodingPath, sessRel, decodingName, changePointName)
+% Only return what is used downstream.
+
+file_nc = fullfile(decodingPath, sessRel, decodingName);
+posterior_pos = ncread(file_nc, 'y_position');
+post_time     = ncread(file_nc, 'time');
+post_pos      = ncread(file_nc, 'y_position_value');
+
+file_mat = fullfile(decodingPath, sessRel, changePointName);
+S = load(file_mat);
+
+% These field names must exist in the .mat; keep consistent with your original code.
+if isfield(S,'change_point'); change_point = S.change_point; else; change_point = []; end
+if isfield(S,'trial');        trial        = S.trial;        else; trial = []; end
+
+end
+
+
