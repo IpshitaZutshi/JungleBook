@@ -17,12 +17,12 @@
 %     'IZ48\Final\IZ48_230628_sess17','IZ48\Final\IZ48_230703_sess21',...
 %     'IZ48\Final\IZ48_230705_sess22','IZ48\Final\IZ48_230714_sess28'}; %37
 
-sess = {'IZ39\IZ39_220705_sess16','IZ39\IZ39_220707_sess17', ...
-            'IZ40\IZ40_220705_sess15','IZ40\IZ40_220707_sess16', ...
-            'IZ43\IZ43_220915_sess13','IZ43\IZ43_220920_sess15', ...
-            'IZ44\IZ44_220915_sess13','IZ44\IZ44_220920_sess15'};
-
-expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\mPFC\';
+% sess = {'IZ39\IZ39_220705_sess16','IZ39\IZ39_220707_sess17', ...
+%             'IZ40\IZ40_220705_sess15','IZ40\IZ40_220707_sess16', ...
+%             'IZ43\IZ43_220915_sess13','IZ43\IZ43_220920_sess15', ...
+%             'IZ44\IZ44_220915_sess13','IZ44\IZ44_220920_sess15'};
+sess = {'I:\IZ39\Final\IZ39_220705_sess16'};
+expPath = '';
 % lfpChan = [63 63 63 63 63 63 63,...
 %     64 64 67 79,...
 %     63 63 63 63 63 63 63 63 63,...
@@ -30,7 +30,7 @@ expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\mPFC\';
 %     63 63 63 63,...
 %     63 63 63 63];
 
-
+lfpChan = [63];
 
 
 force = 1;
@@ -41,20 +41,20 @@ for ii = 1:length(sess)
     cd(strcat(expPath,sess{ii}))
     disp(strcat(expPath,sess{ii}))
     basepath = pwd;    
-    preprocess_manifold_auditory
-    preprocess_manifold_auditory('nostim_only',true)
-    preprocess_manifold_auditory('stim_only',true)
-    % sessionInfo = bz_getSessionInfo;
-    % 
-    % lfp = bz_GetLFP(lfpChan(ii), 'noprompts',true);
-    % passband = [6 12];
-    % [b, a] = butter(3,[passband(1)/(lfp.samplingRate/2) passband(2)/(lfp.samplingRate/2)],'bandpass'); % order 3
-    % lfp.filtered = FiltFiltM(b,a,double(lfp.data(:,1)));
-    % lfp.thetapower = fastrms(lfp.filtered,ceil(lfp.samplingRate./passband(1)));  % approximate power is frequency band
-    % hilb = hilbert(lfp.filtered);
-    % lfp.thetaphase = mod(angle(hilb),2*pi);
-    % 
-    % save([sessionInfo.FileName '.thetaLFP.mat'],'lfp'); 
+    % preprocess_manifold_auditory
+    % preprocess_manifold_auditory('nostim_only',true)
+    % preprocess_manifold_auditory('stim_only',true)
+    sessionInfo = bz_getSessionInfo;
+
+    lfp = bz_GetLFP(lfpChan(ii), 'noprompts',true);
+    passband = [6 12];
+    [b, a] = butter(3,[passband(1)/(lfp.samplingRate/2) passband(2)/(lfp.samplingRate/2)],'bandpass'); % order 3
+    lfp.filtered = FiltFiltM(b,a,double(lfp.data(:,1)));
+    lfp.thetapower = fastrms(lfp.filtered,ceil(lfp.samplingRate./passband(1)));  % approximate power is frequency band
+    hilb = hilbert(lfp.filtered);
+    lfp.thetaphase = mod(angle(hilb),2*pi);
+
+    save([sessionInfo.FileName '.thetaLFP.mat'],'lfp'); 
 
     % file = dir([basepath filesep '*.spikeData.cellInfo.mat']);
     % data = load(file.name);  

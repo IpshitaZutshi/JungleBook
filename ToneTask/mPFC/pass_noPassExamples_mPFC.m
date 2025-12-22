@@ -4,13 +4,16 @@ function pass_noPassExamples_mPFC
 numrows = 2;
 numcol = 5;
 % 
+mouseID = 'IZ40';
+sessName = 'IZ40_220707_sess16';
 decodingPath = 'Z:\Homes\zz737\ipshita_data\Auditory_Task\';
 decodingName = 'py_data\theta_decoding_lickLoc_y\up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].nc';
 changePointName = 'py_data/theta_decoding_lickLoc_y/change_point_posterior_up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].mat';
 
 
 % IZ44 
-sess = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ44\Final\IZ44_220915_sess13';
+sess = strcat('Z:\Homes\zutshi01\Recordings\Auditory_Task\',mouseID,'\Final\',sessName);
+expPath = strcat('Z:\Homes\zutshi01\Recordings\Auditory_Task\mPFC\',mouseID,'\',sessName,'\decoding\');
 cd(sess);
 file = dir('*.Tracking.Behavior.mat');
 load(file.name)
@@ -22,7 +25,7 @@ Dec = findDecelerationPoints('plotfig',false);
 delibTS = Dec.ts(Dec.decType==2);
 
 % Load decoding data
-[posterior_goal, posterior_pos, post_time, post_pos, post_goal,change_point,trial] = loadDecodingData(decodingPath, 'IZ44\Final\IZ44_220915_sess13', decodingName,changePointName);
+[posterior_goal, posterior_pos, post_time, post_pos, post_goal,change_point,trial] = loadDecodingData(decodingPath, strcat(mouseID,'\Final\',sessName), decodingName,changePointName);
 
 trialNum = [10:5:85];
 
@@ -47,8 +50,10 @@ for ii = 1:length(trialNum)
         if sum(idxDelib)>0
             line([delibTS(idxDelib) delibTS(idxDelib)],[min(post_pos) max(post_pos)])
         end    
+    end    
+    if ~exist(expPath)
+        mkdir(expPath)
     end
-    expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\mPFC\IZ44\IZ44_220915_sess13\decoding\';
     saveas(gcf,strcat(expPath,'passNoPass_',num2str(trialNum(ii)),'.png'));
     saveas(gcf,strcat(expPath,'passNoPass_',num2str(trialNum(ii)),'.eps'),'epsc');
     saveas(gcf,strcat(expPath,'passNoPass_',num2str(trialNum(ii)),'.fig'));

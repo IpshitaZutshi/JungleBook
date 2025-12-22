@@ -1,16 +1,19 @@
 function pass_noPassExamples_mPFC
 
 %% Plot examples of decoding
-numrows = 1;
+numrows = 2;
 numcol = 5;
 % 
+mouseID = 'IZ44';
+sessName = '';
 decodingPath = 'Z:\Homes\zz737\ipshita_data\Auditory_Task\';
 decodingName = 'py_data\theta_decoding_lickLoc_y\up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].nc';
 changePointName = 'py_data/theta_decoding_lickLoc_y/change_point_posterior_up_samp_binsize[0.01]movement_var[25]sticky_p[0.999].mat';
 
 
 % IZ44 
-sess = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\IZ44\Final\IZ44_220915_sess13';
+sess = strcat('Z:\Homes\zutshi01\Recordings\Auditory_Task\',mouseID,'\Final',sessName);
+expPath = strcat('Z:\Homes\zutshi01\Recordings\Auditory_Task\mPFC\',mouseID,'\',sessNameIZ44\IZ44_220915_sess13\decoding\';
 cd(sess);
 file = dir('*.Tracking.Behavior.mat');
 load(file.name)
@@ -22,9 +25,9 @@ Dec = findDecelerationPoints('plotfig',false);
 delibTS = Dec.ts(Dec.decType==2);
 
 % Load decoding data
-[posterior_goal, posterior_pos, post_time, post_pos, post_goal,change_point,trial] = loadDecodingData(decodingPath, 'IZ44\Final\IZ44_220915_sess13', decodingName,changePointName);
+[posterior_goal, posterior_pos, post_time, post_pos, post_goal,change_point,trial] = loadDecodingData(decodingPath, strcat(mouseID,'\Final\',sessName), decodingName,changePointName);
 
-trialNum = [10:5:90];
+trialNum = [10:5:85];
 
 % Randomly find a trial to that port
 for ii = 1:length(trialNum)     
@@ -41,14 +44,13 @@ for ii = 1:length(trialNum)
         tWin(1) = startTime;
     
         plotDecoding(tWin, posterior_pos,posterior_goal,post_time,post_pos,post_goal,change_point,trial,numrows,numcol,1,jj,fig2,(curTrial-1),behavTrials.timestamps(curTrial,1),tracking);
-        plotTheta(tWin,posterior_pos,post_time,post_pos,trial,numrows,numcol,1,jj,fig2,(curTrial-1),behavTrials.timestamps(curTrial,1),tracking);
+        plotTheta(tWin,lfp,posterior_pos,post_time,post_pos,numrows,numcol,2,jj,fig2,tracking);
         % If there's a deliberation deceleration, show that
         idxDelib = InIntervals(delibTS,tWin);
         if sum(idxDelib)>0
             line([delibTS(idxDelib) delibTS(idxDelib)],[min(post_pos) max(post_pos)])
         end    
-    end
-    expPath = 'Z:\Homes\zutshi01\Recordings\Auditory_Task\mPFC\IZ44\IZ44_220915_sess13\decoding\';
+    end    
     saveas(gcf,strcat(expPath,'passNoPass_',num2str(trialNum(ii)),'.png'));
     saveas(gcf,strcat(expPath,'passNoPass_',num2str(trialNum(ii)),'.eps'),'epsc');
     saveas(gcf,strcat(expPath,'passNoPass_',num2str(trialNum(ii)),'.fig'));
@@ -58,7 +60,7 @@ end
 
 
 end
-
+   
 
 function success = plotDecoding(tWin, posterior_pos,posterior_goal,post_time,post_pos,post_goal,change_point,trial,numrows,numcol,rowloc,colloc,fighandle,trialNum,trueTStart,tracking)
 
@@ -112,10 +114,45 @@ line([tWin(1) tWin(2)],[122 122],'Color',[0.2 0.2 0.2],'LineWidth',0.75,'LineSty
 
 end
 
-function success = plotTheta(tWin,posterior_pos,post_time,post_pos,trial,numrows,numcol,rowloc,colloc,fighandle,trialNum,trueTStart,tracking);
+function success = plotTheta(tWin,lfp,posterior_pos,post_time,post_pos,numrows,numcol,rowloc,colloc,fighandle,tracking)
 
+[minTS,idxDec1] = min(abs(post_time-tWin(1)));
+if minTS>0.5 %Take the next index
+    idxDec1 = idxDec1+1;
+end
+[minTS,idxDec2] = min(abs(post_time-tWin(2)));
+if minTS>0.5 %Take the previous index
+    idxDec2 = idxDec2-1;
+end
 
+if any(diff(post_time(idxDec1:idxDec2))> 0.011)
+    success = 0;
+    return
+else
+    success = 1;
+end
 
+[~,idxstart] = min(abs(tracking.timestamps-tWin(1)));      
+[~,idxend] = min(abs(tracking.timestamps-tWin(2)));
+
+[~,idxstartLFP] = min(abs(lfp.timestamps-tWin(1)));      
+[~,idxendLFP] = min(abs(lfp.timestamps-tWin(2)));
+
+% Extract maxLocation
+[~,idxPos] = max(posterior_pos(:,idxDec1:idxDec2),[],1);
+decPos = post_pos(idxPos);
+
+ax1 = subplot(numrows,numcol,numcol*(rowloc-1)+colloc,'Parent',fighandle);
+hold on
+plot(tracking.timestamps(idxstart:idxend),tracking.position.y(idxstart:idxend),'Color','b')
+plot(post_time(idxDec1:idxDec2),decPos,'Color','k')
+plot(lfp.timestamps(idxstartLFP:idxendLFP),(lfp.filtered(idxstartLFP:idxendLFP)./max(lfp.filtered))*120,'Color','r')
+box off
+xlim([tWin(1) tWin(2)])
+set(gca,'YTickLabel',[]);
+%set(gca,'XTickLabel',[]);
+axis tight
+ylim([-20 125])
 end
 function [posterior_goal, posterior_pos, post_time, post_pos, post_goal,change_point,trial] = loadDecodingData(decodingPath, sess, decodingName,changePointName)
     % Load decoding data
